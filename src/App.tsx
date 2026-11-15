@@ -3,8 +3,6 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import {
   Wallet,
   Users,
-  Repeat,
-  Tags,
   Layers,
   ArrowUpRight,
   ArrowDownLeft,
@@ -18,6 +16,7 @@ import {
   BarChart3,
   HardDriveDownload,
   Trash2,
+  Settings,
 } from 'lucide-react';
 import { db, ensureSeeded, resetDatabaseToDefaults } from './db';
 import {
@@ -34,11 +33,15 @@ import { ManageCategoriesModal } from './components/modals/ManageCategoriesModal
 import { ManageRecurringModal } from './components/modals/ManageRecurringModal';
 import { BackupRestoreModal } from './components/modals/BackupRestoreModal';
 import { AnalyticsView } from './components/analytics/AnalyticsView';
+import { SettingsView } from './components/settings/SettingsView';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<
-    'overview' | 'shared' | 'accounts' | 'recurring' | 'analytics'
+    'overview' | 'shared' | 'accounts' | 'analytics' | 'settings'
   >('overview');
+  const [accountsViewMode, setAccountsViewMode] = useState<
+    'accounts' | 'recurring'
+  >('accounts');
   const [isResetting, setIsResetting] = useState(false);
   const [actionNotice, setActionNotice] = useState<string | null>(null);
 
@@ -160,15 +163,6 @@ export default function App() {
 
         {/* Top App Bar Actions */}
         <div className="flex items-center gap-1 sm:gap-2">
-          {/* Categories Manager Button */}
-          <button
-            onClick={() => setIsCategoriesOpen(true)}
-            title="Manage Categories"
-            className="h-10 w-10 rounded-full flex items-center justify-center text-[#c4c6d0] hover:text-[#e2e2e9] hover:bg-[#282a30] transition-colors"
-          >
-            <Tags className="h-5 w-5" />
-          </button>
-
           {/* Backup / Export Button */}
           <button
             onClick={() => setIsBackupOpen(true)}
@@ -189,6 +183,19 @@ export default function App() {
               className={`h-4 w-4 ${isResetting ? 'animate-spin' : ''}`}
             />
           </button>
+
+          {/* Settings Shortcut Button */}
+          <button
+            onClick={() => setActiveTab('settings')}
+            title="Settings"
+            className={`h-10 w-10 rounded-full flex items-center justify-center transition-colors ${
+              activeTab === 'settings'
+                ? 'bg-[#253a5c] text-[#d3e3fd]'
+                : 'text-[#c4c6d0] hover:text-[#e2e2e9] hover:bg-[#282a30]'
+            }`}
+          >
+            <Settings className="h-5 w-5" />
+          </button>
         </div>
       </header>
 
@@ -200,83 +207,85 @@ export default function App() {
         </div>
       )}
 
-      {/* Hero: "Available to Spend" Material 3 Card */}
-      <div className="px-4 sm:px-6 pt-5 pb-2">
-        <div className="rounded-[28px] bg-[#1e2026] border border-[#2d3139] p-5 sm:p-6 shadow-sm">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <span className="text-[11px] font-medium tracking-wide uppercase px-3 py-1 rounded-full bg-[#253a5c] text-[#d3e3fd]">
-                Available to Spend
-              </span>
-              <div className="text-3xl sm:text-5xl font-normal tracking-tight text-[#e2e2e9] mt-3">
-                {formatINR(breakdown.availableToSpend)}
+      {/* Hero: "Available to Spend" Material 3 Card (Visible on Home / Overview) */}
+      {activeTab === 'overview' && (
+        <div className="px-4 sm:px-6 pt-5 pb-2">
+          <div className="rounded-[28px] bg-[#1e2026] border border-[#2d3139] p-5 sm:p-6 shadow-sm">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <span className="text-[11px] font-medium tracking-wide uppercase px-3 py-1 rounded-full bg-[#253a5c] text-[#d3e3fd]">
+                  Available to Spend
+                </span>
+                <div className="text-3xl sm:text-5xl font-normal tracking-tight text-[#e2e2e9] mt-3">
+                  {formatINR(breakdown.availableToSpend)}
+                </div>
+                <p className="text-xs text-[#8e9099] mt-1.5 font-mono">
+                  Liquid - (Reserved + CC Liability + Net Debt)
+                </p>
               </div>
-              <p className="text-xs text-[#8e9099] mt-1.5 font-mono">
-                Liquid - (Reserved + CC Liability + Net Debt)
-              </p>
+
+              <div className="flex flex-wrap items-center gap-2.5">
+                <div className="bg-[#282a30] border border-[#33353c] rounded-2xl px-4 py-3 min-w-[130px]">
+                  <div className="text-[11px] text-[#c4c6d0]">Net Worth</div>
+                  <div className="text-base sm:text-lg font-semibold text-[#a8dab5] mt-0.5">
+                    {formatINR(breakdown.totalNetWorth)}
+                  </div>
+                </div>
+
+                <div className="bg-[#282a30] border border-[#33353c] rounded-2xl px-4 py-3 min-w-[130px]">
+                  <div className="text-[11px] text-[#c4c6d0]">Friends Owe You</div>
+                  <div className="text-base sm:text-lg font-semibold text-[#ffb77c] mt-0.5">
+                    {formatINR(breakdown.totalReceivables)}
+                  </div>
+                </div>
+              </div>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2.5">
-              <div className="bg-[#282a30] border border-[#33353c] rounded-2xl px-4 py-3 min-w-[130px]">
-                <div className="text-[11px] text-[#c4c6d0]">Net Worth</div>
-                <div className="text-base sm:text-lg font-semibold text-[#a8dab5] mt-0.5">
-                  {formatINR(breakdown.totalNetWorth)}
+            {/* Formula Breakdown Chips */}
+            <div className="mt-5 pt-4 border-t border-[#2d3139] grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+              <div className="bg-[#191b20] rounded-2xl p-3 border border-[#282a30]">
+                <div className="text-[11px] text-[#c4c6d0]">Liquid Balances</div>
+                <div className="text-sm font-semibold text-[#e2e2e9] mt-0.5">
+                  {formatINR(breakdown.totalLiquidBalances)}
+                </div>
+                <div className="text-[10px] text-[#8e9099] mt-0.5">
+                  Bank, Cash &amp; Wallets
                 </div>
               </div>
 
-              <div className="bg-[#282a30] border border-[#33353c] rounded-2xl px-4 py-3 min-w-[130px]">
-                <div className="text-[11px] text-[#c4c6d0]">Friends Owe You</div>
-                <div className="text-base sm:text-lg font-semibold text-[#ffb77c] mt-0.5">
-                  {formatINR(breakdown.totalReceivables)}
+              <div className="bg-[#191b20] rounded-2xl p-3 border border-[#282a30]">
+                <div className="text-[11px] text-[#c4c6d0]">Reserved Commitments</div>
+                <div className="text-sm font-semibold text-[#f2b8b5] mt-0.5">
+                  -{formatINR(breakdown.reservedCommitments)}
+                </div>
+                <div className="text-[10px] text-[#8e9099] mt-0.5">
+                  Rent, RD &amp; EMI
                 </div>
               </div>
-            </div>
-          </div>
 
-          {/* Formula Breakdown Chips */}
-          <div className="mt-5 pt-4 border-t border-[#2d3139] grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-            <div className="bg-[#191b20] rounded-2xl p-3 border border-[#282a30]">
-              <div className="text-[11px] text-[#c4c6d0]">Liquid Balances</div>
-              <div className="text-sm font-semibold text-[#e2e2e9] mt-0.5">
-                {formatINR(breakdown.totalLiquidBalances)}
+              <div className="bg-[#191b20] rounded-2xl p-3 border border-[#282a30]">
+                <div className="text-[11px] text-[#c4c6d0]">CC Liability</div>
+                <div className="text-sm font-semibold text-[#f2b8b5] mt-0.5">
+                  -{formatINR(breakdown.unbilledCCLiability)}
+                </div>
+                <div className="text-[10px] text-[#8e9099] mt-0.5">
+                  Credit Cards
+                </div>
               </div>
-              <div className="text-[10px] text-[#8e9099] mt-0.5">
-                Bank, Cash &amp; Wallets
-              </div>
-            </div>
 
-            <div className="bg-[#191b20] rounded-2xl p-3 border border-[#282a30]">
-              <div className="text-[11px] text-[#c4c6d0]">Reserved Commitments</div>
-              <div className="text-sm font-semibold text-[#f2b8b5] mt-0.5">
-                -{formatINR(breakdown.reservedCommitments)}
-              </div>
-              <div className="text-[10px] text-[#8e9099] mt-0.5">
-                Rent, RD &amp; EMI
-              </div>
-            </div>
-
-            <div className="bg-[#191b20] rounded-2xl p-3 border border-[#282a30]">
-              <div className="text-[11px] text-[#c4c6d0]">CC Liability</div>
-              <div className="text-sm font-semibold text-[#f2b8b5] mt-0.5">
-                -{formatINR(breakdown.unbilledCCLiability)}
-              </div>
-              <div className="text-[10px] text-[#8e9099] mt-0.5">
-                Credit Cards
-              </div>
-            </div>
-
-            <div className="bg-[#191b20] rounded-2xl p-3 border border-[#282a30]">
-              <div className="text-[11px] text-[#c4c6d0]">Net Money Owed</div>
-              <div className="text-sm font-semibold text-[#e2e2e9] mt-0.5">
-                -{formatINR(breakdown.netMoneyOwedToOthers)}
-              </div>
-              <div className="text-[10px] text-[#8e9099] mt-0.5">
-                After Receivables
+              <div className="bg-[#191b20] rounded-2xl p-3 border border-[#282a30]">
+                <div className="text-[11px] text-[#c4c6d0]">Net Money Owed</div>
+                <div className="text-sm font-semibold text-[#e2e2e9] mt-0.5">
+                  -{formatINR(breakdown.netMoneyOwedToOthers)}
+                </div>
+                <div className="text-[10px] text-[#8e9099] mt-0.5">
+                  After Receivables
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Main Content Area */}
       <main className="flex-1 px-4 sm:px-6 py-4">
@@ -582,213 +591,240 @@ export default function App() {
           </div>
         )}
 
-        {/* TAB 3: ACCOUNTS MANAGEMENT */}
+        {/* TAB 3: ACCOUNTS & RECURRING */}
         {activeTab === 'accounts' && (
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-base font-semibold text-[#e2e2e9] m-0">
-                  Accounts &amp; Cards
-                </h2>
-                <p className="text-xs text-[#8e9099] mt-0.5">
-                  Bank accounts, Credit Cards, and Digital Wallets
-                </p>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              {/* Segmented View Switcher */}
+              <div className="flex rounded-full bg-[#1e2026] p-1 border border-[#2d3139] w-fit">
+                <button
+                  onClick={() => setAccountsViewMode('accounts')}
+                  className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all ${
+                    accountsViewMode === 'accounts'
+                      ? 'bg-[#253a5c] text-[#d3e3fd]'
+                      : 'text-[#8e9099] hover:text-[#e2e2e9]'
+                  }`}
+                >
+                  Accounts &amp; Cards ({accounts.length})
+                </button>
+                <button
+                  onClick={() => setAccountsViewMode('recurring')}
+                  className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all ${
+                    accountsViewMode === 'recurring'
+                      ? 'bg-[#253a5c] text-[#d3e3fd]'
+                      : 'text-[#8e9099] hover:text-[#e2e2e9]'
+                  }`}
+                >
+                  Recurring &amp; EMIs ({recurringCommitments.length})
+                </button>
               </div>
 
-              <button
-                onClick={() => setIsAccountsOpen(true)}
-                className="px-3.5 py-1.5 rounded-full bg-[#a8c7fa] hover:bg-[#b8d4ff] text-xs font-semibold text-[#003062] flex items-center gap-1.5 transition-colors"
-              >
-                <Plus className="h-4 w-4" />
-                <span>Manage Accounts</span>
-              </button>
+              <div className="flex items-center gap-2">
+                {accountsViewMode === 'accounts' ? (
+                  <button
+                    onClick={() => setIsAccountsOpen(true)}
+                    className="px-3.5 py-1.5 rounded-full bg-[#a8c7fa] hover:bg-[#b8d4ff] text-xs font-semibold text-[#003062] flex items-center gap-1.5 transition-colors"
+                  >
+                    <Plus className="h-4 w-4" />
+                    <span>Manage Accounts</span>
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => setIsRecurringOpen(true)}
+                    className="px-3.5 py-1.5 rounded-full bg-[#a8c7fa] hover:bg-[#b8d4ff] text-xs font-semibold text-[#003062] flex items-center gap-1.5 transition-colors"
+                  >
+                    <Plus className="h-4 w-4" />
+                    <span>Manage Commitments</span>
+                  </button>
+                )}
+              </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-              {accounts.map((acc) => {
-                const isCC = acc.type === 'credit_card';
+            {/* Accounts Sub-view */}
+            {accountsViewMode === 'accounts' && (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {accounts.map((acc) => {
+                  const isCC = acc.type === 'credit_card';
 
-                return (
-                  <div
-                    key={acc.id}
-                    className="rounded-[24px] bg-[#1e2026] border border-[#2d3139] p-5 flex flex-col justify-between"
-                  >
-                    <div>
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="p-2.5 rounded-2xl bg-[#282a30] text-[#a8c7fa] shrink-0 border border-[#33353c]">
-                            {acc.type === 'credit_card' ? (
-                              <CreditCard className="h-5 w-5" />
-                            ) : acc.type === 'cash' ? (
-                              <Banknote className="h-5 w-5" />
-                            ) : acc.type === 'wallet' ? (
-                              <Wallet className="h-5 w-5" />
-                            ) : (
-                              <Landmark className="h-5 w-5" />
-                            )}
+                  return (
+                    <div
+                      key={acc.id}
+                      className="rounded-[24px] bg-[#1e2026] border border-[#2d3139] p-5 flex flex-col justify-between"
+                    >
+                      <div>
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="p-2.5 rounded-2xl bg-[#282a30] text-[#a8c7fa] shrink-0 border border-[#33353c]">
+                              {acc.type === 'credit_card' ? (
+                                <CreditCard className="h-5 w-5" />
+                              ) : acc.type === 'cash' ? (
+                                <Banknote className="h-5 w-5" />
+                              ) : acc.type === 'wallet' ? (
+                                <Wallet className="h-5 w-5" />
+                              ) : (
+                                <Landmark className="h-5 w-5" />
+                              )}
+                            </div>
+                            <div>
+                              <h3 className="text-sm font-semibold text-[#e2e2e9] m-0">
+                                {acc.name}
+                              </h3>
+                              <span className="text-[10px] uppercase font-mono text-[#8e9099]">
+                                {acc.institution || acc.type}
+                              </span>
+                            </div>
                           </div>
-                          <div>
-                            <h3 className="text-sm font-semibold text-[#e2e2e9] m-0">
-                              {acc.name}
-                            </h3>
-                            <span className="text-[10px] uppercase font-mono text-[#8e9099]">
-                              {acc.institution || acc.type}
+
+                          {acc.isDefault && (
+                            <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-[#253a5c] text-[#d3e3fd]">
+                              Primary
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="mt-4">
+                          <div className="text-xs text-[#8e9099]">
+                            {isCC ? 'Current Liability' : 'Balance'}
+                          </div>
+                          <div
+                            className={`text-2xl font-normal mt-0.5 font-mono ${
+                              isCC ? 'text-[#f2b8b5]' : 'text-[#e2e2e9]'
+                            }`}
+                          >
+                            {formatINR(acc.balance)}
+                          </div>
+                        </div>
+                      </div>
+
+                      {isCC && acc.creditLimit && (
+                        <div className="mt-4 pt-3 border-t border-[#2d3139] text-xs">
+                          <div className="flex justify-between text-[#8e9099] text-[11px]">
+                            <span>Limit: {formatINR(acc.creditLimit)}</span>
+                            <span>
+                              Available: {formatINR(acc.creditLimit - (acc.balance || 0))}
                             </span>
                           </div>
-                        </div>
-
-                        {acc.isDefault && (
-                          <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-[#253a5c] text-[#d3e3fd]">
-                            Primary
-                          </span>
-                        )}
-                      </div>
-
-                      <div className="mt-4">
-                        <div className="text-xs text-[#8e9099]">
-                          {isCC ? 'Current Liability' : 'Balance'}
-                        </div>
-                        <div
-                          className={`text-2xl font-normal mt-0.5 font-mono ${
-                            isCC ? 'text-[#f2b8b5]' : 'text-[#e2e2e9]'
-                          }`}
-                        >
-                          {formatINR(acc.balance)}
-                        </div>
-                      </div>
-                    </div>
-
-                    {isCC && acc.creditLimit && (
-                      <div className="mt-4 pt-3 border-t border-[#2d3139] text-xs">
-                        <div className="flex justify-between text-[#8e9099] text-[11px]">
-                          <span>Limit: {formatINR(acc.creditLimit)}</span>
-                          <span>
-                            Available: {formatINR(acc.creditLimit - (acc.balance || 0))}
-                          </span>
-                        </div>
-                        <div className="w-full bg-[#282a30] h-1.5 rounded-full mt-1.5 overflow-hidden">
-                          <div
-                            className="bg-[#f2b8b5] h-full rounded-full"
-                            style={{
-                              width: `${Math.min(
+                          <div className="w-full bg-[#282a30] h-1.5 rounded-full mt-1.5 overflow-hidden">
+                            <div
+                              className="bg-[#f2b8b5] h-full rounded-full"
+                              style={{
+                                width: `${Math.min(
                                 100,
                                 ((acc.balance || 0) / acc.creditLimit) * 100
                               )}%`,
-                            }}
-                          />
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* TAB 4: RECURRING COMMITMENTS */}
-        {activeTab === 'recurring' && (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-base font-semibold text-[#e2e2e9] m-0">
-                  Recurring Commitments
-                </h2>
-                <p className="text-xs text-[#8e9099] mt-0.5">
-                  Phone EMIs, Recurring Deposits, and PG Room Rent
-                </p>
-              </div>
-
-              <button
-                onClick={() => setIsRecurringOpen(true)}
-                className="px-3.5 py-1.5 rounded-full bg-[#a8c7fa] hover:bg-[#b8d4ff] text-xs font-semibold text-[#003062] flex items-center gap-1.5 transition-colors"
-              >
-                <Plus className="h-4 w-4" />
-                <span>Manage Commitments</span>
-              </button>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-              {recurringCommitments.map((comm) => {
-                const hasInstallments = Boolean(comm.totalInstallments);
-                const progressPct = hasInstallments
-                  ? Math.round(
-                      (comm.paidInstallments / (comm.totalInstallments || 1)) * 100
-                    )
-                  : 0;
-
-                return (
-                  <div
-                    key={comm.id}
-                    className="rounded-[24px] bg-[#1e2026] border border-[#2d3139] p-5 flex flex-col justify-between"
-                  >
-                    <div>
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded-full bg-[#253a5c] text-[#d3e3fd]">
-                            {comm.type.replace('_', ' ')}
-                          </span>
-                          <h3 className="text-sm font-semibold text-[#e2e2e9] mt-2 m-0">
-                            {comm.name}
-                          </h3>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-base font-semibold text-[#e2e2e9] font-mono">
-                            {formatINR(comm.amount)}
-                          </div>
-                          <div className="text-[10px] text-[#8e9099]">
-                            Day {comm.dayOfMonth} / mo
-                          </div>
-                        </div>
-                      </div>
-
-                      {hasInstallments && (
-                        <div className="mt-4">
-                          <div className="flex justify-between text-xs text-[#8e9099] mb-1">
-                            <span>
-                              {comm.paidInstallments} of {comm.totalInstallments} paid
-                            </span>
-                            <span className="text-[#c4c6d0]">
-                              {progressPct}%
-                            </span>
-                          </div>
-                          <div className="w-full bg-[#282a30] h-2 rounded-full overflow-hidden">
-                            <div
-                              className="bg-[#a8c7fa] h-full rounded-full transition-all"
-                              style={{ width: `${progressPct}%` }}
+                              }}
                             />
                           </div>
-                          {comm.remainingAmount !== undefined && (
-                            <div className="text-[11px] text-[#8e9099] mt-1.5">
-                              Remaining: {formatINR(comm.remainingAmount)}
-                            </div>
-                          )}
                         </div>
                       )}
                     </div>
+                  );
+                })}
+              </div>
+            )}
 
-                    <div className="mt-4 pt-3 border-t border-[#2d3139] flex items-center justify-between text-xs">
-                      <span className="text-[#8e9099]">
-                        {comm.isReservedCommitment ? 'Reserved in Spend' : 'Not Reserved'}
-                      </span>
-                      <span className="px-2 py-0.5 rounded-full bg-[#1e2a22] text-[#a8dab5] text-[11px]">
-                        Active
-                      </span>
+            {/* Recurring Sub-view */}
+            {accountsViewMode === 'recurring' && (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {recurringCommitments.map((comm) => {
+                  const hasInstallments = Boolean(comm.totalInstallments);
+                  const progressPct = hasInstallments
+                    ? Math.round(
+                        (comm.paidInstallments / (comm.totalInstallments || 1)) * 100
+                      )
+                    : 0;
+
+                  return (
+                    <div
+                      key={comm.id}
+                      className="rounded-[24px] bg-[#1e2026] border border-[#2d3139] p-5 flex flex-col justify-between"
+                    >
+                      <div>
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded-full bg-[#253a5c] text-[#d3e3fd]">
+                              {comm.type.replace('_', ' ')}
+                            </span>
+                            <h3 className="text-sm font-semibold text-[#e2e2e9] mt-2 m-0">
+                              {comm.name}
+                            </h3>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-base font-semibold text-[#e2e2e9] font-mono">
+                              {formatINR(comm.amount)}
+                            </div>
+                            <div className="text-[10px] text-[#8e9099]">
+                              Day {comm.dayOfMonth} / mo
+                            </div>
+                          </div>
+                        </div>
+
+                        {hasInstallments && (
+                          <div className="mt-4">
+                            <div className="flex justify-between text-xs text-[#8e9099] mb-1">
+                              <span>
+                                {comm.paidInstallments} of {comm.totalInstallments} paid
+                              </span>
+                              <span className="text-[#c4c6d0]">
+                                {progressPct}%
+                              </span>
+                            </div>
+                            <div className="w-full bg-[#282a30] h-2 rounded-full overflow-hidden">
+                              <div
+                                className="bg-[#a8c7fa] h-full rounded-full transition-all"
+                                style={{ width: `${progressPct}%` }}
+                              />
+                            </div>
+                            {comm.remainingAmount !== undefined && (
+                              <div className="text-[11px] text-[#8e9099] mt-1.5">
+                                Remaining: {formatINR(comm.remainingAmount)}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="mt-4 pt-3 border-t border-[#2d3139] flex items-center justify-between text-xs">
+                        <span className="text-[#8e9099]">
+                          {comm.isReservedCommitment ? 'Reserved in Spend' : 'Not Reserved'}
+                        </span>
+                        <span className="px-2 py-0.5 rounded-full bg-[#1e2a22] text-[#a8dab5] text-[11px]">
+                          Active
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         )}
 
-        {/* TAB 5: ANALYTICS & CHARTS */}
+        {/* TAB 4: ANALYTICS & CHARTS */}
         {activeTab === 'analytics' && (
           <AnalyticsView
             transactions={transactions}
             categories={categories}
             accounts={accounts}
             people={people}
+          />
+        )}
+
+        {/* TAB 5: SETTINGS PAGE */}
+        {activeTab === 'settings' && (
+          <SettingsView
+            accounts={accounts}
+            categories={categories}
+            subcategories={subcategories}
+            people={people}
+            groups={groups}
+            recurringCommitments={recurringCommitments}
+            onOpenAccounts={() => setIsAccountsOpen(true)}
+            onOpenPeople={() => setIsPeopleOpen(true)}
+            onOpenCategories={() => setIsCategoriesOpen(true)}
+            onOpenRecurring={() => setIsRecurringOpen(true)}
+            onOpenBackup={() => setIsBackupOpen(true)}
+            onResetData={handleResetData}
           />
         )}
       </main>
@@ -873,30 +909,7 @@ export default function App() {
           </span>
         </button>
 
-        {/* Option 4: Recurring */}
-        <button
-          onClick={() => setActiveTab('recurring')}
-          className="flex flex-col items-center gap-1 py-1 px-3 group flex-1 max-w-[80px]"
-        >
-          <div
-            className={`px-4 py-1 rounded-full transition-all flex items-center justify-center ${
-              activeTab === 'recurring'
-                ? 'bg-[#253a5c] text-[#d3e3fd]'
-                : 'text-[#c4c6d0] group-hover:text-[#e2e2e9]'
-            }`}
-          >
-            <Repeat className="h-5 w-5" />
-          </div>
-          <span
-            className={`text-[11px] font-medium transition-colors ${
-              activeTab === 'recurring' ? 'text-[#d3e3fd]' : 'text-[#8e9099]'
-            }`}
-          >
-            Recurring
-          </span>
-        </button>
-
-        {/* Option 5: Analytics */}
+        {/* Option 4: Analytics */}
         <button
           onClick={() => setActiveTab('analytics')}
           className="flex flex-col items-center gap-1 py-1 px-3 group flex-1 max-w-[80px]"
@@ -916,6 +929,29 @@ export default function App() {
             }`}
           >
             Analytics
+          </span>
+        </button>
+
+        {/* Option 5: Settings */}
+        <button
+          onClick={() => setActiveTab('settings')}
+          className="flex flex-col items-center gap-1 py-1 px-3 group flex-1 max-w-[80px]"
+        >
+          <div
+            className={`px-4 py-1 rounded-full transition-all flex items-center justify-center ${
+              activeTab === 'settings'
+                ? 'bg-[#253a5c] text-[#d3e3fd]'
+                : 'text-[#c4c6d0] group-hover:text-[#e2e2e9]'
+            }`}
+          >
+            <Settings className="h-5 w-5" />
+          </div>
+          <span
+            className={`text-[11px] font-medium transition-colors ${
+              activeTab === 'settings' ? 'text-[#d3e3fd]' : 'text-[#8e9099]'
+            }`}
+          >
+            Settings
           </span>
         </button>
       </nav>
