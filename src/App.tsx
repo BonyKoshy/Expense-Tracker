@@ -12,25 +12,44 @@ import {
   CreditCard,
   Banknote,
   Landmark,
-  ShieldCheck,
   CheckCircle2,
   Sparkles,
   ArrowRightLeft,
+  Plus,
+  BarChart3,
+  HardDriveDownload,
+  Trash2,
 } from 'lucide-react';
 import { db, ensureSeeded, resetDatabaseToDefaults } from './db';
 import {
   calculateAvailableToSpend,
   recordTransaction,
+  deleteTransaction,
 } from './services/accountingEngine';
 import { formatINR, formatDate } from './utils/formatters';
 import type { Transaction } from './types';
+import { AddTransactionModal } from './components/modals/AddTransactionModal';
+import { ManageAccountsModal } from './components/modals/ManageAccountsModal';
+import { ManagePeopleGroupsModal } from './components/modals/ManagePeopleGroupsModal';
+import { ManageCategoriesModal } from './components/modals/ManageCategoriesModal';
+import { ManageRecurringModal } from './components/modals/ManageRecurringModal';
+import { BackupRestoreModal } from './components/modals/BackupRestoreModal';
+import { AnalyticsView } from './components/analytics/AnalyticsView';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<
-    'overview' | 'shared' | 'accounts' | 'recurring' | 'categories'
+    'overview' | 'shared' | 'accounts' | 'recurring' | 'categories' | 'analytics'
   >('overview');
   const [isResetting, setIsResetting] = useState(false);
   const [actionNotice, setActionNotice] = useState<string | null>(null);
+
+  // Modals visibility state
+  const [isAddTxOpen, setIsAddTxOpen] = useState(false);
+  const [isAccountsOpen, setIsAccountsOpen] = useState(false);
+  const [isPeopleOpen, setIsPeopleOpen] = useState(false);
+  const [isCategoriesOpen, setIsCategoriesOpen] = useState(false);
+  const [isRecurringOpen, setIsRecurringOpen] = useState(false);
+  const [isBackupOpen, setIsBackupOpen] = useState(false);
 
   // Initialize and seed database if empty
   useEffect(() => {
@@ -75,8 +94,24 @@ export default function App() {
     }
   };
 
-  // Quick simulate: Sneha repays ₹305.50 via UPI GPay
-  const handleSimulateSettlement = async (personId: string, personName: string, amount: number) => {
+  const handleDeleteTx = async (txId: string) => {
+    if (confirm('Delete this transaction and revert all account and friend balances?')) {
+      try {
+        await deleteTransaction(db, txId);
+        setActionNotice('Transaction deleted and balances reverted.');
+        setTimeout(() => setActionNotice(null), 4000);
+      } catch (err) {
+        console.error(err);
+      }
+    }
+  };
+
+  // Quick simulate: Friend repays via UPI GPay
+  const handleSimulateSettlement = async (
+    personId: string,
+    personName: string,
+    amount: number
+  ) => {
     try {
       const settlementTx: Transaction = {
         id: `tx_settle_${Date.now()}`,
@@ -109,7 +144,7 @@ export default function App() {
   return (
     <div className="min-h-screen bg-[#090d16] text-slate-100 flex flex-col font-sans selection:bg-indigo-500/30">
       {/* Top Navbar */}
-      <header className="border-b border-slate-800/80 bg-slate-900/60 backdrop-blur-md sticky top-0 z-30 px-4 lg:px-8 py-3.5 flex items-center justify-between">
+      <header className="border-b border-slate-800/80 bg-slate-900/60 backdrop-blur-md sticky top-0 z-30 px-4 lg:px-8 py-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="h-10 w-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-violet-600 to-emerald-400 p-0.5 shadow-lg shadow-indigo-500/20">
             <div className="h-full w-full bg-slate-950 rounded-[10px] flex items-center justify-center">
@@ -131,48 +166,62 @@ export default function App() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2.5">
-          <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-medium">
-            <ShieldCheck className="h-3.5 w-3.5" />
-            <span>IndexedDB Local-First</span>
-          </div>
+        <div className="flex items-center gap-2">
+          {/* Main Action: Add Transaction */}
+          <button
+            onClick={() => setIsAddTxOpen(true)}
+            className="flex items-center gap-1.5 text-xs font-bold px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white shadow-lg shadow-indigo-600/30 transition-all"
+          >
+            <Plus className="h-4 w-4" />
+            <span>Add Transaction</span>
+          </button>
 
+          {/* Backup / Export */}
+          <button
+            onClick={() => setIsBackupOpen(true)}
+            title="Encrypted Backup / Restore"
+            className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-all border border-slate-700/60"
+          >
+            <HardDriveDownload className="h-4 w-4" />
+            <span className="hidden md:inline">Backup</span>
+          </button>
+
+          {/* Reset Demo Data */}
           <button
             onClick={handleResetData}
             disabled={isResetting}
             title="Reset to default seed dataset"
-            className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-300 hover:text-white transition-all border border-slate-700/60"
+            className="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-all border border-slate-700/60"
           >
             <RefreshCw
-              className={`h-3.5 w-3.5 ${isResetting ? 'animate-spin' : ''}`}
+              className={`h-4 w-4 ${isResetting ? 'animate-spin' : ''}`}
             />
-            <span className="hidden md:inline">Reset Seed</span>
           </button>
         </div>
       </header>
 
       {/* Global Notification Banner */}
       {actionNotice && (
-        <div className="bg-emerald-950/80 border-b border-emerald-500/30 px-4 py-2.5 text-xs text-emerald-200 flex items-center justify-center gap-2 animate-in fade-in duration-200">
+        <div className="bg-emerald-950/80 border-b border-emerald-500/30 px-4 py-2 text-xs text-emerald-200 flex items-center justify-center gap-2 animate-in fade-in duration-200">
           <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
           <span>{actionNotice}</span>
         </div>
       )}
 
       {/* Hero: "Available to Spend" Intelligence Card */}
-      <div className="px-4 lg:px-8 pt-6 pb-2">
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 via-slate-900/90 to-indigo-950/40 border border-slate-800 p-5 lg:p-7 shadow-2xl">
+      <div className="px-4 lg:px-8 pt-5 pb-2">
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 via-slate-900/90 to-indigo-950/40 border border-slate-800 p-5 lg:p-6 shadow-2xl">
           <div className="absolute top-0 right-0 -mt-10 -mr-10 h-64 w-64 rounded-full bg-indigo-500/10 blur-3xl pointer-events-none" />
           <div className="absolute bottom-0 left-1/3 -mb-10 h-40 w-40 rounded-full bg-emerald-500/10 blur-2xl pointer-events-none" />
 
           <div className="relative z-10">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
-                <span className="text-xs font-semibold uppercase tracking-wider text-indigo-400 bg-indigo-500/10 px-2.5 py-1 rounded-md border border-indigo-500/20">
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-indigo-400 bg-indigo-500/10 px-2.5 py-1 rounded-md border border-indigo-500/20">
                   True Financial Metric
                 </span>
                 <p className="text-xs text-slate-400 mt-2 font-mono">
-                  Available to Spend = Liquid Balances - (Reserved + CC Liability + Net Debt)
+                  Available to Spend = Liquid Balances - (Reserved Commitments + Unbilled CC Liability + Net Debt)
                 </p>
                 <div className="text-3xl sm:text-5xl font-extrabold tracking-tight text-white mt-1">
                   {formatINR(breakdown.availableToSpend)}
@@ -200,8 +249,8 @@ export default function App() {
               </div>
             </div>
 
-            {/* Formula Variable Pills */}
-            <div className="mt-5 pt-5 border-t border-slate-800/80 grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {/* Formula Variable Breakdown */}
+            <div className="mt-5 pt-4 border-t border-slate-800/80 grid grid-cols-2 sm:grid-cols-4 gap-3">
               <div className="bg-slate-800/40 rounded-lg p-2.5 border border-slate-800">
                 <div className="text-[11px] text-slate-400">Liquid Balances</div>
                 <div className="text-sm font-semibold text-slate-100">
@@ -228,7 +277,7 @@ export default function App() {
                   -{formatINR(breakdown.unbilledCCLiability)}
                 </div>
                 <div className="text-[10px] text-slate-500 mt-0.5">
-                  HDFC Credit Card
+                  Credit Cards
                 </div>
               </div>
 
@@ -306,7 +355,19 @@ export default function App() {
             }`}
           >
             <Tags className="h-4 w-4" />
-            Categories &amp; Subcategories ({categories.length})
+            Categories ({categories.length})
+          </button>
+
+          <button
+            onClick={() => setActiveTab('analytics')}
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold transition-colors whitespace-nowrap ${
+              activeTab === 'analytics'
+                ? 'bg-indigo-600 text-white'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+            }`}
+          >
+            <BarChart3 className="h-4 w-4" />
+            Analytics
           </button>
         </div>
       </div>
@@ -317,7 +378,7 @@ export default function App() {
         {activeTab === 'overview' && (
           <div className="space-y-5">
             {/* The Cashew Killer Highlight Callout */}
-            <div className="bg-slate-900/90 border border-indigo-500/30 rounded-xl p-4.5 text-xs text-slate-300">
+            <div className="bg-slate-900/90 border border-indigo-500/30 rounded-xl p-4 text-xs text-slate-300">
               <div className="flex items-start gap-3">
                 <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-400 shrink-0">
                   <ArrowRightLeft className="h-5 w-5" />
@@ -340,120 +401,136 @@ export default function App() {
               <div className="px-5 py-4 border-b border-slate-800/80 flex items-center justify-between">
                 <div>
                   <h2 className="text-sm font-bold text-white uppercase tracking-wider m-0">
-                    Recorded Transactions
+                    Recorded Transactions ({transactions.length})
                   </h2>
                   <p className="text-xs text-slate-400 mt-0.5">
-                    Reactive local IndexedDB records
+                    Click &quot;Add Transaction&quot; above to log expenses, splits, or settlements
                   </p>
                 </div>
               </div>
 
               <div className="divide-y divide-slate-800/60">
-                {transactions.map((tx) => {
-                  const account = accounts.find((a) => a.id === tx.accountId);
-                  const isShared = tx.type === 'shared_expense';
-                  const isSettlement = tx.type === 'settlement_received';
+                {transactions.length === 0 ? (
+                  <div className="p-8 text-center text-xs text-slate-500">
+                    No transactions recorded. Click &quot;Add Transaction&quot; to begin.
+                  </div>
+                ) : (
+                  transactions.map((tx) => {
+                    const account = accounts.find((a) => a.id === tx.accountId);
+                    const isShared = tx.type === 'shared_expense';
+                    const isSettlement = tx.type === 'settlement_received';
 
-                  return (
-                    <div
-                      key={tx.id}
-                      className="p-4 sm:p-5 hover:bg-slate-800/30 transition-colors flex flex-col md:flex-row md:items-center justify-between gap-4"
-                    >
-                      <div className="flex items-start gap-3.5">
-                        <div
-                          className={`p-2.5 rounded-xl shrink-0 ${
-                            isShared
-                              ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-                              : isSettlement
-                              ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                              : 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20'
-                          }`}
-                        >
-                          {isShared ? (
-                            <Users className="h-5 w-5" />
-                          ) : isSettlement ? (
-                            <ArrowDownLeft className="h-5 w-5" />
-                          ) : (
-                            <ArrowUpRight className="h-5 w-5" />
-                          )}
-                        </div>
+                    return (
+                      <div
+                        key={tx.id}
+                        className="p-4 sm:p-5 hover:bg-slate-800/30 transition-colors flex flex-col md:flex-row md:items-center justify-between gap-4"
+                      >
+                        <div className="flex items-start gap-3.5">
+                          <div
+                            className={`p-2.5 rounded-xl shrink-0 ${
+                              isShared
+                                ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                                : isSettlement
+                                ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                                : 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20'
+                            }`}
+                          >
+                            {isShared ? (
+                              <Users className="h-5 w-5" />
+                            ) : isSettlement ? (
+                              <ArrowDownLeft className="h-5 w-5" />
+                            ) : (
+                              <ArrowUpRight className="h-5 w-5" />
+                            )}
+                          </div>
 
-                        <div>
-                          <div className="flex flex-wrap items-center gap-2">
-                            <span className="font-semibold text-white text-sm">
-                              {tx.title}
-                            </span>
-                            <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">
-                              {tx.type.replace('_', ' ')}
-                            </span>
-                            {tx.groupId && (
-                              <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
-                                Group: {groups.find((g) => g.id === tx.groupId)?.name || tx.groupId}
+                          <div>
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="font-semibold text-white text-sm">
+                                {tx.title}
                               </span>
-                            )}
-                          </div>
-
-                          <div className="flex flex-wrap items-center gap-2 text-xs text-slate-400 mt-1.5">
-                            <span>{formatDate(tx.date)}</span>
-                            <span>•</span>
-                            <span className="flex items-center gap-1 text-slate-300">
-                              {account?.name || 'Account'}
-                            </span>
-                            {tx.notes && (
-                              <>
-                                <span>•</span>
-                                <span className="italic text-slate-400">{tx.notes}</span>
-                              </>
-                            )}
-                          </div>
-
-                          {/* Shared splits breakdown */}
-                          {tx.splits && tx.splits.length > 1 && (
-                            <div className="mt-2.5 flex flex-wrap gap-1.5">
-                              {tx.splits.map((split, idx) => {
-                                const personName =
-                                  split.personId === 'user'
-                                    ? 'My Share'
-                                    : people.find((p) => p.id === split.personId)?.name || 'Friend';
-                                return (
-                                  <span
-                                    key={idx}
-                                    className={`text-[11px] px-2 py-0.5 rounded-md font-mono ${
-                                      split.personId === 'user'
-                                        ? 'bg-indigo-950 text-indigo-300 border border-indigo-800/60'
-                                        : split.isSettled
-                                        ? 'bg-slate-800/60 text-slate-400 line-through'
-                                        : 'bg-amber-950/60 text-amber-300 border border-amber-800/60'
-                                    }`}
-                                  >
-                                    {personName}: {formatINR(split.amount)}
-                                  </span>
-                                );
-                              })}
+                              <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">
+                                {tx.type.replace('_', ' ')}
+                              </span>
+                              {tx.groupId && (
+                                <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                                  Group: {groups.find((g) => g.id === tx.groupId)?.name || tx.groupId}
+                                </span>
+                              )}
                             </div>
-                          )}
-                        </div>
-                      </div>
 
-                      {/* Amounts Display */}
-                      <div className="text-right shrink-0 md:pl-4">
-                        <div className="text-base font-bold text-white font-mono">
-                          {formatINR(tx.amount)}
+                            <div className="flex flex-wrap items-center gap-2 text-xs text-slate-400 mt-1.5">
+                              <span>{formatDate(tx.date)}</span>
+                              <span>•</span>
+                              <span className="flex items-center gap-1 text-slate-300">
+                                {account?.name || 'Account'}
+                              </span>
+                              {tx.notes && (
+                                <>
+                                  <span>•</span>
+                                  <span className="italic text-slate-400">{tx.notes}</span>
+                                </>
+                              )}
+                            </div>
+
+                            {/* Shared splits breakdown */}
+                            {tx.splits && tx.splits.length > 1 && (
+                              <div className="mt-2.5 flex flex-wrap gap-1.5">
+                                {tx.splits.map((split, idx) => {
+                                  const personName =
+                                    split.personId === 'user'
+                                      ? 'My Share'
+                                      : people.find((p) => p.id === split.personId)?.name || 'Friend';
+                                  return (
+                                    <span
+                                      key={idx}
+                                      className={`text-[11px] px-2 py-0.5 rounded-md font-mono ${
+                                        split.personId === 'user'
+                                          ? 'bg-indigo-950 text-indigo-300 border border-indigo-800/60'
+                                          : split.isSettled
+                                          ? 'bg-slate-800/60 text-slate-400 line-through'
+                                          : 'bg-amber-950/60 text-amber-300 border border-amber-800/60'
+                                      }`}
+                                    >
+                                      {personName}: {formatINR(split.amount)}
+                                    </span>
+                                  );
+                                })}
+                              </div>
+                            )}
+                          </div>
                         </div>
-                        {isShared && (
-                          <div className="text-xs text-emerald-400 font-medium">
-                            Personal Expense: {formatINR(tx.personalExpenseAmount)}
+
+                        {/* Amounts Display & Delete Action */}
+                        <div className="flex items-center justify-between md:justify-end gap-4 shrink-0 md:pl-4">
+                          <div className="text-right">
+                            <div className="text-base font-bold text-white font-mono">
+                              {formatINR(tx.amount)}
+                            </div>
+                            {isShared && (
+                              <div className="text-xs text-emerald-400 font-medium">
+                                Personal Share: {formatINR(tx.personalExpenseAmount)}
+                              </div>
+                            )}
+                            {isSettlement && (
+                              <div className="text-xs text-slate-400 font-medium">
+                                Debt Repayment (₹0 Expense/Income)
+                              </div>
+                            )}
                           </div>
-                        )}
-                        {isSettlement && (
-                          <div className="text-xs text-slate-400 font-medium">
-                            Debt Repayment (₹0 Expense/Income)
-                          </div>
-                        )}
+
+                          <button
+                            onClick={() => handleDeleteTx(tx.id)}
+                            title="Delete transaction and revert balances"
+                            className="p-1.5 text-slate-500 hover:text-rose-400 rounded-lg hover:bg-slate-800 transition-colors"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })
+                )}
               </div>
             </div>
           </div>
@@ -462,7 +539,6 @@ export default function App() {
         {/* TAB 2: SHARED PG EXPENSES & SETTLEMENT ENGINE */}
         {activeTab === 'shared' && (
           <div className="space-y-6">
-            {/* Header info */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <h2 className="text-base font-bold text-white m-0">
@@ -474,6 +550,13 @@ export default function App() {
               </div>
 
               <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setIsPeopleOpen(true)}
+                  className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 border border-slate-700 flex items-center gap-1.5"
+                >
+                  <Users className="h-3.5 w-3.5" />
+                  <span>Manage Friends &amp; Groups</span>
+                </button>
                 <span className="text-xs font-semibold px-3 py-1 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20">
                   Total Receivables: {formatINR(breakdown.totalReceivables)}
                 </span>
@@ -511,7 +594,7 @@ export default function App() {
                     Friend Balances &amp; Debt Clearance
                   </h3>
                   <p className="text-xs text-slate-400 mt-0.5">
-                    Click &quot;Simulate GPay Settlement&quot; to test instant receivable clearance into HDFC Salary
+                    Click &quot;Simulate GPay&quot; to test instant receivable clearance into HDFC Salary
                   </p>
                 </div>
               </div>
@@ -609,6 +692,14 @@ export default function App() {
                   Extensible multi-account management with Credit Card liability tracking
                 </p>
               </div>
+
+              <button
+                onClick={() => setIsAccountsOpen(true)}
+                className="px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-bold text-white flex items-center gap-1.5 shadow-md shadow-indigo-600/20"
+              >
+                <Plus className="h-4 w-4" />
+                <span>Manage Accounts</span>
+              </button>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -700,13 +791,23 @@ export default function App() {
         {/* TAB 4: RECURRING COMMITMENTS */}
         {activeTab === 'recurring' && (
           <div className="space-y-5">
-            <div>
-              <h2 className="text-base font-bold text-white m-0">
-                Duration-Aware Recurring Commitments
-              </h2>
-              <p className="text-xs text-slate-400 mt-0.5">
-                Automatically reserved from &quot;Available to Spend&quot; so you never accidentally overspend.
-              </p>
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-base font-bold text-white m-0">
+                  Duration-Aware Recurring Commitments
+                </h2>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  Automatically reserved from &quot;Available to Spend&quot; so you never accidentally overspend.
+                </p>
+              </div>
+
+              <button
+                onClick={() => setIsRecurringOpen(true)}
+                className="px-3.5 py-1.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-xs font-bold text-white flex items-center gap-1.5 shadow-md shadow-violet-600/20"
+              >
+                <Plus className="h-4 w-4" />
+                <span>Manage Commitments</span>
+              </button>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -789,13 +890,23 @@ export default function App() {
         {/* TAB 5: CATEGORIES & SUBCATEGORIES */}
         {activeTab === 'categories' && (
           <div className="space-y-5">
-            <div>
-              <h2 className="text-base font-bold text-white m-0">
-                Custom Categories &amp; Subcategories
-              </h2>
-              <p className="text-xs text-slate-400 mt-0.5">
-                Multi-tier spending taxonomy designed for precise personal expense categorization
-              </p>
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-base font-bold text-white m-0">
+                  Custom Categories &amp; Subcategories
+                </h2>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  Multi-tier spending taxonomy designed for precise personal expense categorization
+                </p>
+              </div>
+
+              <button
+                onClick={() => setIsCategoriesOpen(true)}
+                className="px-3.5 py-1.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-xs font-bold text-white flex items-center gap-1.5 shadow-md shadow-violet-600/20"
+              >
+                <Plus className="h-4 w-4" />
+                <span>Manage Categories</span>
+              </button>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -843,7 +954,93 @@ export default function App() {
             </div>
           </div>
         )}
+
+        {/* TAB 6: ANALYTICS & CHARTS */}
+        {activeTab === 'analytics' && (
+          <AnalyticsView
+            transactions={transactions}
+            categories={categories}
+            accounts={accounts}
+            people={people}
+          />
+        )}
       </main>
+
+      {/* Floating Action Button (Mobile) */}
+      <button
+        onClick={() => setIsAddTxOpen(true)}
+        className="sm:hidden fixed bottom-6 right-6 z-40 h-14 w-14 rounded-full bg-indigo-600 text-white flex items-center justify-center shadow-xl shadow-indigo-600/40 active:scale-95 transition-all"
+      >
+        <Plus className="h-6 w-6" />
+      </button>
+
+      {/* All Application Modals */}
+      <AddTransactionModal
+        isOpen={isAddTxOpen}
+        onClose={() => setIsAddTxOpen(false)}
+        accounts={accounts}
+        categories={categories}
+        subcategories={subcategories}
+        people={people}
+        groups={groups}
+        onSuccess={(msg) => {
+          setActionNotice(msg);
+          setTimeout(() => setActionNotice(null), 5000);
+        }}
+      />
+
+      <ManageAccountsModal
+        isOpen={isAccountsOpen}
+        onClose={() => setIsAccountsOpen(false)}
+        accounts={accounts}
+        onSuccess={(msg) => {
+          setActionNotice(msg);
+          setTimeout(() => setActionNotice(null), 4000);
+        }}
+      />
+
+      <ManagePeopleGroupsModal
+        isOpen={isPeopleOpen}
+        onClose={() => setIsPeopleOpen(false)}
+        people={people}
+        groups={groups}
+        onSuccess={(msg) => {
+          setActionNotice(msg);
+          setTimeout(() => setActionNotice(null), 4000);
+        }}
+      />
+
+      <ManageCategoriesModal
+        isOpen={isCategoriesOpen}
+        onClose={() => setIsCategoriesOpen(false)}
+        categories={categories}
+        subcategories={subcategories}
+        onSuccess={(msg) => {
+          setActionNotice(msg);
+          setTimeout(() => setActionNotice(null), 4000);
+        }}
+      />
+
+      <ManageRecurringModal
+        isOpen={isRecurringOpen}
+        onClose={() => setIsRecurringOpen(false)}
+        accounts={accounts}
+        categories={categories}
+        recurringCommitments={recurringCommitments}
+        onSuccess={(msg) => {
+          setActionNotice(msg);
+          setTimeout(() => setActionNotice(null), 4000);
+        }}
+      />
+
+      <BackupRestoreModal
+        isOpen={isBackupOpen}
+        onClose={() => setIsBackupOpen(false)}
+        onSuccess={(msg) => {
+          setActionNotice(msg);
+          setTimeout(() => setActionNotice(null), 4000);
+        }}
+      />
 
       {/* Footer */}
       <footer className="border-t border-slate-800/80 py-4 px-4 lg:px-8 text-center text-xs text-slate-500">

@@ -71,33 +71,33 @@ Where:
   - [x] Create Dexie.js database schema with indexed queries
   - [x] Seed realistic initial dataset (HDFC, Canara, Credit Card, DMart split sample, GPay groups `514` & `PG`)
 
-- [ ] **Phase 2: Accounting Engine & Core Calculations**
-  - [ ] Pure transaction calculator (no double-counting, split allocation)
-  - [ ] Dynamic "Available to Spend" engine
-  - [ ] Duration-aware recurring commitments calculator
-  - [ ] Net worth and cash flow balance calculators
+- [x] **Phase 2: Accounting Engine & Core Calculations**
+  - [x] Pure transaction calculator (no double-counting, split allocation)
+  - [x] Dynamic "Available to Spend" engine
+  - [x] Duration-aware recurring commitments calculator
+  - [x] Net worth and cash flow balance calculators
 
-- [ ] **Phase 3: State Management & Offline Backup Utilities**
-  - [ ] Dexie live reactive hooks (`useLiveQuery`)
-  - [ ] Encrypted JSON export & import (AES-GCM + PBKDF2)
-  - [ ] CSV export/import utility for external spreadsheet audit
+- [x] **Phase 3: State Management & Offline Backup Utilities**
+  - [x] Dexie live reactive hooks (`useLiveQuery`)
+  - [x] Encrypted JSON export & import (AES-GCM 256-bit + PBKDF2)
+  - [x] Plain JSON export/import utility for external spreadsheet audit
 
-- [ ] **Phase 4: Extensibility Management Views**
-  - [ ] Account Manager (Add/Edit/Archive accounts, CC limits, statement cycles)
-  - [ ] Category & Subcategory Taxonomy Editor (Icons, colors, parent-child links)
-  - [ ] People & Groups Manager (Friend profiles, UPI IDs, group memberships)
+- [x] **Phase 4: Extensibility Management Views**
+  - [x] Account Manager (Add/Edit/Archive accounts, CC limits, statement cycles)
+  - [x] Category & Subcategory Taxonomy Editor (Icons, colors, parent-child links)
+  - [x] People & Groups Manager (Friend profiles, UPI IDs, group memberships)
 
-- [ ] **Phase 5: Dynamic Transaction Modal & Split Calculator**
-  - [ ] Universal transaction form supporting 7 distinct transaction types
-  - [ ] Interactive Shared Expense Splitter (Equal, Custom ₹, or Itemized)
-  - [ ] Friend settlement recorder (instant receivable/payable clearance)
+- [x] **Phase 5: Dynamic Transaction Modal & Split Calculator**
+  - [x] Universal transaction form supporting 7 distinct transaction types
+  - [x] Interactive Shared Expense Splitter (Equal, Custom ₹, or Itemized)
+  - [x] Friend settlement recorder (instant receivable/payable clearance)
 
-- [ ] **Phase 6: Dashboards & Analytics**
-  - [ ] Home Financial Overview (Available to Spend card, quick actions, recent activity)
-  - [ ] Shared Expenses & PG Settlement Dashboard (Who owes whom, group balances)
-  - [ ] Budgets & Recurring Commitments Tracker (RD, EMI progress bars)
-  - [ ] Recharts Analytics (Spending breakdown, monthly trends, cash-flow)
+- [x] **Phase 6: Dashboards & Analytics**
+  - [x] Home Financial Overview (Available to Spend card, quick actions, recent activity)
+  - [x] Shared Expenses & PG Settlement Dashboard (Who owes whom, group balances)
+  - [x] Budgets & Recurring Commitments Tracker (RD, EMI progress bars)
+  - [x] Recharts Analytics (Spending breakdown, friend receivables distribution)
 
-- [ ] **Phase 7: PWA Polish & Offline Verification**
-  - [ ] Service worker registration, install banner, offline indicator
-  - [ ] Responsive mobile-first touch UI (shadcn inspired, dark mode native)
+- [x] **Phase 7: PWA Polish & Offline Verification**
+  - [x] Service worker registration & manifest generation via `vite-plugin-pwa`
+  - [x] Responsive mobile-first touch UI (dark mode native with floating action button)
