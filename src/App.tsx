@@ -3,7 +3,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import {
   Wallet,
   Users,
-  Layers,
+  Home,
   ArrowUpRight,
   ArrowDownLeft,
   CreditCard,
@@ -15,6 +15,7 @@ import {
   BarChart3,
   Trash2,
   Settings,
+  X,
 } from 'lucide-react';
 import { db, ensureSeeded, resetDatabaseToDefaults } from './db';
 import {
@@ -50,6 +51,22 @@ export default function App() {
   const [isRecurringOpen, setIsRecurringOpen] = useState(false);
   const [isBackupOpen, setIsBackupOpen] = useState(false);
   const [backupModalTab, setBackupModalTab] = useState<'backup' | 'restore' | 'cashew'>('backup');
+  const [showArchitectureBanner, setShowArchitectureBanner] = useState(() => {
+    try {
+      return localStorage.getItem('fintrack_dismiss_arch_banner') !== 'true';
+    } catch {
+      return true;
+    }
+  });
+
+  const handleDismissBanner = () => {
+    setShowArchitectureBanner(false);
+    try {
+      localStorage.setItem('fintrack_dismiss_arch_banner', 'true');
+    } catch {
+      // ignore
+    }
+  };
 
   // Initialize and seed database if empty
   useEffect(() => {
@@ -279,21 +296,32 @@ export default function App() {
         {activeTab === 'overview' && (
           <div className="space-y-4">
             {/* Cashew Killer Explanation Card */}
-            <div className="rounded-[24px] bg-[#1e2026] border border-[#2d3139] p-4 text-xs text-[#c4c6d0]">
-              <div className="flex items-start gap-3">
-                <div className="p-2.5 rounded-2xl bg-[#282a30] text-[#a8c7fa] shrink-0">
-                  <ArrowRightLeft className="h-5 w-5" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-semibold text-[#e2e2e9] m-0">
-                    The Cashew Killer Architecture
-                  </h3>
-                  <p className="mt-1 leading-relaxed text-[#c4c6d0]">
-                    When you pay a bulk bill (e.g. ₹1,505 on credit card at DMart) for 5 people: your personal expense increases <strong>only by ₹282.25</strong>. The rest is booked as <strong>receivables</strong>. When a friend repays via GPay, <strong>₹0</strong> is counted as income — liquid cash increases and friend debt clears.
-                  </p>
+            {showArchitectureBanner && (
+              <div className="relative rounded-[24px] bg-[#1e2026] border border-[#2d3139] p-4 text-xs text-[#c4c6d0] animate-in fade-in duration-200">
+                <button
+                  type="button"
+                  onClick={handleDismissBanner}
+                  className="absolute top-3.5 right-3.5 p-1 rounded-full text-[#8e9099] hover:text-[#e2e2e9] hover:bg-[#282a30] transition-colors"
+                  title="Dismiss banner"
+                  aria-label="Dismiss banner"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+                <div className="flex items-start gap-3 pr-6">
+                  <div className="p-2.5 rounded-2xl bg-[#282a30] text-[#a8c7fa] shrink-0">
+                    <ArrowRightLeft className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-semibold text-[#e2e2e9] m-0">
+                      The Cashew Killer Architecture
+                    </h3>
+                    <p className="mt-1 leading-relaxed text-[#c4c6d0]">
+                      When you pay a bulk bill (e.g. ₹1,505 on credit card at DMart) for 5 people: your personal expense increases <strong>only by ₹282.25</strong>. The rest is booked as <strong>receivables</strong>. When a friend repays via GPay, <strong>₹0</strong> is counted as income — liquid cash increases and friend debt clears.
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
 
             {/* Transactions List */}
             <div className="rounded-[28px] bg-[#1e2026] border border-[#2d3139] overflow-hidden">
@@ -840,7 +868,7 @@ export default function App() {
                 : 'text-[#c4c6d0] group-hover:text-[#e2e2e9]'
             }`}
           >
-            <Layers className="h-5 w-5" />
+            <Home className="h-5 w-5" />
           </div>
           <span
             className={`text-[11px] font-medium transition-colors ${
