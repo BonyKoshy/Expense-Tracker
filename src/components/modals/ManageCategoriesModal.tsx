@@ -20,9 +20,8 @@ export function ManageCategoriesModal({
 }: ManageCategoriesModalProps) {
   const [catName, setCatName] = useState('');
   const [catType, setCatType] = useState<CategoryType>('expense');
-  const [catColor, setCatColor] = useState('#f97316');
+  const [catColor, setCatColor] = useState('#253a5c');
 
-  // Subcategory form
   const [selectedParentCatId, setSelectedParentCatId] = useState(
     categories[0]?.id || ''
   );
@@ -90,34 +89,36 @@ export function ManageCategoriesModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-2xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden my-auto animate-in fade-in zoom-in-95 duration-150">
+    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-y-auto">
+      <div className="bg-[#1e2026] border border-[#2d3139] rounded-t-[28px] sm:rounded-[28px] w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-bottom-6 sm:zoom-in-95 duration-150">
+        <div className="w-10 h-1 rounded-full bg-[#44474f] mx-auto mt-3 mb-1 shrink-0 sm:hidden" />
+
         {/* Header */}
-        <div className="px-5 py-4 border-b border-slate-800 flex items-center justify-between shrink-0 bg-slate-900/90">
+        <div className="px-5 py-3.5 border-b border-[#2d3139] flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-violet-500/10 text-violet-400 border border-violet-500/20">
+            <div className="p-2 rounded-2xl bg-[#282a30] text-[#a8c7fa] border border-[#33353c]">
               <Tags className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="text-base font-bold text-white m-0">
-                Categories &amp; Subcategories Manager
+              <h2 className="text-base font-semibold text-[#e2e2e9] m-0">
+                Categories &amp; Tags
               </h2>
-              <p className="text-xs text-slate-400 mt-0.5">
-                Customize your spending taxonomy (e.g. Food &gt; Tea, Snacks, Mess)
+              <p className="text-xs text-[#8e9099] mt-0.5">
+                Expense and income category structure
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors"
+            className="h-9 w-9 rounded-full flex items-center justify-center text-[#c4c6d0] hover:text-[#e2e2e9] hover:bg-[#282a30] transition-colors"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        <div className="p-5 overflow-y-auto space-y-6">
+        <div className="p-5 overflow-y-auto space-y-4">
           {error && (
-            <div className="p-2.5 rounded-lg bg-rose-950/60 border border-rose-500/40 text-rose-300 text-xs">
+            <div className="p-2.5 rounded-xl bg-[#371e1d] border border-[#60201f] text-[#ffb4ab] text-xs">
               {error}
             </div>
           )}
@@ -125,35 +126,35 @@ export function ManageCategoriesModal({
           {/* Add Category Form */}
           <form
             onSubmit={handleAddCategory}
-            className="bg-slate-950/80 border border-slate-800/90 rounded-2xl p-4 sm:p-5 space-y-3"
+            className="bg-[#191b20] border border-[#2d3139] rounded-[24px] p-4 sm:p-5 space-y-3"
           >
-            <span className="text-xs font-bold uppercase tracking-wider text-violet-400 block">
-              Add New Category
+            <span className="text-xs font-semibold text-[#a8c7fa] block">
+              Add Category
             </span>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
-                <label className="text-xs font-semibold text-slate-300 block mb-1">
-                  Category Name
+                <label className="text-xs font-medium text-[#c4c6d0] block mb-1">
+                  Name
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g., Electronics, Fitness"
+                  placeholder="e.g., Electronics"
                   value={catName}
                   onChange={(e) => setCatName(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+                  className="w-full bg-[#111318] border border-[#44474f] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e9] focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-slate-300 block mb-1">
+                <label className="text-xs font-medium text-[#c4c6d0] block mb-1">
                   Type
                 </label>
                 <select
                   value={catType}
                   onChange={(e) => setCatType(e.target.value as CategoryType)}
-                  className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500"
+                  className="w-full bg-[#111318] border border-[#44474f] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e9] focus:outline-none"
                 >
                   <option value="expense">Expense</option>
                   <option value="income">Income</option>
@@ -162,8 +163,8 @@ export function ManageCategoriesModal({
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-slate-300 block mb-1">
-                  Color Tag
+                <label className="text-xs font-medium text-[#c4c6d0] block mb-1">
+                  Color
                 </label>
                 <div className="flex items-center gap-2">
                   <input
@@ -172,7 +173,7 @@ export function ManageCategoriesModal({
                     onChange={(e) => setCatColor(e.target.value)}
                     className="h-8 w-12 rounded border-0 bg-transparent cursor-pointer"
                   />
-                  <span className="text-xs font-mono text-slate-400">{catColor}</span>
+                  <span className="text-xs font-mono text-[#8e9099]">{catColor}</span>
                 </div>
               </div>
             </div>
@@ -180,7 +181,7 @@ export function ManageCategoriesModal({
             <div className="pt-1 flex justify-end">
               <button
                 type="submit"
-                className="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 active:scale-95 text-white text-xs font-bold transition-all flex items-center gap-1.5"
+                className="px-5 py-2 rounded-full bg-[#a8c7fa] hover:bg-[#b8d4ff] text-[#003062] text-xs font-semibold flex items-center gap-1.5 transition-colors"
               >
                 <FolderPlus className="h-4 w-4" />
                 <span>Save Category</span>
@@ -191,21 +192,21 @@ export function ManageCategoriesModal({
           {/* Add Subcategory Form */}
           <form
             onSubmit={handleAddSubcategory}
-            className="bg-slate-950/80 border border-slate-800/90 rounded-2xl p-4 sm:p-5 space-y-3"
+            className="bg-[#191b20] border border-[#2d3139] rounded-[24px] p-4 sm:p-5 space-y-3"
           >
-            <span className="text-xs font-bold uppercase tracking-wider text-indigo-400 block">
-              Add New Subcategory
+            <span className="text-xs font-semibold text-[#a8c7fa] block">
+              Add Subcategory
             </span>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="text-xs font-semibold text-slate-300 block mb-1">
+                <label className="text-xs font-medium text-[#c4c6d0] block mb-1">
                   Parent Category
                 </label>
                 <select
                   value={selectedParentCatId}
                   onChange={(e) => setSelectedParentCatId(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500"
+                  className="w-full bg-[#111318] border border-[#44474f] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e9] focus:outline-none"
                 >
                   {categories.map((c) => (
                     <option key={c.id} value={c.id}>
@@ -216,16 +217,16 @@ export function ManageCategoriesModal({
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-slate-300 block mb-1">
+                <label className="text-xs font-medium text-[#c4c6d0] block mb-1">
                   Subcategory Name
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g., Tea & Chai, Samosas, Uber Cab"
+                  placeholder="e.g., Tea & Chai, Samosas"
                   value={subName}
                   onChange={(e) => setSubName(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+                  className="w-full bg-[#111318] border border-[#44474f] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e9] focus:outline-none"
                 />
               </div>
             </div>
@@ -233,7 +234,7 @@ export function ManageCategoriesModal({
             <div className="pt-1 flex justify-end">
               <button
                 type="submit"
-                className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white text-xs font-bold transition-all flex items-center gap-1.5"
+                className="px-5 py-2 rounded-full bg-[#a8c7fa] hover:bg-[#b8d4ff] text-[#003062] text-xs font-semibold flex items-center gap-1.5 transition-colors"
               >
                 <Tag className="h-4 w-4" />
                 <span>Save Subcategory</span>
@@ -241,50 +242,39 @@ export function ManageCategoriesModal({
             </div>
           </form>
 
-          {/* Existing Categories Summary */}
-          <div>
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
-              All Configured Categories ({categories.length})
-            </h3>
-            <div className="space-y-2">
-              {categories.map((c) => {
-                const subs = subcategories.filter((s) => s.categoryId === c.id);
-                return (
-                  <div
-                    key={c.id}
-                    className="p-3 rounded-xl bg-slate-950 border border-slate-800/80"
-                  >
-                    <div className="flex items-center gap-2">
-                      <div
-                        className="h-3 w-3 rounded-full shrink-0"
-                        style={{ backgroundColor: c.color }}
-                      />
-                      <span className="text-sm font-bold text-white">{c.name}</span>
-                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-400 uppercase ml-auto">
-                        {c.type}
-                      </span>
-                    </div>
-
-                    <div className="mt-2 flex flex-wrap gap-1.5 pl-5">
-                      {subs.length === 0 ? (
-                        <span className="text-[11px] text-slate-600 italic">
-                          No subcategories
-                        </span>
-                      ) : (
-                        subs.map((s) => (
-                          <span
-                            key={s.id}
-                            className="text-[11px] px-2 py-0.5 rounded-md bg-slate-900 text-slate-300 border border-slate-800"
-                          >
-                            {s.name}
-                          </span>
-                        ))
-                      )}
-                    </div>
+          {/* Categories List */}
+          <div className="space-y-2">
+            {categories.map((c) => {
+              const subs = subcategories.filter((s) => s.categoryId === c.id);
+              return (
+                <div
+                  key={c.id}
+                  className="p-3 rounded-2xl bg-[#191b20] border border-[#2d3139]"
+                >
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="h-2.5 w-2.5 rounded-full shrink-0"
+                      style={{ backgroundColor: c.color }}
+                    />
+                    <span className="text-sm font-semibold text-[#e2e2e9]">{c.name}</span>
+                    <span className="text-[10px] font-mono px-2 py-0.2 rounded-full bg-[#282a30] text-[#8e9099] uppercase ml-auto">
+                      {c.type}
+                    </span>
                   </div>
-                );
-              })}
-            </div>
+
+                  <div className="mt-2 flex flex-wrap gap-1.5 pl-4">
+                    {subs.map((s) => (
+                      <span
+                        key={s.id}
+                        className="text-[11px] px-2.5 py-0.5 rounded-full bg-[#282a30] text-[#c4c6d0]"
+                      >
+                        {s.name}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>

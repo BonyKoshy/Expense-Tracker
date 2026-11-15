@@ -152,61 +152,63 @@ export function ManagePeopleGroupsModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-2xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden my-auto animate-in fade-in zoom-in-95 duration-150">
+    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-y-auto">
+      <div className="bg-[#1e2026] border border-[#2d3139] rounded-t-[28px] sm:rounded-[28px] w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-bottom-6 sm:zoom-in-95 duration-150">
+        <div className="w-10 h-1 rounded-full bg-[#44474f] mx-auto mt-3 mb-1 shrink-0 sm:hidden" />
+
         {/* Header */}
-        <div className="px-5 py-4 border-b border-slate-800 flex items-center justify-between shrink-0 bg-slate-900/90">
+        <div className="px-5 py-3.5 border-b border-[#2d3139] flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20">
+            <div className="p-2 rounded-2xl bg-[#282a30] text-[#a8c7fa] border border-[#33353c]">
               <Users className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="text-base font-bold text-white m-0">
-                People &amp; GPay Groups Manager
+              <h2 className="text-base font-semibold text-[#e2e2e9] m-0">
+                Friends &amp; Groups
               </h2>
-              <p className="text-xs text-slate-400 mt-0.5">
-                Manage friends, UPI addresses, and shared flat/group memberships
+              <p className="text-xs text-[#8e9099] mt-0.5">
+                Friends, UPI IDs, and GPay group memberships
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors"
+            className="h-9 w-9 rounded-full flex items-center justify-center text-[#c4c6d0] hover:text-[#e2e2e9] hover:bg-[#282a30] transition-colors"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        {/* Sub-tab navigation */}
-        <div className="px-5 pt-3 border-b border-slate-800 flex gap-2 shrink-0">
+        {/* M3 Segmented Navigation Chips */}
+        <div className="px-5 pt-3 pb-2 border-b border-[#2d3139] flex gap-2 shrink-0">
           <button
             type="button"
             onClick={() => setActiveSubTab('people')}
-            className={`pb-2 px-3 text-xs font-bold border-b-2 transition-colors ${
+            className={`px-4 py-1.5 text-xs font-medium rounded-full transition-all ${
               activeSubTab === 'people'
-                ? 'border-indigo-500 text-indigo-400'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
+                ? 'bg-[#253a5c] text-[#d3e3fd]'
+                : 'bg-[#282a30] text-[#8e9099] hover:text-[#e2e2e9]'
             }`}
           >
-            Friends &amp; Flatmates ({people.length})
+            Friends ({people.length})
           </button>
           <button
             type="button"
             onClick={() => setActiveSubTab('groups')}
-            className={`pb-2 px-3 text-xs font-bold border-b-2 transition-colors ${
+            className={`px-4 py-1.5 text-xs font-medium rounded-full transition-all ${
               activeSubTab === 'groups'
-                ? 'border-indigo-500 text-indigo-400'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
+                ? 'bg-[#253a5c] text-[#d3e3fd]'
+                : 'bg-[#282a30] text-[#8e9099] hover:text-[#e2e2e9]'
             }`}
           >
-            GPay &amp; PG Groups ({groups.length})
+            Groups ({groups.length})
           </button>
         </div>
 
         {/* Content */}
-        <div className="p-5 overflow-y-auto space-y-5">
+        <div className="p-5 overflow-y-auto space-y-4">
           {error && (
-            <div className="p-2.5 rounded-lg bg-rose-950/60 border border-rose-500/40 text-rose-300 text-xs">
+            <div className="p-2.5 rounded-xl bg-[#371e1d] border border-[#60201f] text-[#ffb4ab] text-xs">
               {error}
             </div>
           )}
@@ -216,17 +218,17 @@ export function ManagePeopleGroupsModal({
               {/* Add / Edit Person Form */}
               <form
                 onSubmit={handleSavePerson}
-                className="bg-slate-950/80 border border-slate-800/90 rounded-2xl p-4 sm:p-5 space-y-3"
+                className="bg-[#191b20] border border-[#2d3139] rounded-[24px] p-4 sm:p-5 space-y-3"
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold uppercase tracking-wider text-amber-400">
-                    {editingPersonId ? 'Edit Friend Details' : 'Add New Friend'}
+                  <span className="text-xs font-semibold text-[#a8c7fa]">
+                    {editingPersonId ? 'Edit Friend' : 'Add New Friend'}
                   </span>
                   {editingPersonId && (
                     <button
                       type="button"
                       onClick={resetPersonForm}
-                      className="text-xs text-slate-400 hover:text-white"
+                      className="text-xs text-[#8e9099] hover:text-[#e2e2e9]"
                     >
                       Cancel Edit
                     </button>
@@ -235,7 +237,7 @@ export function ManagePeopleGroupsModal({
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="text-xs font-semibold text-slate-300 block mb-1">
+                    <label className="text-xs font-medium text-[#c4c6d0] block mb-1">
                       Friend Name
                     </label>
                     <input
@@ -244,43 +246,42 @@ export function ManagePeopleGroupsModal({
                       placeholder="e.g., Sneha, Rahul"
                       value={personName}
                       onChange={(e) => setPersonName(e.target.value)}
-                      className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+                      className="w-full bg-[#111318] border border-[#44474f] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e9] focus:outline-none"
                     />
                   </div>
 
                   <div>
-                    <label className="text-xs font-semibold text-slate-300 block mb-1">
+                    <label className="text-xs font-medium text-[#c4c6d0] block mb-1">
                       Avatar Emoji
                     </label>
                     <select
                       value={personAvatar}
                       onChange={(e) => setPersonAvatar(e.target.value)}
-                      className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500"
+                      className="w-full bg-[#111318] border border-[#44474f] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e9] focus:outline-none"
                     >
-                      <option value="👤">👤 Default Person</option>
-                      <option value="👨‍💼">👨‍💼 Office Mate</option>
-                      <option value="👩‍💻">👩‍💻 Techie / Flatmate</option>
+                      <option value="👤">👤 Person</option>
+                      <option value="👨‍💼">👨‍💼 Office</option>
+                      <option value="👩‍💻">👩‍💻 Tech / Flat</option>
                       <option value="👨‍🎓">👨‍🎓 Roommate</option>
-                      <option value="🧑‍🍳">🧑‍🍳 Mess Cook</option>
                       <option value="🤝">🤝 Friend</option>
                     </select>
                   </div>
 
                   <div>
-                    <label className="text-xs font-semibold text-slate-300 block mb-1">
-                      UPI ID (for easy settlements)
+                    <label className="text-xs font-medium text-[#c4c6d0] block mb-1">
+                      UPI ID (for GPay settlement)
                     </label>
                     <input
                       type="text"
                       placeholder="e.g., sneha@okaxis"
                       value={personUpi}
                       onChange={(e) => setPersonUpi(e.target.value)}
-                      className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 font-mono focus:outline-none focus:border-indigo-500"
+                      className="w-full bg-[#111318] border border-[#44474f] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e9] font-mono focus:outline-none"
                     />
                   </div>
 
                   <div>
-                    <label className="text-xs font-semibold text-slate-300 block mb-1">
+                    <label className="text-xs font-medium text-[#c4c6d0] block mb-1">
                       Phone Number
                     </label>
                     <input
@@ -288,20 +289,20 @@ export function ManagePeopleGroupsModal({
                       placeholder="+91 98765 43210"
                       value={personPhone}
                       onChange={(e) => setPersonPhone(e.target.value)}
-                      className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+                      className="w-full bg-[#111318] border border-[#44474f] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e9] focus:outline-none"
                     />
                   </div>
 
                   <div className="sm:col-span-2">
-                    <label className="text-xs font-semibold text-slate-300 block mb-1">
+                    <label className="text-xs font-medium text-[#c4c6d0] block mb-1">
                       Notes
                     </label>
                     <input
                       type="text"
-                      placeholder="e.g., Room 514 roommate"
+                      placeholder="Room 514 flatmate"
                       value={personNotes}
                       onChange={(e) => setPersonNotes(e.target.value)}
-                      className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+                      className="w-full bg-[#111318] border border-[#44474f] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e9] focus:outline-none"
                     />
                   </div>
                 </div>
@@ -309,48 +310,45 @@ export function ManagePeopleGroupsModal({
                 <div className="pt-2 flex justify-end">
                   <button
                     type="submit"
-                    className="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 active:scale-95 text-white text-xs font-bold transition-all flex items-center gap-1.5"
+                    className="px-5 py-2 rounded-full bg-[#a8c7fa] hover:bg-[#b8d4ff] text-[#003062] text-xs font-semibold flex items-center gap-1.5 transition-colors"
                   >
                     <UserPlus className="h-4 w-4" />
-                    <span>{editingPersonId ? 'Update Friend' : 'Add Friend'}</span>
+                    <span>{editingPersonId ? 'Update' : 'Add Friend'}</span>
                   </button>
                 </div>
               </form>
 
               {/* People List */}
               <div className="space-y-2">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
-                  Registered Friends ({people.length})
-                </h3>
                 {people.map((p) => (
                   <div
                     key={p.id}
-                    className="p-3 rounded-xl bg-slate-950 border border-slate-800/80 flex items-center justify-between hover:border-slate-700 transition-colors"
+                    className="p-3 rounded-2xl bg-[#191b20] border border-[#2d3139] flex items-center justify-between hover:bg-[#282a30]/40 transition-colors"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="h-9 w-9 rounded-full bg-slate-800 flex items-center justify-center text-lg border border-slate-700">
+                      <div className="h-9 w-9 rounded-full bg-[#282a30] flex items-center justify-center text-lg">
                         {p.avatar || '👤'}
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="text-sm font-semibold text-white">
+                          <span className="text-sm font-semibold text-[#e2e2e9]">
                             {p.name}
                           </span>
                           {p.upiId && (
-                            <span className="text-[10px] font-mono text-indigo-400">
+                            <span className="text-[10px] font-mono text-[#a8c7fa]">
                               {p.upiId}
                             </span>
                           )}
                         </div>
-                        <div className="text-[11px] text-slate-400">
-                          Net balance:{' '}
+                        <div className="text-[11px] text-[#8e9099]">
+                          Balance:{' '}
                           <span
                             className={
                               p.netBalance > 0
-                                ? 'text-amber-400 font-bold'
+                                ? 'text-[#ffb77c] font-semibold'
                                 : p.netBalance < 0
-                                ? 'text-rose-400 font-bold'
-                                : 'text-slate-400'
+                                ? 'text-[#f2b8b5] font-semibold'
+                                : 'text-[#8e9099]'
                             }
                           >
                             {p.netBalance > 0
@@ -365,8 +363,7 @@ export function ManagePeopleGroupsModal({
 
                     <button
                       onClick={() => startEditPerson(p)}
-                      title="Edit Friend"
-                      className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors"
+                      className="p-1.5 text-[#8e9099] hover:text-[#e2e2e9] rounded-full hover:bg-[#282a30]"
                     >
                       <Edit2 className="h-4 w-4" />
                     </button>
@@ -381,17 +378,17 @@ export function ManagePeopleGroupsModal({
               {/* Add / Edit Group Form */}
               <form
                 onSubmit={handleSaveGroup}
-                className="bg-slate-950/80 border border-slate-800/90 rounded-2xl p-4 sm:p-5 space-y-3"
+                className="bg-[#191b20] border border-[#2d3139] rounded-[24px] p-4 sm:p-5 space-y-3"
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold uppercase tracking-wider text-indigo-400">
-                    {editingGroupId ? 'Edit Group' : 'Create GPay / PG Group'}
+                  <span className="text-xs font-semibold text-[#a8c7fa]">
+                    {editingGroupId ? 'Edit Group' : 'Create GPay Group'}
                   </span>
                   {editingGroupId && (
                     <button
                       type="button"
                       onClick={resetGroupForm}
-                      className="text-xs text-slate-400 hover:text-white"
+                      className="text-xs text-[#8e9099] hover:text-[#e2e2e9]"
                     >
                       Cancel Edit
                     </button>
@@ -400,39 +397,39 @@ export function ManagePeopleGroupsModal({
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="text-xs font-semibold text-slate-300 block mb-1">
+                    <label className="text-xs font-medium text-[#c4c6d0] block mb-1">
                       Group Name
                     </label>
                     <input
                       type="text"
                       required
-                      placeholder="e.g., 514, PG Common, Goa Trip"
+                      placeholder="e.g., 514, PG Common"
                       value={groupName}
                       onChange={(e) => setGroupName(e.target.value)}
-                      className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+                      className="w-full bg-[#111318] border border-[#44474f] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e9] focus:outline-none"
                     />
                   </div>
 
                   <div>
-                    <label className="text-xs font-semibold text-slate-300 block mb-1">
+                    <label className="text-xs font-medium text-[#c4c6d0] block mb-1">
                       Description
                     </label>
                     <input
                       type="text"
-                      placeholder="e.g., PG Flatmates groceries split"
+                      placeholder="PG Flatmates bill splits"
                       value={groupDesc}
                       onChange={(e) => setGroupDesc(e.target.value)}
-                      className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+                      className="w-full bg-[#111318] border border-[#44474f] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e9] focus:outline-none"
                     />
                   </div>
                 </div>
 
-                {/* Member selection */}
+                {/* Member selection chips */}
                 <div>
-                  <label className="text-xs font-semibold text-slate-300 block mb-1.5">
-                    Select Group Members
+                  <label className="text-xs font-medium text-[#c4c6d0] block mb-1.5">
+                    Select Members
                   </label>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-1.5">
                     {people.map((p) => {
                       const isIncluded = groupMemberIds.includes(p.id);
                       return (
@@ -446,10 +443,10 @@ export function ManagePeopleGroupsModal({
                               setGroupMemberIds([...groupMemberIds, p.id]);
                             }
                           }}
-                          className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors flex items-center gap-1.5 ${
+                          className={`px-3 py-1 rounded-full text-xs font-medium transition-colors flex items-center gap-1.5 ${
                             isIncluded
-                              ? 'bg-indigo-600 text-white border-indigo-500'
-                              : 'bg-slate-900 text-slate-400 border-slate-800 hover:text-slate-200'
+                              ? 'bg-[#253a5c] text-[#d3e3fd]'
+                              : 'bg-[#282a30] text-[#8e9099] hover:text-[#e2e2e9]'
                           }`}
                         >
                           <span>{p.avatar || '👤'}</span>
@@ -463,40 +460,36 @@ export function ManagePeopleGroupsModal({
                 <div className="pt-2 flex justify-end">
                   <button
                     type="submit"
-                    className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white text-xs font-bold transition-all flex items-center gap-1.5"
+                    className="px-5 py-2 rounded-full bg-[#a8c7fa] hover:bg-[#b8d4ff] text-[#003062] text-xs font-semibold flex items-center gap-1.5 transition-colors"
                   >
                     <Plus className="h-4 w-4" />
-                    <span>{editingGroupId ? 'Update Group' : 'Save Group'}</span>
+                    <span>{editingGroupId ? 'Update' : 'Save'}</span>
                   </button>
                 </div>
               </form>
 
               {/* Groups List */}
               <div className="space-y-2">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
-                  Existing Groups ({groups.length})
-                </h3>
                 {groups.map((g) => (
                   <div
                     key={g.id}
-                    className="p-3 rounded-xl bg-slate-950 border border-slate-800/80 flex items-center justify-between hover:border-slate-700 transition-colors"
+                    className="p-3 rounded-2xl bg-[#191b20] border border-[#2d3139] flex items-center justify-between hover:bg-[#282a30]/40 transition-colors"
                   >
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="text-sm font-bold text-white">{g.name}</span>
-                        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-400">
+                        <span className="text-sm font-semibold text-[#e2e2e9]">{g.name}</span>
+                        <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#282a30] text-[#8e9099]">
                           {g.memberIds.length} members
                         </span>
                       </div>
                       {g.description && (
-                        <p className="text-xs text-slate-400 mt-0.5">{g.description}</p>
+                        <p className="text-xs text-[#8e9099] mt-0.5">{g.description}</p>
                       )}
                     </div>
 
                     <button
                       onClick={() => startEditGroup(g)}
-                      title="Edit Group"
-                      className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors"
+                      className="p-1.5 text-[#8e9099] hover:text-[#e2e2e9] rounded-full hover:bg-[#282a30]"
                     >
                       <Edit2 className="h-4 w-4" />
                     </button>

@@ -50,7 +50,7 @@ export function BackupRestoreModal({
   const handleExportEncrypted = async () => {
     setErrorMessage(null);
     if (!encryptPassword || encryptPassword.length < 6) {
-      setErrorMessage('Please enter a password with at least 6 characters.');
+      setErrorMessage('Password must be at least 6 characters.');
       return;
     }
 
@@ -62,7 +62,7 @@ export function BackupRestoreModal({
         encryptedJson,
         `fintrack-backup-encrypted-${dateStr}.json`
       );
-      setStatusMessage('Encrypted backup generated and downloaded!');
+      setStatusMessage('Encrypted backup downloaded.');
       setEncryptPassword('');
       setTimeout(() => setStatusMessage(null), 4000);
     } catch (err: unknown) {
@@ -80,7 +80,7 @@ export function BackupRestoreModal({
       const plainJson = await exportPlainBackup();
       const dateStr = new Date().toISOString().slice(0, 10);
       downloadFile(plainJson, `fintrack-backup-plain-${dateStr}.json`);
-      setStatusMessage('Plain JSON backup generated and downloaded!');
+      setStatusMessage('Plain JSON backup downloaded.');
       setTimeout(() => setStatusMessage(null), 4000);
     } catch (err: unknown) {
       console.error(err);
@@ -103,18 +103,16 @@ export function BackupRestoreModal({
 
       if (parsed.encrypted === true && !decryptPassword) {
         setErrorMessage(
-          'This file is encrypted with a password. Please enter your password above and re-select the file.'
+          'Encrypted backup file. Please enter your password above before selecting the file.'
         );
         setIsProcessing(false);
         return;
       }
 
       await restoreBackup(text, decryptPassword || undefined);
-      setStatusMessage(
-        'Database successfully restored! All accounts, transactions, and splits updated.'
-      );
+      setStatusMessage('Database restored successfully.');
       if (onSuccess) {
-        onSuccess('Database restored successfully from backup file.');
+        onSuccess('Database restored successfully from backup.');
       }
       setTimeout(() => setStatusMessage(null), 4000);
     } catch (err: unknown) {
@@ -131,84 +129,86 @@ export function BackupRestoreModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden my-auto animate-in fade-in zoom-in-95 duration-150">
+    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-y-auto">
+      <div className="bg-[#1e2026] border border-[#2d3139] rounded-t-[28px] sm:rounded-[28px] w-full max-w-xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-bottom-6 sm:zoom-in-95 duration-150">
+        <div className="w-10 h-1 rounded-full bg-[#44474f] mx-auto mt-3 mb-1 shrink-0 sm:hidden" />
+
         {/* Header */}
-        <div className="px-5 py-4 border-b border-slate-800 flex items-center justify-between shrink-0 bg-slate-900/90">
+        <div className="px-5 py-3.5 border-b border-[#2d3139] flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+            <div className="p-2 rounded-2xl bg-[#282a30] text-[#a8c7fa] border border-[#33353c]">
               <ShieldCheck className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="text-base font-bold text-white m-0">
-                Encrypted Backup &amp; Restore
+              <h2 className="text-base font-semibold text-[#e2e2e9] m-0">
+                Backup &amp; Restore
               </h2>
-              <p className="text-xs text-slate-400 mt-0.5">
-                Local-first data ownership using Web Crypto AES-GCM 256-bit
+              <p className="text-xs text-[#8e9099] mt-0.5">
+                Encrypted local JSON backup (AES-GCM 256-bit)
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors"
+            className="h-9 w-9 rounded-full flex items-center justify-center text-[#c4c6d0] hover:text-[#e2e2e9] hover:bg-[#282a30] transition-colors"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        <div className="p-5 overflow-y-auto space-y-6">
+        <div className="p-5 overflow-y-auto space-y-4">
           {statusMessage && (
-            <div className="p-3 rounded-xl bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 text-xs flex items-center gap-2">
-              <CheckCircle className="h-4 w-4 shrink-0 text-emerald-400" />
+            <div className="p-3 rounded-2xl bg-[#1e2a22] border border-[#2e4d38] text-[#a8dab5] text-xs flex items-center gap-2">
+              <CheckCircle className="h-4 w-4 shrink-0 text-[#a8dab5]" />
               <span>{statusMessage}</span>
             </div>
           )}
 
           {errorMessage && (
-            <div className="p-3 rounded-xl bg-rose-950/80 border border-rose-500/40 text-rose-300 text-xs flex items-center gap-2">
-              <AlertCircle className="h-4 w-4 shrink-0 text-rose-400" />
+            <div className="p-3 rounded-2xl bg-[#371e1d] border border-[#60201f] text-[#ffb4ab] text-xs flex items-center gap-2">
+              <AlertCircle className="h-4 w-4 shrink-0 text-[#ffb4ab]" />
               <span>{errorMessage}</span>
             </div>
           )}
 
-          {/* Section 1: Encrypted Export */}
-          <div className="bg-slate-950/80 border border-slate-800/90 rounded-2xl p-4 sm:p-5 space-y-3">
+          {/* Encrypted Export */}
+          <div className="bg-[#191b20] border border-[#2d3139] rounded-[24px] p-4 space-y-2.5">
             <div className="flex items-center gap-2">
-              <Lock className="h-4 w-4 text-emerald-400" />
-              <span className="text-xs font-bold uppercase tracking-wider text-emerald-400">
-                Secure Encrypted Export (Recommended)
+              <Lock className="h-4 w-4 text-[#a8c7fa]" />
+              <span className="text-xs font-semibold text-[#e2e2e9]">
+                Password Protected Backup
               </span>
             </div>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              Encrypts all accounts, friends, groups, and transactions using PBKDF2 (100,000 rounds) and AES-GCM 256-bit encryption. Safe to back up to Google Drive or email.
+            <p className="text-xs text-[#8e9099] leading-relaxed">
+              Standard PBKDF2 + AES-GCM 256-bit envelope. Protects financial balances and friends data.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-2 pt-1">
               <input
                 type="password"
-                placeholder="Set backup encryption password"
+                placeholder="Password (minimum 6 chars)"
                 value={encryptPassword}
                 onChange={(e) => setEncryptPassword(e.target.value)}
-                className="flex-1 bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+                className="flex-1 bg-[#111318] border border-[#44474f] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e9] placeholder-[#8e9099] focus:outline-none"
               />
               <button
                 type="button"
                 onClick={handleExportEncrypted}
                 disabled={isProcessing}
-                className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-md shadow-emerald-900/30"
+                className="px-5 py-2 rounded-full bg-[#a8c7fa] hover:bg-[#b8d4ff] text-[#003062] text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
               >
                 <Download className="h-4 w-4" />
-                <span>Export Encrypted</span>
+                <span>Export</span>
               </button>
             </div>
           </div>
 
-          {/* Section 2: Plain JSON Export */}
-          <div className="bg-slate-950/80 border border-slate-800/90 rounded-2xl p-4 sm:p-5 space-y-3">
+          {/* Plain Export */}
+          <div className="bg-[#191b20] border border-[#2d3139] rounded-[24px] p-4 space-y-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <FileJson className="h-4 w-4 text-slate-400" />
-                <span className="text-xs font-bold uppercase tracking-wider text-slate-300">
+                <FileJson className="h-4 w-4 text-[#8e9099]" />
+                <span className="text-xs font-semibold text-[#e2e2e9]">
                   Plain JSON Export
                 </span>
               </div>
@@ -216,28 +216,25 @@ export function BackupRestoreModal({
                 type="button"
                 onClick={handleExportPlain}
                 disabled={isProcessing}
-                className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition-colors flex items-center gap-1.5"
+                className="px-4 py-1.5 rounded-full bg-[#282a30] hover:bg-[#33353c] text-[#e2e2e9] text-xs font-medium border border-[#33353c] flex items-center gap-1.5 transition-colors"
               >
                 <Download className="h-3.5 w-3.5" />
-                <span>Download Plain JSON</span>
+                <span>Download</span>
               </button>
             </div>
-            <p className="text-xs text-slate-400">
-              Unencrypted raw JSON file for quick spreadsheet audits or local debugging.
+            <p className="text-xs text-[#8e9099]">
+              Unencrypted JSON for spreadsheet auditing.
             </p>
           </div>
 
-          {/* Section 3: Restore Database */}
-          <div className="bg-slate-950/80 border border-slate-800/90 rounded-2xl p-4 sm:p-5 space-y-3">
+          {/* Restore */}
+          <div className="bg-[#191b20] border border-[#2d3139] rounded-[24px] p-4 space-y-2.5">
             <div className="flex items-center gap-2">
-              <Upload className="h-4 w-4 text-indigo-400" />
-              <span className="text-xs font-bold uppercase tracking-wider text-indigo-400">
-                Restore From Backup File
+              <Upload className="h-4 w-4 text-[#a8c7fa]" />
+              <span className="text-xs font-semibold text-[#e2e2e9]">
+                Restore Database
               </span>
             </div>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              Upload a previously exported `.json` file. If the file was encrypted, enter the password below before selecting the file.
-            </p>
 
             <div className="space-y-2 pt-1">
               <input
@@ -245,7 +242,7 @@ export function BackupRestoreModal({
                 placeholder="Enter password (if backup was encrypted)"
                 value={decryptPassword}
                 onChange={(e) => setDecryptPassword(e.target.value)}
-                className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+                className="w-full bg-[#111318] border border-[#44474f] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e9] placeholder-[#8e9099] focus:outline-none"
               />
 
               <input
@@ -259,12 +256,12 @@ export function BackupRestoreModal({
 
               <label
                 htmlFor="backup-file-input"
-                className="w-full p-4 rounded-xl border border-dashed border-slate-700 hover:border-indigo-500 bg-slate-900/50 hover:bg-slate-900 transition-all cursor-pointer flex flex-col items-center justify-center gap-1.5 text-center text-xs text-slate-300"
+                className="w-full p-4 rounded-2xl border border-dashed border-[#44474f] hover:border-[#a8c7fa] bg-[#111318] transition-colors cursor-pointer flex flex-col items-center justify-center gap-1 text-center text-xs text-[#c4c6d0]"
               >
-                <Upload className="h-5 w-5 text-indigo-400" />
-                <span className="font-semibold">Click to select backup .json file</span>
-                <span className="text-[11px] text-slate-500">
-                  Restores accounts, transactions, and group split history
+                <Upload className="h-5 w-5 text-[#a8c7fa]" />
+                <span className="font-semibold text-[#e2e2e9]">Tap to select backup .json file</span>
+                <span className="text-[11px] text-[#8e9099]">
+                  Restores all accounts, splits, and history
                 </span>
               </label>
             </div>
