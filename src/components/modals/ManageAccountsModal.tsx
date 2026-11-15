@@ -26,7 +26,7 @@ export function ManageAccountsModal({
   const [paymentDueDay, setPaymentDueDay] = useState('5');
   const [institution, setInstitution] = useState('');
   const [accountNumber, setAccountNumber] = useState('');
-  const [color, setColor] = useState('#253a5c');
+  const [color, setColor] = useState('#1a2536');
   const [isArchived, setIsArchived] = useState(false);
   const [isDefault, setIsDefault] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -43,7 +43,7 @@ export function ManageAccountsModal({
     setPaymentDueDay(acc.paymentDueDay ? acc.paymentDueDay.toString() : '5');
     setInstitution(acc.institution || '');
     setAccountNumber(acc.accountNumber || '');
-    setColor(acc.color || '#253a5c');
+    setColor(acc.color || '#1a2536');
     setIsArchived(acc.isArchived || false);
     setIsDefault(acc.isDefault || false);
   };
@@ -58,7 +58,7 @@ export function ManageAccountsModal({
     setPaymentDueDay('5');
     setInstitution('');
     setAccountNumber('');
-    setColor('#253a5c');
+    setColor('#1a2536');
     setIsArchived(false);
     setIsDefault(false);
     setError(null);
@@ -131,27 +131,27 @@ export function ManageAccountsModal({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-y-auto">
-      <div className="bg-[#1e2026] border border-[#2d3139] rounded-t-[28px] sm:rounded-[28px] w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-bottom-6 sm:zoom-in-95 duration-150">
-        <div className="w-10 h-1 rounded-full bg-[#44474f] mx-auto mt-3 mb-1 shrink-0 sm:hidden" />
+      <div className="bg-[#16171c] border border-[#23252c] rounded-t-[28px] sm:rounded-[28px] w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-bottom-6 sm:zoom-in-95 duration-150">
+        <div className="w-10 h-1 rounded-full bg-[#23252c] mx-auto mt-3 mb-1 shrink-0 sm:hidden" />
 
         {/* Header */}
-        <div className="px-5 py-3.5 border-b border-[#2d3139] flex items-center justify-between shrink-0">
+        <div className="px-5 py-3.5 border-b border-[#23252c] flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-2xl bg-[#282a30] text-[#a8c7fa] border border-[#33353c]">
+            <div className="p-2 rounded-2xl bg-[#1a1c22] text-[#a8c7fa] border border-[#262830]">
               <Landmark className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="text-base font-semibold text-[#e2e2e9] m-0">
+              <h2 className="text-base font-semibold text-[#e2e2e7] m-0">
                 Accounts &amp; Cards
               </h2>
-              <p className="text-xs text-[#8e9099] mt-0.5">
+              <p className="text-xs text-[#90929d] mt-0.5">
                 Bank balances, limits, and settlement sources
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="h-9 w-9 rounded-full flex items-center justify-center text-[#c4c6d0] hover:text-[#e2e2e9] hover:bg-[#282a30] transition-colors"
+            className="h-9 w-9 rounded-full flex items-center justify-center text-[#c4c6cf] hover:text-[#e2e2e7] hover:bg-[#1a1c22] transition-colors"
           >
             <X className="h-5 w-5" />
           </button>
@@ -161,7 +161,7 @@ export function ManageAccountsModal({
           {/* Form */}
           <form
             onSubmit={handleSave}
-            className="bg-[#191b20] border border-[#2d3139] rounded-[24px] p-4 sm:p-5 space-y-3"
+            className="bg-[#111216] border border-[#23252c] rounded-[24px] p-4 sm:p-5 space-y-3"
           >
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold text-[#a8c7fa]">
@@ -171,7 +171,7 @@ export function ManageAccountsModal({
                 <button
                   type="button"
                   onClick={resetForm}
-                  className="text-xs text-[#8e9099] hover:text-[#e2e2e9]"
+                  className="text-xs text-[#90929d] hover:text-[#e2e2e7]"
                 >
                   Cancel Edit
                 </button>
@@ -179,14 +179,14 @@ export function ManageAccountsModal({
             </div>
 
             {error && (
-              <div className="p-2.5 rounded-xl bg-[#371e1d] border border-[#60201f] text-[#ffb4ab] text-xs">
+              <div className="p-2.5 rounded-xl bg-[#2b1b1d] border border-[#48282b] text-[#f2b8b5] text-xs">
                 {error}
               </div>
             )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="text-xs font-medium text-[#c4c6d0] block mb-1">
+                <label className="text-xs font-medium text-[#c4c6cf] block mb-1">
                   Account Name
                 </label>
                 <input
@@ -195,18 +195,18 @@ export function ManageAccountsModal({
                   placeholder="e.g., HDFC Salary"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full bg-[#111318] border border-[#44474f] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e9] focus:outline-none"
+                  className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e7] focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="text-xs font-medium text-[#c4c6d0] block mb-1">
+                <label className="text-xs font-medium text-[#c4c6cf] block mb-1">
                   Account Type
                 </label>
                 <select
                   value={type}
                   onChange={(e) => setType(e.target.value as AccountType)}
-                  className="w-full bg-[#111318] border border-[#44474f] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e9] focus:outline-none"
+                  className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e7] focus:outline-none"
                 >
                   <option value="bank">Bank Account</option>
                   <option value="credit_card">Credit Card (Liability)</option>
@@ -217,7 +217,7 @@ export function ManageAccountsModal({
               </div>
 
               <div>
-                <label className="text-xs font-medium text-[#c4c6d0] block mb-1">
+                <label className="text-xs font-medium text-[#c4c6cf] block mb-1">
                   {type === 'credit_card' ? 'Current Liability (₹)' : 'Balance (₹)'}
                 </label>
                 <input
@@ -226,13 +226,13 @@ export function ManageAccountsModal({
                   placeholder="0.00"
                   value={balanceStr}
                   onChange={(e) => setBalanceStr(e.target.value)}
-                  className="w-full bg-[#111318] border border-[#44474f] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e9] font-mono focus:outline-none"
+                  className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e7] font-mono focus:outline-none"
                 />
               </div>
 
               {type === 'credit_card' && (
                 <div>
-                  <label className="text-xs font-medium text-[#c4c6d0] block mb-1">
+                  <label className="text-xs font-medium text-[#c4c6cf] block mb-1">
                     Credit Limit (₹)
                   </label>
                   <input
@@ -241,7 +241,7 @@ export function ManageAccountsModal({
                     placeholder="100000"
                     value={creditLimitStr}
                     onChange={(e) => setCreditLimitStr(e.target.value)}
-                    className="w-full bg-[#111318] border border-[#44474f] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e9] font-mono focus:outline-none"
+                    className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e7] font-mono focus:outline-none"
                   />
                 </div>
               )}
@@ -249,7 +249,7 @@ export function ManageAccountsModal({
               {type === 'credit_card' && (
                 <>
                   <div>
-                    <label className="text-xs font-medium text-[#c4c6d0] block mb-1">
+                    <label className="text-xs font-medium text-[#c4c6cf] block mb-1">
                       Statement Day (1-31)
                     </label>
                     <input
@@ -258,11 +258,11 @@ export function ManageAccountsModal({
                       max="31"
                       value={billingCycleDay}
                       onChange={(e) => setBillingCycleDay(e.target.value)}
-                      className="w-full bg-[#111318] border border-[#44474f] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e9] focus:outline-none"
+                      className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e7] focus:outline-none"
                     />
                   </div>
                   <div>
-                    <label className="text-xs font-medium text-[#c4c6d0] block mb-1">
+                    <label className="text-xs font-medium text-[#c4c6cf] block mb-1">
                       Payment Due Day (1-31)
                     </label>
                     <input
@@ -271,14 +271,14 @@ export function ManageAccountsModal({
                       max="31"
                       value={paymentDueDay}
                       onChange={(e) => setPaymentDueDay(e.target.value)}
-                      className="w-full bg-[#111318] border border-[#44474f] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e9] focus:outline-none"
+                      className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e7] focus:outline-none"
                     />
                   </div>
                 </>
               )}
 
               <div>
-                <label className="text-xs font-medium text-[#c4c6d0] block mb-1">
+                <label className="text-xs font-medium text-[#c4c6cf] block mb-1">
                   Institution
                 </label>
                 <input
@@ -286,12 +286,12 @@ export function ManageAccountsModal({
                   placeholder="e.g., HDFC Bank"
                   value={institution}
                   onChange={(e) => setInstitution(e.target.value)}
-                  className="w-full bg-[#111318] border border-[#44474f] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e9] focus:outline-none"
+                  className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e7] focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="text-xs font-medium text-[#c4c6d0] block mb-1">
+                <label className="text-xs font-medium text-[#c4c6cf] block mb-1">
                   Masked Number
                 </label>
                 <input
@@ -299,18 +299,18 @@ export function ManageAccountsModal({
                   placeholder="••4321"
                   value={accountNumber}
                   onChange={(e) => setAccountNumber(e.target.value)}
-                  className="w-full bg-[#111318] border border-[#44474f] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e9] focus:outline-none"
+                  className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e7] focus:outline-none"
                 />
               </div>
             </div>
 
             <div className="flex items-center justify-between pt-2">
-              <label className="flex items-center gap-2 cursor-pointer text-xs text-[#c4c6d0]">
+              <label className="flex items-center gap-2 cursor-pointer text-xs text-[#c4c6cf]">
                 <input
                   type="checkbox"
                   checked={isDefault}
                   onChange={(e) => setIsDefault(e.target.checked)}
-                  className="rounded border-[#44474f] text-[#a8c7fa] bg-[#111318]"
+                  className="rounded border-[#23252c] text-[#a8c7fa] bg-[#111216]"
                 />
                 <span>Set as primary default</span>
               </label>
@@ -327,16 +327,16 @@ export function ManageAccountsModal({
 
           {/* Accounts List */}
           <div className="space-y-2">
-            <h3 className="text-xs font-semibold text-[#8e9099] mb-2">
+            <h3 className="text-xs font-semibold text-[#90929d] mb-2">
               Configured Accounts ({accounts.length})
             </h3>
             {accounts.map((acc) => (
               <div
                 key={acc.id}
-                className="p-3 rounded-2xl bg-[#191b20] border border-[#2d3139] flex items-center justify-between hover:bg-[#282a30]/40 transition-colors"
+                className="p-3 rounded-2xl bg-[#111216] border border-[#23252c] flex items-center justify-between hover:bg-[#1a1c22]/40 transition-colors"
               >
                 <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-xl bg-[#282a30] text-[#a8c7fa]">
+                  <div className="p-2 rounded-xl bg-[#1a1c22] text-[#a8c7fa]">
                     {acc.type === 'credit_card' ? (
                       <CreditCard className="h-4 w-4" />
                     ) : acc.type === 'cash' ? (
@@ -349,21 +349,21 @@ export function ManageAccountsModal({
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-semibold text-[#e2e2e9]">
+                      <span className="text-sm font-semibold text-[#e2e2e7]">
                         {acc.name}
                       </span>
                       {acc.isDefault && (
-                        <span className="text-[10px] px-2 py-0.2 rounded-full bg-[#253a5c] text-[#d3e3fd]">
+                        <span className="text-[10px] px-2 py-0.2 rounded-full bg-[#1a2536] text-[#d3e3fd]">
                           Default
                         </span>
                       )}
                       {acc.isArchived && (
-                        <span className="text-[10px] px-2 py-0.2 rounded-full bg-[#282a30] text-[#8e9099]">
+                        <span className="text-[10px] px-2 py-0.2 rounded-full bg-[#1a1c22] text-[#90929d]">
                           Archived
                         </span>
                       )}
                     </div>
-                    <div className="text-[11px] text-[#8e9099]">
+                    <div className="text-[11px] text-[#90929d]">
                       {acc.institution || acc.type} • Balance: {formatINR(acc.balance)}
                     </div>
                   </div>
@@ -372,7 +372,7 @@ export function ManageAccountsModal({
                 <div className="flex items-center gap-1">
                   <button
                     onClick={() => startEdit(acc)}
-                    className="p-1.5 text-[#8e9099] hover:text-[#e2e2e9] rounded-full hover:bg-[#282a30]"
+                    className="p-1.5 text-[#90929d] hover:text-[#e2e2e7] rounded-full hover:bg-[#1a1c22]"
                   >
                     <Edit2 className="h-4 w-4" />
                   </button>
@@ -382,7 +382,7 @@ export function ManageAccountsModal({
                         isArchived: !acc.isArchived,
                       });
                     }}
-                    className="p-1.5 text-[#8e9099] hover:text-[#e2e2e9] rounded-full hover:bg-[#282a30]"
+                    className="p-1.5 text-[#90929d] hover:text-[#e2e2e7] rounded-full hover:bg-[#1a1c22]"
                   >
                     <Archive className="h-4 w-4" />
                   </button>

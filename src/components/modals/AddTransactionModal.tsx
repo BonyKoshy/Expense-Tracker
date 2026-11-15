@@ -263,28 +263,28 @@ export function AddTransactionModal({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-y-auto">
-      <div className="bg-[#1e2026] border border-[#2d3139] rounded-t-[28px] sm:rounded-[28px] w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-bottom-6 sm:zoom-in-95 duration-150">
+      <div className="bg-[#16171c] border border-[#23252c] rounded-t-[28px] sm:rounded-[28px] w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-bottom-6 sm:zoom-in-95 duration-150">
         {/* Android 17 Bottom Sheet Drag Handle */}
-        <div className="w-10 h-1 rounded-full bg-[#44474f] mx-auto mt-3 mb-1 shrink-0 sm:hidden" />
+        <div className="w-10 h-1 rounded-full bg-[#23252c] mx-auto mt-3 mb-1 shrink-0 sm:hidden" />
 
         {/* Modal Header */}
-        <div className="px-5 py-3.5 border-b border-[#2d3139] flex items-center justify-between shrink-0">
+        <div className="px-5 py-3.5 border-b border-[#23252c] flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-2xl bg-[#282a30] text-[#a8c7fa] border border-[#33353c]">
+            <div className="p-2 rounded-2xl bg-[#1a1c22] text-[#a8c7fa] border border-[#262830]">
               <PlusCircle className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="text-base font-semibold text-[#e2e2e9] m-0">
+              <h2 className="text-base font-semibold text-[#e2e2e7] m-0">
                 New Transaction
               </h2>
-              <p className="text-xs text-[#8e9099] mt-0.5">
+              <p className="text-xs text-[#90929d] mt-0.5">
                 Splits, settlements, or personal spending
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="h-9 w-9 rounded-full flex items-center justify-center text-[#c4c6d0] hover:text-[#e2e2e9] hover:bg-[#282a30] transition-colors"
+            className="h-9 w-9 rounded-full flex items-center justify-center text-[#c4c6cf] hover:text-[#e2e2e7] hover:bg-[#1a1c22] transition-colors"
           >
             <X className="h-5 w-5" />
           </button>
@@ -293,15 +293,15 @@ export function AddTransactionModal({
         {/* Modal Body */}
         <form onSubmit={handleSubmit} className="p-5 overflow-y-auto space-y-4">
           {error && (
-            <div className="p-3 rounded-2xl bg-[#371e1d] border border-[#60201f] text-[#ffb4ab] text-xs flex items-center gap-2">
-              <AlertCircle className="h-4 w-4 shrink-0 text-[#ffb4ab]" />
+            <div className="p-3 rounded-2xl bg-[#2b1b1d] border border-[#48282b] text-[#f2b8b5] text-xs flex items-center gap-2">
+              <AlertCircle className="h-4 w-4 shrink-0 text-[#f2b8b5]" />
               <span>{error}</span>
             </div>
           )}
 
           {/* Transaction Type Selector Chips */}
           <div>
-            <label className="text-xs font-medium text-[#c4c6d0] block mb-2">
+            <label className="text-xs font-medium text-[#c4c6cf] block mb-2">
               Transaction Type
             </label>
             <div className="flex flex-wrap gap-1.5">
@@ -310,8 +310,8 @@ export function AddTransactionModal({
                 onClick={() => setType('shared_expense')}
                 className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all ${
                   type === 'shared_expense'
-                    ? 'bg-[#253a5c] text-[#d3e3fd]'
-                    : 'bg-[#282a30] text-[#c4c6d0] hover:bg-[#33353c]'
+                    ? 'bg-[#1a2536] text-[#d3e3fd]'
+                    : 'bg-[#1a1c22] text-[#c4c6cf] hover:bg-[#262830]'
                 }`}
               >
                 <Users className="h-3.5 w-3.5" />
@@ -323,8 +323,8 @@ export function AddTransactionModal({
                 onClick={() => setType('expense')}
                 className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all ${
                   type === 'expense'
-                    ? 'bg-[#253a5c] text-[#d3e3fd]'
-                    : 'bg-[#282a30] text-[#c4c6d0] hover:bg-[#33353c]'
+                    ? 'bg-[#1a2536] text-[#d3e3fd]'
+                    : 'bg-[#1a1c22] text-[#c4c6cf] hover:bg-[#262830]'
                 }`}
               >
                 <ArrowUpRight className="h-3.5 w-3.5" />
@@ -336,8 +336,8 @@ export function AddTransactionModal({
                 onClick={() => setType('settlement_received')}
                 className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all ${
                   type === 'settlement_received'
-                    ? 'bg-[#1e2a22] text-[#a8dab5]'
-                    : 'bg-[#282a30] text-[#c4c6d0] hover:bg-[#33353c]'
+                    ? 'bg-[#15241b] text-[#a8dab5]'
+                    : 'bg-[#1a1c22] text-[#c4c6cf] hover:bg-[#262830]'
                 }`}
               >
                 <ArrowDownLeft className="h-3.5 w-3.5" />
@@ -350,7 +350,7 @@ export function AddTransactionModal({
                 className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all ${
                   type === 'settlement_paid'
                     ? 'bg-[#3b2d18] text-[#ffb77c]'
-                    : 'bg-[#282a30] text-[#c4c6d0] hover:bg-[#33353c]'
+                    : 'bg-[#1a1c22] text-[#c4c6cf] hover:bg-[#262830]'
                 }`}
               >
                 <ArrowRightLeft className="h-3.5 w-3.5" />
@@ -362,8 +362,8 @@ export function AddTransactionModal({
                 onClick={() => setType('transfer')}
                 className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all ${
                   type === 'transfer'
-                    ? 'bg-[#253a5c] text-[#d3e3fd]'
-                    : 'bg-[#282a30] text-[#c4c6d0] hover:bg-[#33353c]'
+                    ? 'bg-[#1a2536] text-[#d3e3fd]'
+                    : 'bg-[#1a1c22] text-[#c4c6cf] hover:bg-[#262830]'
                 }`}
               >
                 <ArrowRightLeft className="h-3.5 w-3.5" />
@@ -375,8 +375,8 @@ export function AddTransactionModal({
                 onClick={() => setType('credit_card_payment')}
                 className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all ${
                   type === 'credit_card_payment'
-                    ? 'bg-[#253a5c] text-[#d3e3fd]'
-                    : 'bg-[#282a30] text-[#c4c6d0] hover:bg-[#33353c]'
+                    ? 'bg-[#1a2536] text-[#d3e3fd]'
+                    : 'bg-[#1a1c22] text-[#c4c6cf] hover:bg-[#262830]'
                 }`}
               >
                 <CreditCard className="h-3.5 w-3.5" />
@@ -388,8 +388,8 @@ export function AddTransactionModal({
                 onClick={() => setType('income')}
                 className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all ${
                   type === 'income'
-                    ? 'bg-[#1e2a22] text-[#a8dab5]'
-                    : 'bg-[#282a30] text-[#c4c6d0] hover:bg-[#33353c]'
+                    ? 'bg-[#15241b] text-[#a8dab5]'
+                    : 'bg-[#1a1c22] text-[#c4c6cf] hover:bg-[#262830]'
                 }`}
               >
                 <ArrowDownLeft className="h-3.5 w-3.5" />
@@ -401,7 +401,7 @@ export function AddTransactionModal({
           {/* Description & Amount */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div className="sm:col-span-2">
-              <label className="text-xs font-medium text-[#c4c6d0] block mb-1">
+              <label className="text-xs font-medium text-[#c4c6cf] block mb-1">
                 Description
               </label>
               <input
@@ -416,12 +416,12 @@ export function AddTransactionModal({
                 }
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="w-full bg-[#111318] border border-[#44474f] focus:border-[#a8c7fa] rounded-2xl px-4 py-2.5 text-sm text-[#e2e2e9] placeholder-[#8e9099] focus:outline-none"
+                className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-4 py-2.5 text-sm text-[#e2e2e7] placeholder-[#90929d] focus:outline-none"
               />
             </div>
 
             <div>
-              <label className="text-xs font-medium text-[#c4c6d0] block mb-1">
+              <label className="text-xs font-medium text-[#c4c6cf] block mb-1">
                 Amount (₹)
               </label>
               <input
@@ -432,7 +432,7 @@ export function AddTransactionModal({
                 placeholder="1505.00"
                 value={amountStr}
                 onChange={(e) => setAmountStr(e.target.value)}
-                className="w-full bg-[#111318] border border-[#44474f] focus:border-[#a8c7fa] rounded-2xl px-4 py-2.5 text-sm text-[#e2e2e9] font-mono placeholder-[#8e9099] focus:outline-none"
+                className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-4 py-2.5 text-sm text-[#e2e2e7] font-mono placeholder-[#90929d] focus:outline-none"
               />
             </div>
           </div>
@@ -440,7 +440,7 @@ export function AddTransactionModal({
           {/* Accounts & Category */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="text-xs font-medium text-[#c4c6d0] block mb-1">
+              <label className="text-xs font-medium text-[#c4c6cf] block mb-1">
                 {type === 'settlement_received'
                   ? 'Deposit into'
                   : type === 'transfer' || type === 'credit_card_payment'
@@ -450,7 +450,7 @@ export function AddTransactionModal({
               <select
                 value={accountId}
                 onChange={(e) => setAccountId(e.target.value)}
-                className="w-full bg-[#111318] border border-[#44474f] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2.5 text-xs text-[#e2e2e9] focus:outline-none"
+                className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2.5 text-xs text-[#e2e2e7] focus:outline-none"
               >
                 {accounts.map((acc) => (
                   <option key={acc.id} value={acc.id}>
@@ -462,13 +462,13 @@ export function AddTransactionModal({
 
             {(type === 'transfer' || type === 'credit_card_payment') && (
               <div>
-                <label className="text-xs font-medium text-[#c4c6d0] block mb-1">
+                <label className="text-xs font-medium text-[#c4c6cf] block mb-1">
                   To Account
                 </label>
                 <select
                   value={toAccountId}
                   onChange={(e) => setToAccountId(e.target.value)}
-                  className="w-full bg-[#111318] border border-[#44474f] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2.5 text-xs text-[#e2e2e9] focus:outline-none"
+                  className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2.5 text-xs text-[#e2e2e7] focus:outline-none"
                 >
                   {accounts.map((acc) => (
                     <option key={acc.id} value={acc.id}>
@@ -481,7 +481,7 @@ export function AddTransactionModal({
 
             {(type === 'expense' || type === 'shared_expense') && (
               <div>
-                <label className="text-xs font-medium text-[#c4c6d0] block mb-1">
+                <label className="text-xs font-medium text-[#c4c6cf] block mb-1">
                   Category
                 </label>
                 <select
@@ -490,7 +490,7 @@ export function AddTransactionModal({
                     setCategoryId(e.target.value);
                     setSubcategoryId('');
                   }}
-                  className="w-full bg-[#111318] border border-[#44474f] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2.5 text-xs text-[#e2e2e9] focus:outline-none"
+                  className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2.5 text-xs text-[#e2e2e7] focus:outline-none"
                 >
                   {categories.map((c) => (
                     <option key={c.id} value={c.id}>
@@ -504,13 +504,13 @@ export function AddTransactionModal({
             {(type === 'expense' || type === 'shared_expense') &&
               availableSubcategories.length > 0 && (
                 <div>
-                  <label className="text-xs font-medium text-[#c4c6d0] block mb-1">
+                  <label className="text-xs font-medium text-[#c4c6cf] block mb-1">
                     Subcategory
                   </label>
                   <select
                     value={subcategoryId}
                     onChange={(e) => setSubcategoryId(e.target.value)}
-                    className="w-full bg-[#111318] border border-[#44474f] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2.5 text-xs text-[#e2e2e9] focus:outline-none"
+                    className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2.5 text-xs text-[#e2e2e7] focus:outline-none"
                   >
                     <option value="">-- General --</option>
                     {availableSubcategories.map((s) => (
@@ -524,7 +524,7 @@ export function AddTransactionModal({
 
             {(type === 'settlement_received' || type === 'settlement_paid') && (
               <div>
-                <label className="text-xs font-medium text-[#c4c6d0] block mb-1">
+                <label className="text-xs font-medium text-[#c4c6cf] block mb-1">
                   {type === 'settlement_received'
                     ? 'Friend Repaying'
                     : 'Friend You Are Repaying'}
@@ -532,7 +532,7 @@ export function AddTransactionModal({
                 <select
                   value={settlementPersonId}
                   onChange={(e) => setSettlementPersonId(e.target.value)}
-                  className="w-full bg-[#111318] border border-[#44474f] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2.5 text-xs text-[#e2e2e9] focus:outline-none"
+                  className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2.5 text-xs text-[#e2e2e7] focus:outline-none"
                 >
                   {people.map((p) => (
                     <option key={p.id} value={p.id}>
@@ -550,7 +550,7 @@ export function AddTransactionModal({
             )}
 
             <div>
-              <label className="text-xs font-medium text-[#c4c6d0] block mb-1">
+              <label className="text-xs font-medium text-[#c4c6cf] block mb-1">
                 Date
               </label>
               <input
@@ -558,7 +558,7 @@ export function AddTransactionModal({
                 required
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
-                className="w-full bg-[#111318] border border-[#44474f] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2.5 text-xs text-[#e2e2e9] focus:outline-none"
+                className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2.5 text-xs text-[#e2e2e7] focus:outline-none"
               />
             </div>
           </div>
@@ -567,21 +567,21 @@ export function AddTransactionModal({
           {/* SHARED EXPENSE SPLIT CONFIGURATION                        */}
           {/* ======================================================== */}
           {type === 'shared_expense' && (
-            <div className="bg-[#191b20] border border-[#2d3139] rounded-[24px] p-4 space-y-3.5">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#2d3139] pb-2.5">
+            <div className="bg-[#111216] border border-[#23252c] rounded-[24px] p-4 space-y-3.5">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#23252c] pb-2.5">
                 <div className="flex items-center gap-2">
                   <Users className="h-4 w-4 text-[#ffb77c]" />
-                  <span className="text-xs font-semibold text-[#e2e2e9]">
+                  <span className="text-xs font-semibold text-[#e2e2e7]">
                     Split Options
                   </span>
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-[#8e9099]">Group:</span>
+                  <span className="text-xs text-[#90929d]">Group:</span>
                   <select
                     value={selectedGroupId}
                     onChange={(e) => handleGroupChange(e.target.value)}
-                    className="bg-[#111318] border border-[#44474f] rounded-xl px-2.5 py-1 text-xs text-[#e2e2e9] focus:outline-none"
+                    className="bg-[#111216] border border-[#23252c] rounded-xl px-2.5 py-1 text-xs text-[#e2e2e7] focus:outline-none"
                   >
                     <option value="">No Group (Ad-hoc)</option>
                     {groups.map((g) => (
@@ -596,13 +596,13 @@ export function AddTransactionModal({
               {/* Payer and Split Mode */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-medium text-[#c4c6d0] block mb-1">
+                  <label className="text-xs font-medium text-[#c4c6cf] block mb-1">
                     Who Paid?
                   </label>
                   <select
                     value={paidByPersonId}
                     onChange={(e) => setPaidByPersonId(e.target.value)}
-                    className="w-full bg-[#111318] border border-[#44474f] rounded-xl px-3 py-2 text-xs text-[#e2e2e9] focus:outline-none"
+                    className="w-full bg-[#111216] border border-[#23252c] rounded-xl px-3 py-2 text-xs text-[#e2e2e7] focus:outline-none"
                   >
                     <option value="user">Me (I swiped the bill)</option>
                     {people.map((p) => (
@@ -614,17 +614,17 @@ export function AddTransactionModal({
                 </div>
 
                 <div>
-                  <label className="text-xs font-medium text-[#c4c6d0] block mb-1">
+                  <label className="text-xs font-medium text-[#c4c6cf] block mb-1">
                     Split Type
                   </label>
-                  <div className="flex rounded-xl bg-[#111318] p-1 border border-[#282a30]">
+                  <div className="flex rounded-xl bg-[#111216] p-1 border border-[#1a1c22]">
                     <button
                       type="button"
                       onClick={() => setSplitMode('equal')}
                       className={`flex-1 py-1 text-xs font-medium rounded-lg transition-colors ${
                         splitMode === 'equal'
-                          ? 'bg-[#253a5c] text-[#d3e3fd]'
-                          : 'text-[#8e9099] hover:text-[#e2e2e9]'
+                          ? 'bg-[#1a2536] text-[#d3e3fd]'
+                          : 'text-[#90929d] hover:text-[#e2e2e7]'
                       }`}
                     >
                       Equal
@@ -634,8 +634,8 @@ export function AddTransactionModal({
                       onClick={() => setSplitMode('exact')}
                       className={`flex-1 py-1 text-xs font-medium rounded-lg transition-colors ${
                         splitMode === 'exact'
-                          ? 'bg-[#253a5c] text-[#d3e3fd]'
-                          : 'text-[#8e9099] hover:text-[#e2e2e9]'
+                          ? 'bg-[#1a2536] text-[#d3e3fd]'
+                          : 'text-[#90929d] hover:text-[#e2e2e7]'
                       }`}
                     >
                       Exact (₹)
@@ -689,16 +689,16 @@ export function AddTransactionModal({
               </div>
 
               {/* Summary */}
-              <div className="bg-[#111318] border border-[#282a30] rounded-2xl p-3 flex items-center justify-between text-xs">
+              <div className="bg-[#111216] border border-[#1a1c22] rounded-2xl p-3 flex items-center justify-between text-xs">
                 <div>
-                  <div className="text-[#8e9099]">Personal Share:</div>
+                  <div className="text-[#90929d]">Personal Share:</div>
                   <div className="text-sm font-semibold text-[#a8dab5] font-mono">
                     {formatINR(calculatedUserShare)}
                   </div>
                 </div>
 
                 <div className="text-right">
-                  <div className="text-[#8e9099]">
+                  <div className="text-[#90929d]">
                     {paidByPersonId === 'user' ? 'Friend Receivables:' : 'Payable to Friend:'}
                   </div>
                   <div className="text-sm font-semibold text-[#ffb77c] font-mono">
@@ -708,7 +708,7 @@ export function AddTransactionModal({
               </div>
 
               {splitMode === 'exact' && Math.abs(splitDifference) > 0.01 && (
-                <div className="text-xs text-[#ffb4ab] font-mono">
+                <div className="text-xs text-[#f2b8b5] font-mono">
                   Unallocated difference: {formatINR(splitDifference)}
                 </div>
               )}
@@ -717,7 +717,7 @@ export function AddTransactionModal({
 
           {/* Settlement Clarification */}
           {type === 'settlement_received' && (
-            <div className="p-3.5 rounded-2xl bg-[#1e2a22] border border-[#2e4d38] text-[#a8dab5] text-xs flex items-start gap-2.5">
+            <div className="p-3.5 rounded-2xl bg-[#15241b] border border-[#22382a] text-[#a8dab5] text-xs flex items-start gap-2.5">
               <CheckCircle className="h-4 w-4 shrink-0 text-[#a8dab5] mt-0.5" />
               <div>
                 <strong>Asset Transfer (Zero Income):</strong> Liquid account balance increases and friend debt reduces. No artificial income is created.
@@ -737,7 +737,7 @@ export function AddTransactionModal({
           {/* Notes & Tags */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="text-xs font-medium text-[#c4c6d0] block mb-1">
+              <label className="text-xs font-medium text-[#c4c6cf] block mb-1">
                 Notes
               </label>
               <input
@@ -745,12 +745,12 @@ export function AddTransactionModal({
                 placeholder="Optional notes"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                className="w-full bg-[#111318] border border-[#44474f] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e9] placeholder-[#8e9099] focus:outline-none"
+                className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e7] placeholder-[#90929d] focus:outline-none"
               />
             </div>
 
             <div>
-              <label className="text-xs font-medium text-[#c4c6d0] block mb-1">
+              <label className="text-xs font-medium text-[#c4c6cf] block mb-1">
                 Tags (comma separated)
               </label>
               <input
@@ -758,18 +758,18 @@ export function AddTransactionModal({
                 placeholder="pg, groceries, gpay"
                 value={tagsStr}
                 onChange={(e) => setTagsStr(e.target.value)}
-                className="w-full bg-[#111318] border border-[#44474f] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e9] placeholder-[#8e9099] focus:outline-none"
+                className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e7] placeholder-[#90929d] focus:outline-none"
               />
             </div>
           </div>
 
           {/* Modal Actions */}
-          <div className="pt-3 border-t border-[#2d3139] flex items-center justify-end gap-2.5">
+          <div className="pt-3 border-t border-[#23252c] flex items-center justify-end gap-2.5">
             <button
               type="button"
               onClick={onClose}
               disabled={isSubmitting}
-              className="px-5 py-2 rounded-full text-xs font-medium text-[#c4c6d0] hover:bg-[#282a30] transition-colors"
+              className="px-5 py-2 rounded-full text-xs font-medium text-[#c4c6cf] hover:bg-[#1a1c22] transition-colors"
             >
               Cancel
             </button>
@@ -813,8 +813,8 @@ function ParticipantRow({
     <div
       className={`p-2.5 rounded-2xl border flex items-center justify-between gap-3 transition-colors ${
         isSelected
-          ? 'bg-[#1e2026] border-[#33353c] text-[#e2e2e9]'
-          : 'bg-[#191b20] border-transparent text-[#8e9099]'
+          ? 'bg-[#16171c] border-[#262830] text-[#e2e2e7]'
+          : 'bg-[#111216] border-transparent text-[#90929d]'
       }`}
     >
       <div className="flex items-center gap-2.5 cursor-pointer" onClick={onToggle}>
@@ -823,7 +823,7 @@ function ParticipantRow({
           id={inputId}
           checked={isSelected}
           onChange={onToggle}
-          className="rounded border-[#44474f] text-[#a8c7fa] bg-[#111318] h-4 w-4"
+          className="rounded border-[#23252c] text-[#a8c7fa] bg-[#111216] h-4 w-4"
         />
         <span className="text-base select-none">{avatar}</span>
         <label htmlFor={inputId} className="text-xs font-medium select-none cursor-pointer">
@@ -840,7 +840,7 @@ function ParticipantRow({
               placeholder="0.00"
               value={shareAmount || ''}
               onChange={(e) => onCustomAmountChange(e.target.value)}
-              className="w-24 bg-[#111318] border border-[#44474f] rounded-xl px-2.5 py-1 text-xs text-right text-[#e2e2e9] font-mono focus:outline-none focus:border-[#a8c7fa]"
+              className="w-24 bg-[#111216] border border-[#23252c] rounded-xl px-2.5 py-1 text-xs text-right text-[#e2e2e7] font-mono focus:outline-none focus:border-[#a8c7fa]"
             />
           ) : (
             <span className="text-xs font-semibold text-[#ffb77c] font-mono">
@@ -848,7 +848,7 @@ function ParticipantRow({
             </span>
           )
         ) : (
-          <span className="text-xs text-[#8e9099] font-mono">Excluded</span>
+          <span className="text-xs text-[#90929d] font-mono">Excluded</span>
         )}
       </div>
     </div>

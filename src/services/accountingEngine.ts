@@ -9,15 +9,49 @@ import type { FinanceTrackerDatabase } from '@/db';
 
 /**
  * Calculates the "Available to Spend" financial intelligence metric:
- * Formula:
- * Available to Spend = Total Liquid Balances - (Reserved Commitments + Unbilled CC Liability + Net Money Owed to Others)
+ * Formula (User Rule):
+ * Available to Spend = HDFC Bank Balance - Credit Card Liability - Reserved Commitments (from HDFC)
+ * "and also dont add money until i dont have it" (receivables are not added to available cash)
  */
 export function calculateAvailableToSpend(
   accounts: Account[],
   recurringCommitments: RecurringCommitment[],
   people: Person[]
 ): AvailableToSpendBreakdown {
-  // 1. Total Liquid Balances: Bank accounts + Physical Cash + Digital Wallets
+  // 1. Identify key individual accounts
+  const hdfcAcc = accounts.find(
+    (acc) =>
+      !acc.isArchived &&
+      acc.type === 'bank' &&
+      acc.name.toLowerCase().includes('hdfc')
+  );
+  const hdfcBalance = hdfcAcc?.balance || 0;
+
+  const canaraAcc = accounts.find(
+    (acc) =>
+      !acc.isArchived &&
+      acc.name.toLowerCase().includes('canara')
+  );
+  const canaraBalance = canaraAcc?.balance || 0;
+
+  const amazonWallet = accounts.find(
+    (acc) =>
+      !acc.isArchived &&
+      (acc.type === 'wallet' || acc.name.toLowerCase().includes('amazon'))
+  );
+  const amazonWalletBalance = amazonWallet?.balance || 0;
+
+  const cashAcc = accounts.find(
+    (acc) =>
+      !acc.isArchived &&
+      (acc.type === 'cash' || acc.name.toLowerCase().includes('cash'))
+  );
+  const cashBalance = cashAcc?.balance || 0;
+
+  // 2. Net Money Owned: Entire balance of HDFC + Amazon Wallet + Cash
+  const netMoneyOwned = Math.round((hdfcBalance + amazonWalletBalance + cashBalance) * 100) / 100;
+
+  // 3. Total Liquid Balances: All bank accounts + Cash + Wallets
   const totalLiquidBalances = accounts
     .filter(
       (acc) =>
@@ -26,24 +60,36 @@ export function calculateAvailableToSpend(
     )
     .reduce((sum, acc) => sum + (acc.balance || 0), 0);
 
-  // 2. Active investments (e.g. Fixed/Recurring Deposits, Mutual Funds)
+  // 4. Active investments (e.g. ICCSL RD, Mutual Funds)
   const totalInvestments = accounts
     .filter((acc) => !acc.isArchived && acc.type === 'investment')
     .reduce((sum, acc) => sum + (acc.balance || 0), 0);
 
-  // 3. Reserved Commitments for this cycle (EMIs, Rent, RD)
-  const reservedCommitments = recurringCommitments
+  // 5. Total Accumulated Savings: Canara Bank + RD investments
+  const savingsBalance = Math.round((canaraBalance + totalInvestments) * 100) / 100;
+
+  // 6. Reserved Commitments (HDFC vs Total)
+  const totalReservedCommitments = recurringCommitments
     .filter((comm) => comm.isActive && comm.isReservedCommitment)
     .reduce((sum, comm) => sum + (comm.amount || 0), 0);
 
-  // 4. Unbilled Credit Card Liability (Current CC balances)
+  const hdfcReservedCommitments = recurringCommitments
+    .filter(
+      (comm) =>
+        comm.isActive &&
+        comm.isReservedCommitment &&
+        (comm.accountId === hdfcAcc?.id ||
+          !comm.accountId ||
+          comm.accountId.includes('hdfc'))
+    )
+    .reduce((sum, comm) => sum + (comm.amount || 0), 0);
+
+  // 7. Unbilled Credit Card Liability (Current CC balances)
   const unbilledCCLiability = accounts
     .filter((acc) => !acc.isArchived && acc.type === 'credit_card')
     .reduce((sum, acc) => sum + Math.max(0, acc.balance || 0), 0);
 
-  // 5. Shared Group & Friend Balances:
-  // - Receivables: Friends owe me (netBalance > 0)
-  // - Payables: I owe friends (netBalance < 0)
+  // 8. Shared Group & Friend Balances (Lent vs Borrowed):
   let totalReceivables = 0;
   let totalPayables = 0;
 
@@ -55,30 +101,46 @@ export function calculateAvailableToSpend(
     }
   }
 
+  // Lent: Entire amount user needs to receive
+  const lent = Math.round(totalReceivables * 100) / 100;
+
   // Net Money Owed to Others: If payables exceed receivables, reserve the deficit
   const netMoneyOwedToOthers = Math.max(0, totalPayables - totalReceivables);
 
-  // Available to Spend
+  // 9. Available to Spend: HDFC balance - CC Liability - Reserved commitments
+  // If HDFC balance is ₹6,145.33 and CC is ₹4,397.61:
+  // Liquid buffer before upcoming commitments is (HDFC - CC)
   const availableToSpend =
-    totalLiquidBalances -
-    (reservedCommitments + unbilledCCLiability + netMoneyOwedToOthers);
+    Math.round((hdfcBalance - unbilledCCLiability - hdfcReservedCommitments) * 100) / 100;
 
-  // Total Net Worth
+  // 10. Total Net Worth
   const totalNetWorth =
-    totalLiquidBalances +
-    totalInvestments +
-    totalReceivables -
-    (unbilledCCLiability + totalPayables);
+    Math.round(
+      (totalLiquidBalances +
+        totalInvestments +
+        totalReceivables -
+        (unbilledCCLiability + totalPayables)) *
+        100
+    ) / 100;
 
   return {
     totalLiquidBalances,
-    reservedCommitments,
+    reservedCommitments: totalReservedCommitments,
+    hdfcReservedCommitments,
     unbilledCCLiability,
     totalReceivables,
     totalPayables,
     netMoneyOwedToOthers,
     availableToSpend,
     totalNetWorth,
+    netMoneyOwned,
+    lent,
+    savingsBalance,
+    hdfcBalance,
+    canaraBalance,
+    amazonWalletBalance,
+    cashBalance,
+    totalInvestments,
   };
 }
 

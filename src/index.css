@@ -2,24 +2,25 @@
 
 @layer base {
   :root {
-    --color-surface: #111318;
-    --color-surface-container-low: #191b20;
-    --color-surface-container: #1e2026;
-    --color-surface-container-high: #282a30;
-    --color-surface-container-highest: #33353c;
+    /* Android 17 / Material You Minimalist Darkest Grey Palette */
+    --color-surface: #0e0f12;
+    --color-surface-container-low: #111216;
+    --color-surface-container: #16171c;
+    --color-surface-container-high: #202228;
+    --color-surface-container-highest: #282a32;
     --color-primary: #a8c7fa;
-    --color-primary-container: #253a5c;
+    --color-primary-container: #1a2536;
     --color-on-primary-container: #d3e3fd;
-    --color-on-surface: #e2e2e9;
-    --color-on-surface-variant: #c4c6d0;
-    --color-outline: #8e9099;
-    --color-outline-variant: #44474f;
+    --color-on-surface: #e2e2e7;
+    --color-on-surface-variant: #90929d;
+    --color-outline: #6c6e79;
+    --color-outline-variant: #23252c;
     color-scheme: dark;
   }
 
   body {
-    background-color: #111318;
-    color: #e2e2e9;
+    background-color: #0e0f12;
+    color: #e2e2e7;
     font-family: -apple-system, BlinkMacSystemFont, 'Google Sans', 'Roboto', 'Segoe UI', system-ui, sans-serif;
     margin: 0;
     min-height: 100vh;

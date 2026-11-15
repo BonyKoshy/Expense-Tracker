@@ -1,21 +1,22 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import {
-  Wallet,
   Users,
   Home,
   ArrowUpRight,
   ArrowDownLeft,
-  CreditCard,
-  Banknote,
-  Landmark,
+  ArrowLeft,
   CheckCircle2,
   ArrowRightLeft,
   Plus,
-  BarChart3,
-  Trash2,
   Settings,
   X,
+  Receipt,
+  PieChart,
+  Calendar,
+  ArrowRight,
+  Repeat,
+  Check,
 } from 'lucide-react';
 import { db, ensureSeeded, resetDatabaseToDefaults } from './db';
 import {
@@ -24,7 +25,7 @@ import {
   deleteTransaction,
 } from './services/accountingEngine';
 import { formatINR, formatDate } from './utils/formatters';
-import type { Transaction } from './types';
+import type { Transaction, RecurringCommitment } from './types';
 import { AddTransactionModal } from './components/modals/AddTransactionModal';
 import { ManageAccountsModal } from './components/modals/ManageAccountsModal';
 import { ManagePeopleGroupsModal } from './components/modals/ManagePeopleGroupsModal';
@@ -33,15 +34,53 @@ import { ManageRecurringModal } from './components/modals/ManageRecurringModal';
 import { BackupRestoreModal } from './components/modals/BackupRestoreModal';
 import { AnalyticsView } from './components/analytics/AnalyticsView';
 import { SettingsView } from './components/settings/SettingsView';
+import { BudgetView } from './components/budget/BudgetView';
+import { TransactionsView } from './components/transactions/TransactionsView';
+import { SavingsGoalCard } from './components/savings/SavingsGoalCard';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<
-    'overview' | 'shared' | 'accounts' | 'analytics' | 'settings'
-  >('overview');
-  const [accountsViewMode, setAccountsViewMode] = useState<
-    'accounts' | 'recurring'
-  >('accounts');
+    'home' | 'budget' | 'transactions' | 'splits' | 'settings'
+  >('home');
+  const [previousTab, setPreviousTab] = useState<
+    'home' | 'budget' | 'transactions' | 'splits'
+  >('home');
   const [actionNotice, setActionNotice] = useState<string | null>(null);
+
+  // User Profile Name & First-Time Launch Popup
+  const [userName, setUserName] = useState<string>(() => {
+    try {
+      return localStorage.getItem('fintrack_user_name') || 'Bony';
+    } catch {
+      return 'Bony';
+    }
+  });
+  const [isNameModalOpen, setIsNameModalOpen] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('fintrack_user_name') === null;
+    } catch {
+      return false;
+    }
+  });
+  const [nameInput, setNameInput] = useState<string>(() => {
+    try {
+      return localStorage.getItem('fintrack_user_name') || 'Bony';
+    } catch {
+      return 'Bony';
+    }
+  });
+
+  const handleSaveUserName = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const cleanName = nameInput.trim() || 'Bony';
+    try {
+      localStorage.setItem('fintrack_user_name', cleanName);
+    } catch {
+      // ignore
+    }
+    setUserName(cleanName);
+    setIsNameModalOpen(false);
+  };
 
   // Modals visibility state
   const [isAddTxOpen, setIsAddTxOpen] = useState(false);
@@ -51,6 +90,80 @@ export default function App() {
   const [isRecurringOpen, setIsRecurringOpen] = useState(false);
   const [isBackupOpen, setIsBackupOpen] = useState(false);
   const [backupModalTab, setBackupModalTab] = useState<'backup' | 'restore' | 'cashew'>('backup');
+  
+  // Overall Monthly Spending Budget Target
+  const [overallMonthlyBudget, setOverallMonthlyBudget] = useState<number>(() => {
+    try {
+      const stored = localStorage.getItem('fintrack_monthly_budget');
+      return stored ? Number(stored) : 25000;
+    } catch {
+      return 25000;
+    }
+  });
+
+  const handleUpdateOverallBudget = (amount: number) => {
+    setOverallMonthlyBudget(amount);
+    try {
+      localStorage.setItem('fintrack_monthly_budget', String(amount));
+    } catch {
+      // ignore
+    }
+    setActionNotice(`Overall monthly budget set to ${formatINR(amount)}.`);
+    setTimeout(() => setActionNotice(null), 3000);
+  };
+
+  const handleUpdateCategoryBudget = async (categoryId: string, monthlyBudget: number) => {
+    try {
+      await db.categories.update(categoryId, {
+        monthlyBudget,
+        updatedAt: new Date().toISOString(),
+      });
+      setActionNotice('Category budget limit saved.');
+      setTimeout(() => setActionNotice(null), 2500);
+    } catch (err) {
+      console.error('Failed to update category budget:', err);
+    }
+  };
+
+  // Android PWA WebAPK / Install Prompt Handler
+  const [installPrompt, setInstallPrompt] = useState<any>(null);
+  const [isAppInstalled, setIsAppInstalled] = useState<boolean>(() => {
+    return typeof window !== 'undefined' && window.matchMedia('(display-mode: standalone)').matches;
+  });
+
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e: Event) => {
+      e.preventDefault();
+      setInstallPrompt(e);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('appinstalled', () => {
+      setIsAppInstalled(true);
+      setInstallPrompt(null);
+    });
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
+  }, []);
+
+  const handleInstallApp = async () => {
+    if (!installPrompt) return;
+    try {
+      await installPrompt.prompt();
+      const choice = await installPrompt.userChoice;
+      if (choice.outcome === 'accepted') {
+        setIsAppInstalled(true);
+        setInstallPrompt(null);
+        setActionNotice('FinTrack is installing on your device!');
+        setTimeout(() => setActionNotice(null), 4000);
+      }
+    } catch (err) {
+      console.error('Install prompt failed:', err);
+    }
+  };
+
   const [showArchitectureBanner, setShowArchitectureBanner] = useState(() => {
     try {
       return localStorage.getItem('fintrack_dismiss_arch_banner') !== 'true';
@@ -96,11 +209,84 @@ export default function App() {
     people
   );
 
+  // Filter Today's Transactions for Home View
+  const todayStr = useMemo(() => new Date().toISOString().slice(0, 10), []);
+  const todaysTransactions = useMemo(() => {
+    return transactions.filter((tx) => tx.date.slice(0, 10) === todayStr);
+  }, [transactions, todayStr]);
+
+  // Due / Upcoming Recurring Commitments for current cycle
+  const dueCommitments = useMemo(() => {
+    const today = new Date();
+    const currentMonthKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+
+    return recurringCommitments.filter((comm) => {
+      if (!comm.isActive) return false;
+      // Check if a transaction was already recorded for this commitment this month
+      const alreadyPaid = transactions.some(
+        (tx) =>
+          tx.recurringCommitmentId === comm.id &&
+          tx.date.slice(0, 7) === currentMonthKey
+      );
+      return !alreadyPaid;
+    });
+  }, [recurringCommitments, transactions]);
+
+  const handleConfirmRecurring = async (comm: RecurringCommitment) => {
+    try {
+      const isRD = comm.type === 'recurring_investment';
+      const tx: Transaction = {
+        id: `tx_rec_${Date.now()}`,
+        type: isRD ? 'transfer' : 'expense',
+        title: comm.name,
+        date: new Date().toISOString(),
+        amount: comm.amount,
+        accountId: comm.accountId,
+        toAccountId: isRD ? 'acc_iccsl_rd' : undefined,
+        categoryId: comm.categoryId,
+        subcategoryId: comm.subcategoryId,
+        personalExpenseAmount: isRD ? 0 : comm.amount,
+        isShared: false,
+        paidByPersonId: 'user',
+        splits: [{ personId: 'user', amount: comm.amount, isSettled: true }],
+        notes: `Confirmed monthly commitment: ${comm.name}`,
+        recurringCommitmentId: comm.id,
+        isRecurring: true,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+
+      await recordTransaction(db, tx);
+
+      const nextPaid = comm.paidInstallments + 1;
+      const nextRemaining = comm.remainingAmount
+        ? Math.max(0, comm.remainingAmount - comm.amount)
+        : undefined;
+
+      await db.recurringCommitments.update(comm.id, {
+        paidInstallments: nextPaid,
+        remainingAmount: nextRemaining,
+        updatedAt: new Date().toISOString(),
+      });
+
+      setActionNotice(`Confirmed & recorded payment of ${formatINR(comm.amount)} for ${comm.name}!`);
+      setTimeout(() => setActionNotice(null), 5000);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   const handleResetData = async () => {
-    if (confirm('Reset database back to initial seed data with sample PG split?')) {
+    if (
+      confirm(
+        'Reset App & Clear All Data?\n\nThis will wipe all transactions, friends, groups, commitments, and reset account balances to 0.00.\n\nAre you sure you want to proceed?'
+      )
+    ) {
       try {
         await resetDatabaseToDefaults();
-        setActionNotice('Database restored to default demo state.');
+        localStorage.removeItem('fintrack_monthly_budget');
+        setOverallMonthlyBudget(25000);
+        setActionNotice('App reset successfully to clean factory state.');
         setTimeout(() => setActionNotice(null), 4000);
       } catch (err) {
         console.error(err);
@@ -120,12 +306,14 @@ export default function App() {
     }
   };
 
-  // Quick simulate: Friend repays via UPI GPay
+  // 1-Click Simulation for Friend GPay Settlement
   const handleSimulateSettlement = async (
     personId: string,
     personName: string,
     amount: number
   ) => {
+    if (amount <= 0) return;
+
     try {
       const settlementTx: Transaction = {
         id: `tx_settle_${Date.now()}`,
@@ -156,133 +344,173 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#111318] text-[#e2e2e9] flex flex-col font-sans">
+    <div className="min-h-screen bg-[#0e0f12] text-[#e2e2e7] flex flex-col font-sans">
       {/* Android 17 / Material 3 Top App Bar */}
-      <header className="sticky top-0 z-30 bg-[#111318]/90 backdrop-blur-md px-4 sm:px-6 py-3.5 flex items-center justify-between border-b border-[#282a30]">
-        <div className="flex items-center gap-3">
-          <div className="h-9 w-9 rounded-2xl bg-[#282a30] text-[#a8c7fa] flex items-center justify-center font-bold text-base border border-[#33353c]">
-            F
+      <header className="sticky top-0 z-30 bg-[#0e0f12]/95 backdrop-blur-md px-4 sm:px-6 py-3.5 flex items-center justify-between border-b border-[#1c1d22]">
+        {activeTab === 'settings' ? (
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setActiveTab(previousTab)}
+              className="p-2 -ml-1 rounded-full hover:bg-[#1a1c22] text-[#e2e2e7] transition-colors flex items-center justify-center"
+              title="Go back"
+              aria-label="Back"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </button>
+            <div>
+              <h1 className="text-base font-semibold tracking-tight text-[#e2e2e7] m-0">
+                Settings
+              </h1>
+              <p className="text-[11px] text-[#90929d] m-0">
+                Taxonomy, friends &amp; backups
+              </p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-base font-semibold tracking-tight text-[#e2e2e9] m-0">
-              {activeTab === 'overview'
-                ? 'FinTrack'
-                : activeTab === 'shared'
-                ? 'Shared Splits'
-                : activeTab === 'accounts'
-                ? accountsViewMode === 'accounts'
-                  ? 'Accounts & Cards'
-                  : 'Recurring Commitments'
-                : activeTab === 'analytics'
-                ? 'Analytics'
-                : 'Settings'}
-            </h1>
-            <p className="text-[11px] text-[#8e9099] m-0">
-              {activeTab === 'overview'
-                ? 'Available to Spend & Ledger'
-                : activeTab === 'shared'
-                ? 'PG Flatmates & Settlements'
-                : activeTab === 'accounts'
-                ? accountsViewMode === 'accounts'
-                  ? `${accounts.length} active accounts`
-                  : `${recurringCommitments.length} commitments tracked`
-                : activeTab === 'analytics'
-                ? 'Spending breakdown'
-                : 'Taxonomy, friends & backups'}
-            </p>
+        ) : (
+          <div className="flex items-center gap-3">
+            <div>
+              <h1 className="text-base sm:text-lg font-semibold tracking-tight text-[#e2e2e7] m-0">
+                {activeTab === 'home'
+                  ? `Hi, ${userName}`
+                  : activeTab === 'budget'
+                  ? 'Budget & Commitments'
+                  : activeTab === 'transactions'
+                  ? 'Transactions'
+                  : 'Shared Splits'}
+              </h1>
+              <p className="text-[11px] text-[#90929d] m-0">
+                {activeTab === 'home'
+                  ? 'Available to Spend & Live Liquidity'
+                  : activeTab === 'budget'
+                  ? `${recurringCommitments.length} commitments • Accounts & limits`
+                  : activeTab === 'transactions'
+                  ? `${transactions.length} entries across months`
+                  : `${people.length} friends • Group ledgers & GPay`}
+              </p>
+            </div>
           </div>
-        </div>
+        )}
 
-        {/* Clean, Non-Duplicated Right Status Badge */}
+        {/* Clean Right Actions */}
         <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#1e2026] border border-[#2d3139] text-[#a8dab5] text-[11px] font-medium">
+          <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#16171c] border border-[#23252c] text-[#a8dab5] text-[11px] font-medium">
             <span className="h-1.5 w-1.5 rounded-full bg-[#a8dab5]" />
             <span>On-Device</span>
           </div>
+
+          {activeTab !== 'settings' && (
+            <button
+              type="button"
+              onClick={() => {
+                setPreviousTab(activeTab as any);
+                setActiveTab('settings');
+              }}
+              className="p-2 rounded-full bg-[#16171c] hover:bg-[#202228] text-[#c4c6cf] hover:text-[#e2e2e7] border border-[#23252c] transition-colors"
+              title="Settings"
+              aria-label="Settings"
+            >
+              <Settings className="h-4 w-4" />
+            </button>
+          )}
         </div>
       </header>
 
       {/* Global Notification Banner */}
       {actionNotice && (
-        <div className="bg-[#1e2a22] border-b border-[#2e4d38] px-4 py-2.5 text-xs text-[#a8dab5] flex items-center justify-center gap-2">
+        <div className="bg-[#15241b] border-b border-[#22382a] px-4 py-2.5 text-xs text-[#a8dab5] flex items-center justify-center gap-2">
           <CheckCircle2 className="h-4 w-4 text-[#a8dab5] shrink-0" />
           <span>{actionNotice}</span>
         </div>
       )}
 
-      {/* Hero: "Available to Spend" Material 3 Card (Visible on Home / Overview) */}
-      {activeTab === 'overview' && (
+      {/* Hero: "Available to Spend" Material 3 Card (Always highlighted on Home) */}
+      {activeTab === 'home' && (
         <div className="px-4 sm:px-6 pt-5 pb-2">
-          <div className="rounded-[28px] bg-[#1e2026] border border-[#2d3139] p-5 sm:p-6 shadow-sm">
+          <div className="rounded-[28px] bg-[#16171c] border border-[#23252c] p-5 sm:p-6 shadow-sm">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
-                <span className="text-[11px] font-medium tracking-wide uppercase px-3 py-1 rounded-full bg-[#253a5c] text-[#d3e3fd]">
+                <span className="text-[11px] font-medium tracking-wide uppercase px-3 py-1 rounded-full bg-[#1a2536] text-[#d3e3fd] border border-[#283a54]">
                   Available to Spend
                 </span>
-                <div className="text-3xl sm:text-5xl font-normal tracking-tight text-[#e2e2e9] mt-3">
-                  {formatINR(breakdown.availableToSpend)}
+                <div className="mt-2.5 flex items-baseline gap-2">
+                  <span className="text-3xl sm:text-4xl font-normal tracking-tight font-mono text-[#e2e2e7]">
+                    {formatINR(breakdown.availableToSpend)}
+                  </span>
+                  <span
+                    className={`text-xs px-2.5 py-0.5 rounded-full font-medium ${
+                      breakdown.availableToSpend > 0
+                        ? 'bg-[#15241b] text-[#a8dab5] border border-[#22382a]'
+                        : 'bg-[#2a1f17] text-[#ffb787] border border-[#3d2c20]'
+                    }`}
+                  >
+                    {breakdown.availableToSpend > 0
+                      ? 'Safe Margin'
+                      : 'Low Safety Buffer'}
+                  </span>
                 </div>
-                <p className="text-xs text-[#8e9099] mt-1.5 font-mono">
-                  Liquid - (Reserved + CC Liability + Net Debt)
+                <p className="text-xs text-[#90929d] mt-1.5">
+                  HDFC Salary: <span className="font-mono text-[#c4c6cf]">{formatINR(breakdown.hdfcBalance)}</span> • CC Liability: <span className="font-mono text-[#f2b8b5]">-{formatINR(breakdown.unbilledCCLiability)}</span> • Reserved Commitments: <span className="font-mono text-[#f2b8b5]">-{formatINR(breakdown.hdfcReservedCommitments)}</span>
                 </p>
               </div>
 
-              <div className="flex flex-wrap items-center gap-2.5">
-                <div className="bg-[#282a30] border border-[#33353c] rounded-2xl px-4 py-3 min-w-[130px]">
-                  <div className="text-[11px] text-[#c4c6d0]">Net Worth</div>
-                  <div className="text-base sm:text-lg font-semibold text-[#a8dab5] mt-0.5">
-                    {formatINR(breakdown.totalNetWorth)}
-                  </div>
-                </div>
-
-                <div className="bg-[#282a30] border border-[#33353c] rounded-2xl px-4 py-3 min-w-[130px]">
-                  <div className="text-[11px] text-[#c4c6d0]">Friends Owe You</div>
-                  <div className="text-base sm:text-lg font-semibold text-[#ffb77c] mt-0.5">
-                    {formatINR(breakdown.totalReceivables)}
-                  </div>
-                </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  onClick={() => setIsAddTxOpen(true)}
+                  className="px-4 py-2 rounded-full bg-[#a8c7fa] hover:bg-[#b8d4ff] text-[#0d2238] font-semibold text-xs flex items-center gap-1.5 shadow-sm transition-colors"
+                >
+                  <Plus className="h-4 w-4" />
+                  <span>Add Expense</span>
+                </button>
+                <button
+                  onClick={() => setActiveTab('transactions')}
+                  className="px-4 py-2 rounded-full bg-[#1a1c22] hover:bg-[#202228] text-[#e2e2e7] font-medium text-xs border border-[#262830] flex items-center gap-1.5 transition-colors"
+                >
+                  <Receipt className="h-4 w-4 text-[#a8c7fa]" />
+                  <span>Timeline</span>
+                </button>
               </div>
             </div>
 
-            {/* Formula Breakdown Chips */}
-            <div className="mt-5 pt-4 border-t border-[#2d3139] grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-              <div className="bg-[#191b20] rounded-2xl p-3 border border-[#282a30]">
-                <div className="text-[11px] text-[#c4c6d0]">Liquid Balances</div>
-                <div className="text-sm font-semibold text-[#e2e2e9] mt-0.5">
-                  {formatINR(breakdown.totalLiquidBalances)}
-                </div>
-                <div className="text-[10px] text-[#8e9099] mt-0.5">
-                  Bank, Cash &amp; Wallets
-                </div>
-              </div>
-
-              <div className="bg-[#191b20] rounded-2xl p-3 border border-[#282a30]">
-                <div className="text-[11px] text-[#c4c6d0]">Reserved Commitments</div>
-                <div className="text-sm font-semibold text-[#f2b8b5] mt-0.5">
-                  -{formatINR(breakdown.reservedCommitments)}
-                </div>
-                <div className="text-[10px] text-[#8e9099] mt-0.5">
-                  Rent, RD &amp; EMI
-                </div>
-              </div>
-
-              <div className="bg-[#191b20] rounded-2xl p-3 border border-[#282a30]">
-                <div className="text-[11px] text-[#c4c6d0]">CC Liability</div>
-                <div className="text-sm font-semibold text-[#f2b8b5] mt-0.5">
+            {/* User Requested 4 Metric Cards inside Hero Card */}
+            <div className="mt-5 pt-4 border-t border-[#23252c] grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+              <div className="bg-[#111216] rounded-2xl p-3 border border-[#1e2026]">
+                <div className="text-[11px] text-[#90929d]">CC Liability</div>
+                <div className="text-sm font-semibold text-[#f2b8b5] mt-0.5 font-mono">
                   -{formatINR(breakdown.unbilledCCLiability)}
                 </div>
-                <div className="text-[10px] text-[#8e9099] mt-0.5">
-                  Credit Cards
+                <div className="text-[10px] text-[#6c6e79] mt-0.5">
+                  HDFC Credit Card
                 </div>
               </div>
 
-              <div className="bg-[#191b20] rounded-2xl p-3 border border-[#282a30]">
-                <div className="text-[11px] text-[#c4c6d0]">Net Money Owed</div>
-                <div className="text-sm font-semibold text-[#e2e2e9] mt-0.5">
-                  -{formatINR(breakdown.netMoneyOwedToOthers)}
+              <div className="bg-[#111216] rounded-2xl p-3 border border-[#1e2026]">
+                <div className="text-[11px] text-[#90929d]">Net Money Owned</div>
+                <div className="text-sm font-semibold text-[#a8dab5] mt-0.5 font-mono">
+                  {formatINR(breakdown.netMoneyOwned)}
                 </div>
-                <div className="text-[10px] text-[#8e9099] mt-0.5">
-                  After Receivables
+                <div className="text-[10px] text-[#6c6e79] mt-0.5">
+                  HDFC + Wallet + Cash
+                </div>
+              </div>
+
+              <div className="bg-[#111216] rounded-2xl p-3 border border-[#1e2026]">
+                <div className="text-[11px] text-[#90929d]">Lent (Receivable)</div>
+                <div className="text-sm font-semibold text-[#ffb787] mt-0.5 font-mono">
+                  +{formatINR(breakdown.lent)}
+                </div>
+                <div className="text-[10px] text-[#6c6e79] mt-0.5">
+                  Owed by Friends
+                </div>
+              </div>
+
+              <div className="bg-[#111216] rounded-2xl p-3 border border-[#1e2026]">
+                <div className="text-[11px] text-[#90929d]">Net Worth</div>
+                <div className="text-sm font-semibold text-[#d0bcff] mt-0.5 font-mono">
+                  {formatINR(breakdown.totalNetWorth)}
+                </div>
+                <div className="text-[10px] text-[#6c6e79] mt-0.5">
+                  Assets + Lent - CC Debt
                 </div>
               </div>
             </div>
@@ -292,30 +520,30 @@ export default function App() {
 
       {/* Main Content Area */}
       <main className="flex-1 px-4 sm:px-6 py-4">
-        {/* TAB 1: OVERVIEW & TRANSACTIONS */}
-        {activeTab === 'overview' && (
+        {/* DESTINATION 1: HOME (Dashboard, Today's Activity & All Analytics Cards) */}
+        {activeTab === 'home' && (
           <div className="space-y-4">
-            {/* Cashew Killer Explanation Card */}
+            {/* Cashew Killer Architecture Banner (Dismissible) */}
             {showArchitectureBanner && (
-              <div className="relative rounded-[24px] bg-[#1e2026] border border-[#2d3139] p-4 text-xs text-[#c4c6d0] animate-in fade-in duration-200">
+              <div className="relative rounded-[24px] bg-[#16171c] border border-[#23252c] p-4 text-xs text-[#c4c6cf] animate-in fade-in duration-200">
                 <button
                   type="button"
                   onClick={handleDismissBanner}
-                  className="absolute top-3.5 right-3.5 p-1 rounded-full text-[#8e9099] hover:text-[#e2e2e9] hover:bg-[#282a30] transition-colors"
+                  className="absolute top-3.5 right-3.5 p-1 rounded-full text-[#90929d] hover:text-[#e2e2e7] hover:bg-[#202228] transition-colors"
                   title="Dismiss banner"
                   aria-label="Dismiss banner"
                 >
                   <X className="h-4 w-4" />
                 </button>
                 <div className="flex items-start gap-3 pr-6">
-                  <div className="p-2.5 rounded-2xl bg-[#282a30] text-[#a8c7fa] shrink-0">
+                  <div className="p-2.5 rounded-2xl bg-[#1a2536] text-[#a8c7fa] shrink-0 border border-[#283a54]">
                     <ArrowRightLeft className="h-5 w-5" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-semibold text-[#e2e2e9] m-0">
+                    <h3 className="text-sm font-semibold text-[#e2e2e7] m-0">
                       The Cashew Killer Architecture
                     </h3>
-                    <p className="mt-1 leading-relaxed text-[#c4c6d0]">
+                    <p className="mt-1 leading-relaxed text-[#c4c6cf]">
                       When you pay a bulk bill (e.g. ₹1,505 on credit card at DMart) for 5 people: your personal expense increases <strong>only by ₹282.25</strong>. The rest is booked as <strong>receivables</strong>. When a friend repays via GPay, <strong>₹0</strong> is counted as income — liquid cash increases and friend debt clears.
                     </p>
                   </div>
@@ -323,26 +551,97 @@ export default function App() {
               </div>
             )}
 
-            {/* Transactions List */}
-            <div className="rounded-[28px] bg-[#1e2026] border border-[#2d3139] overflow-hidden">
-              <div className="px-5 py-4 border-b border-[#2d3139] flex items-center justify-between">
-                <div>
-                  <h2 className="text-sm font-semibold text-[#e2e2e9] m-0">
-                    Recent Transactions ({transactions.length})
-                  </h2>
-                  <p className="text-xs text-[#8e9099] mt-0.5">
-                    Tap the &quot;+ New&quot; button to record spending or splits
-                  </p>
+            {/* Due Recurring Commitments Confirmation Prompt */}
+            {dueCommitments.length > 0 && (
+              <div className="rounded-[24px] bg-[#16171c] border border-[#3d2c20]/50 p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <div className="p-2 rounded-xl bg-[#2a1f17] text-[#ffb787] border border-[#3d2c20]">
+                      <Repeat className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <h3 className="text-xs font-semibold text-[#e2e2e7] m-0">
+                        Due Recurring Commitments ({dueCommitments.length})
+                      </h3>
+                      <p className="text-[11px] text-[#90929d] mt-0.5">
+                        Current monthly cycle • Confirm payment to record &amp; update tenure
+                      </p>
+                    </div>
+                  </div>
+                  <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-[#2a1f17] text-[#ffb787] font-medium border border-[#3d2c20]">
+                    Pending
+                  </span>
+                </div>
+
+                <div className="space-y-2 pt-1">
+                  {dueCommitments.map((comm) => (
+                    <div
+                      key={comm.id}
+                      className="p-3 rounded-2xl bg-[#111216] border border-[#1e2026] flex items-center justify-between gap-3"
+                    >
+                      <div>
+                        <div className="text-xs font-medium text-[#e2e2e7]">
+                          {comm.name}
+                        </div>
+                        <div className="text-[10px] text-[#90929d] mt-0.5">
+                          {comm.paidInstallments} of {comm.totalInstallments || '∞'} paid
+                          {comm.dayOfMonth ? ` • Due on day ${comm.dayOfMonth}` : ''}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs font-semibold font-mono text-[#e2e2e7]">
+                          {formatINR(comm.amount)}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleConfirmRecurring(comm)}
+                          className="px-3 py-1.5 rounded-full bg-[#a8dab5] hover:bg-[#b8ebd5] text-[#0d2a1a] font-semibold text-[11px] flex items-center gap-1 transition-colors"
+                        >
+                          <Check className="h-3.5 w-3.5" />
+                          <span>Confirm</span>
+                        </button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
+            )}
 
-              <div className="divide-y divide-[#282a30]">
-                {transactions.length === 0 ? (
-                  <div className="p-8 text-center text-xs text-[#8e9099]">
-                    No transactions recorded. Tap the + button to record one.
+            {/* ONLY THE TRANSACTION OF THE DAY */}
+            <div className="rounded-[28px] bg-[#16171c] border border-[#23252c] overflow-hidden p-4 sm:p-5 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <div className="h-8 w-8 rounded-xl bg-[#1a2536] text-[#a8c7fa] flex items-center justify-center border border-[#283a54]">
+                    <Calendar className="h-4 w-4" />
                   </div>
-                ) : (
-                  transactions.map((tx) => {
+                  <div>
+                    <h3 className="text-sm font-semibold text-[#e2e2e7] m-0">
+                      Today&apos;s Activity ({todaysTransactions.length})
+                    </h3>
+                    <p className="text-xs text-[#90929d] mt-0.5">
+                      {new Date().toLocaleDateString('en-US', {
+                        weekday: 'long',
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                      })}
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('transactions')}
+                  className="text-xs text-[#a8c7fa] hover:text-[#b8d4ff] font-medium flex items-center gap-1 transition-colors"
+                >
+                  <span>View All Months</span>
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </button>
+              </div>
+
+              {todaysTransactions.length > 0 ? (
+                <div className="divide-y divide-[#1c1d22]">
+                  {todaysTransactions.map((tx) => {
                     const account = accounts.find((a) => a.id === tx.accountId);
                     const isShared = tx.type === 'shared_expense';
                     const isSettlement = tx.type === 'settlement_received';
@@ -350,136 +649,148 @@ export default function App() {
                     return (
                       <div
                         key={tx.id}
-                        className="p-4 hover:bg-[#282a30]/50 transition-colors flex flex-col md:flex-row md:items-center justify-between gap-3"
+                        className="py-3 flex items-center justify-between gap-3 hover:bg-[#111216]/50 transition-colors"
                       >
-                        <div className="flex items-start gap-3">
+                        <div className="flex items-center gap-3">
                           <div
-                            className={`p-2.5 rounded-2xl shrink-0 ${
+                            className={`p-2 rounded-xl shrink-0 border ${
                               isShared
-                                ? 'bg-[#3b2d18] text-[#ffb77c]'
+                                ? 'bg-[#2a1f17] text-[#ffb787] border-[#3d2c20]'
                                 : isSettlement
-                                ? 'bg-[#1e2a22] text-[#a8dab5]'
-                                : 'bg-[#282a30] text-[#a8c7fa]'
+                                ? 'bg-[#15241b] text-[#a8dab5] border-[#22382a]'
+                                : 'bg-[#1a2536] text-[#a8c7fa] border-[#283a54]'
                             }`}
                           >
                             {isShared ? (
-                              <Users className="h-5 w-5" />
+                              <Users className="h-4 w-4" />
                             ) : isSettlement ? (
-                              <ArrowDownLeft className="h-5 w-5" />
+                              <ArrowDownLeft className="h-4 w-4" />
                             ) : (
-                              <ArrowUpRight className="h-5 w-5" />
+                              <ArrowUpRight className="h-4 w-4" />
                             )}
                           </div>
-
                           <div>
-                            <div className="flex flex-wrap items-center gap-2">
-                              <span className="font-semibold text-[#e2e2e9] text-sm">
-                                {tx.title}
-                              </span>
-                              <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded-full bg-[#282a30] text-[#c4c6d0]">
-                                {tx.type.replace('_', ' ')}
-                              </span>
-                              {tx.groupId && (
-                                <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-[#253a5c] text-[#d3e3fd]">
-                                  {groups.find((g) => g.id === tx.groupId)?.name || tx.groupId}
-                                </span>
-                              )}
+                            <div className="font-semibold text-xs sm:text-sm text-[#e2e2e7]">
+                              {tx.title}
                             </div>
-
-                            <div className="flex flex-wrap items-center gap-2 text-xs text-[#8e9099] mt-1">
-                              <span>{formatDate(tx.date)}</span>
-                              <span>•</span>
-                              <span className="text-[#c4c6d0]">
-                                {account?.name || 'Account'}
-                              </span>
-                              {tx.notes && (
-                                <>
-                                  <span>•</span>
-                                  <span className="italic text-[#8e9099]">{tx.notes}</span>
-                                </>
-                              )}
+                            <div className="text-[11px] text-[#90929d]">
+                              {account?.name || 'Account'} • {formatDate(tx.date)}
                             </div>
-
-                            {/* Shared splits chips */}
-                            {tx.splits && tx.splits.length > 1 && (
-                              <div className="mt-2 flex flex-wrap gap-1.5">
-                                {tx.splits.map((split, idx) => {
-                                  const personName =
-                                    split.personId === 'user'
-                                      ? 'My Share'
-                                      : people.find((p) => p.id === split.personId)?.name || 'Friend';
-                                  return (
-                                    <span
-                                      key={idx}
-                                      className={`text-[11px] px-2.5 py-0.5 rounded-full font-mono ${
-                                        split.personId === 'user'
-                                          ? 'bg-[#253a5c] text-[#d3e3fd]'
-                                          : split.isSettled
-                                          ? 'bg-[#282a30] text-[#8e9099] line-through'
-                                          : 'bg-[#3b2d18] text-[#ffb77c]'
-                                      }`}
-                                    >
-                                      {personName}: {formatINR(split.amount)}
-                                    </span>
-                                  );
-                                })}
-                              </div>
-                            )}
                           </div>
                         </div>
 
-                        {/* Amount & Delete */}
-                        <div className="flex items-center justify-between md:justify-end gap-3 shrink-0 md:pl-4">
-                          <div className="text-right">
-                            <div className="text-base font-semibold text-[#e2e2e9] font-mono">
-                              {formatINR(tx.amount)}
-                            </div>
-                            {isShared && (
-                              <div className="text-xs text-[#a8dab5] font-medium">
-                                My Share: {formatINR(tx.personalExpenseAmount)}
-                              </div>
-                            )}
-                            {isSettlement && (
-                              <div className="text-xs text-[#c4c6d0]">
-                                Debt Repayment (₹0 Income)
-                              </div>
-                            )}
-                          </div>
-
-                          <button
-                            onClick={() => handleDeleteTx(tx.id)}
-                            title="Delete transaction and revert balances"
-                            className="p-2 text-[#8e9099] hover:text-[#f2b8b5] rounded-full hover:bg-[#282a30] transition-colors"
+                        <div className="text-right">
+                          <div
+                            className={`font-mono text-xs sm:text-sm font-semibold ${
+                              isSettlement
+                                ? 'text-[#a8dab5]'
+                                : isShared
+                                ? 'text-[#ffb787]'
+                                : 'text-[#e2e2e7]'
+                            }`}
                           >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
+                            {isSettlement ? '+' : '-'}
+                            {formatINR(tx.amount)}
+                          </div>
+                          {isShared && (
+                            <div className="text-[10px] text-[#90929d] font-mono">
+                              My Share: {formatINR(tx.personalExpenseAmount)}
+                            </div>
+                          )}
                         </div>
                       </div>
                     );
-                  })
-                )}
-              </div>
+                  })}
+                </div>
+              ) : (
+                <div className="p-4 rounded-2xl bg-[#111216] border border-[#1e2026] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                  <div className="flex items-center gap-2.5 text-[#c4c6cf]">
+                    <CheckCircle2 className="h-4 w-4 text-[#a8dab5] shrink-0" />
+                    <span>No transactions recorded today. Your daily spending margin is intact.</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setIsAddTxOpen(true)}
+                      className="px-3.5 py-1.5 rounded-full bg-[#a8c7fa] text-[#0d2238] font-semibold text-xs hover:bg-[#b8d4ff] transition-colors"
+                    >
+                      + Add Today&apos;s Expense
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab('transactions')}
+                      className="px-3.5 py-1.5 rounded-full bg-[#1a1c22] hover:bg-[#202228] text-[#e2e2e7] text-xs font-medium border border-[#262830] transition-colors"
+                    >
+                      Monthly History
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Savings Goal & Emergency Buffer (Canara Bank + RD) */}
+            <SavingsGoalCard
+              savingsBalance={breakdown.savingsBalance}
+              canaraBalance={breakdown.canaraBalance}
+              totalInvestments={breakdown.totalInvestments}
+              onQuickTransferToSavings={() => setIsAddTxOpen(true)}
+            />
+
+            {/* Category Spend Donut Chart */}
+            <div className="pt-1">
+              <AnalyticsView
+                transactions={transactions}
+                categories={categories}
+              />
             </div>
           </div>
         )}
 
-        {/* TAB 2: SHARED PG EXPENSES & SETTLEMENTS */}
-        {activeTab === 'shared' && (
+        {/* DESTINATION 2: BUDGET & RECURRING COMMITMENTS */}
+        {activeTab === 'budget' && (
+          <BudgetView
+            accounts={accounts}
+            recurringCommitments={recurringCommitments}
+            categories={categories}
+            transactions={transactions}
+            overallMonthlyBudget={overallMonthlyBudget}
+            onOpenAccounts={() => setIsAccountsOpen(true)}
+            onOpenRecurring={() => setIsRecurringOpen(true)}
+            onOpenSettings={() => setActiveTab('settings')}
+          />
+        )}
+
+        {/* DESTINATION 3: TRANSACTIONS (HORIZONTALLY SCROLLABLE MONTHS) */}
+        {activeTab === 'transactions' && (
+          <TransactionsView
+            transactions={transactions}
+            accounts={accounts}
+            categories={categories}
+            subcategories={subcategories}
+            groups={groups}
+            people={people}
+            onDeleteTx={handleDeleteTx}
+            onNewTx={() => setIsAddTxOpen(true)}
+          />
+        )}
+
+        {/* DESTINATION 4: SHARED PG EXPENSES & SETTLEMENTS */}
+        {activeTab === 'splits' && (
           <div className="space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <span className="text-xs text-[#8e9099]">
+              <span className="text-xs text-[#90929d]">
                 PG Flatmates &amp; Asynchronous Debt Clearance
               </span>
 
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setIsPeopleOpen(true)}
-                  className="px-3.5 py-1.5 rounded-full bg-[#282a30] hover:bg-[#33353c] text-xs font-medium text-[#e2e2e9] border border-[#33353c] flex items-center gap-1.5 transition-colors"
+                  className="px-3.5 py-1.5 rounded-full bg-[#1a1c22] hover:bg-[#202228] text-xs font-medium text-[#e2e2e7] border border-[#262830] flex items-center gap-1.5 transition-colors"
                 >
                   <Users className="h-3.5 w-3.5" />
                   <span>Manage Friends</span>
                 </button>
-                <span className="text-xs font-medium px-3 py-1 rounded-full bg-[#3b2d18] text-[#ffb77c]">
+                <span className="text-xs font-medium px-3 py-1 rounded-full bg-[#2a1f17] text-[#ffb787] border border-[#3d2c20]">
                   Receivables: {formatINR(breakdown.totalReceivables)}
                 </span>
               </div>
@@ -490,17 +801,17 @@ export default function App() {
               {groups.map((grp) => (
                 <div
                   key={grp.id}
-                  className="rounded-[24px] bg-[#1e2026] border border-[#2d3139] p-4 flex items-center justify-between"
+                  className="rounded-[24px] bg-[#16171c] border border-[#23252c] p-4 flex items-center justify-between"
                 >
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-semibold text-[#e2e2e9]">{grp.name}</span>
-                      <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-[#253a5c] text-[#d3e3fd]">
+                      <span className="text-sm font-semibold text-[#e2e2e7]">{grp.name}</span>
+                      <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-[#1a2536] text-[#d3e3fd] border border-[#283a54]">
                         Group
                       </span>
                     </div>
-                    <p className="text-xs text-[#8e9099] mt-1">{grp.description}</p>
-                    <div className="text-[11px] text-[#c4c6d0] mt-2">
+                    <p className="text-xs text-[#90929d] mt-1">{grp.description}</p>
+                    <div className="text-[11px] text-[#c4c6cf] mt-2">
                       {grp.memberIds.length} members
                     </div>
                   </div>
@@ -509,17 +820,17 @@ export default function App() {
             </div>
 
             {/* People & Balances Ledger */}
-            <div className="rounded-[28px] bg-[#1e2026] border border-[#2d3139] overflow-hidden">
-              <div className="px-5 py-4 border-b border-[#2d3139]">
-                <h3 className="text-sm font-semibold text-[#e2e2e9] m-0">
+            <div className="rounded-[28px] bg-[#16171c] border border-[#23252c] overflow-hidden">
+              <div className="px-5 py-4 border-b border-[#23252c]">
+                <h3 className="text-sm font-semibold text-[#e2e2e7] m-0">
                   Friends Ledger
                 </h3>
-                <p className="text-xs text-[#8e9099] mt-0.5">
+                <p className="text-xs text-[#90929d] mt-0.5">
                   Tap &quot;Settle via GPay&quot; to test instant receivable reduction into HDFC Salary
                 </p>
               </div>
 
-              <div className="divide-y divide-[#282a30]">
+              <div className="divide-y divide-[#1c1d22]">
                 {people.map((p) => {
                   const owesMe = p.netBalance > 0;
                   const isSettled = p.netBalance === 0;
@@ -527,24 +838,24 @@ export default function App() {
                   return (
                     <div
                       key={p.id}
-                      className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-[#282a30]/50 transition-colors"
+                      className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-[#111216]/50 transition-colors"
                     >
                       <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-2xl bg-[#282a30] flex items-center justify-center text-lg shrink-0 border border-[#33353c]">
+                        <div className="h-10 w-10 rounded-2xl bg-[#1a1c22] flex items-center justify-center text-lg shrink-0 border border-[#262830]">
                           {p.avatar || '👤'}
                         </div>
                         <div>
                           <div className="flex items-center gap-2">
-                            <span className="font-semibold text-[#e2e2e9] text-sm">
+                            <span className="font-semibold text-[#e2e2e7] text-sm">
                               {p.name}
                             </span>
                             {p.notes && (
-                              <span className="text-[10px] text-[#8e9099] px-2 py-0.5 rounded-full bg-[#282a30]">
+                              <span className="text-[10px] text-[#90929d] px-2 py-0.5 rounded-full bg-[#111216] border border-[#1e2026]">
                                 {p.notes}
                               </span>
                             )}
                           </div>
-                          <div className="flex flex-wrap items-center gap-2 text-xs text-[#8e9099] mt-0.5">
+                          <div className="flex flex-wrap items-center gap-2 text-xs text-[#90929d] mt-0.5">
                             {p.phone && <span>{p.phone}</span>}
                             {p.upiId && (
                               <>
@@ -563,9 +874,9 @@ export default function App() {
                           <div
                             className={`text-sm font-semibold font-mono ${
                               owesMe
-                                ? 'text-[#ffb77c]'
+                                ? 'text-[#ffb787]'
                                 : isSettled
-                                ? 'text-[#8e9099]'
+                                ? 'text-[#90929d]'
                                 : 'text-[#f2b8b5]'
                             }`}
                           >
@@ -575,7 +886,7 @@ export default function App() {
                               ? `Owes you ${formatINR(p.netBalance)}`
                               : `You owe ${formatINR(Math.abs(p.netBalance))}`}
                           </div>
-                          <div className="text-[10px] text-[#8e9099]">
+                          <div className="text-[10px] text-[#90929d]">
                             {owesMe ? 'Receivable' : isSettled ? 'Settled' : 'Payable'}
                           </div>
                         </div>
@@ -585,7 +896,7 @@ export default function App() {
                             onClick={() =>
                               handleSimulateSettlement(p.id, p.name, p.netBalance)
                             }
-                            className="px-3.5 py-1.5 rounded-full bg-[#1e2a22] hover:bg-[#28382d] text-[#a8dab5] text-xs font-semibold border border-[#2e4d38] transition-colors flex items-center gap-1.5"
+                            className="px-3.5 py-1.5 rounded-full bg-[#15241b] hover:bg-[#1c2e22] text-[#a8dab5] text-xs font-semibold border border-[#22382a] transition-colors flex items-center gap-1.5"
                           >
                             <ArrowDownLeft className="h-3.5 w-3.5" />
                             Settle via GPay
@@ -600,234 +911,26 @@ export default function App() {
           </div>
         )}
 
-        {/* TAB 3: ACCOUNTS & RECURRING */}
-        {activeTab === 'accounts' && (
-          <div className="space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              {/* Segmented View Switcher */}
-              <div className="flex rounded-full bg-[#1e2026] p-1 border border-[#2d3139] w-fit">
-                <button
-                  onClick={() => setAccountsViewMode('accounts')}
-                  className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all ${
-                    accountsViewMode === 'accounts'
-                      ? 'bg-[#253a5c] text-[#d3e3fd]'
-                      : 'text-[#8e9099] hover:text-[#e2e2e9]'
-                  }`}
-                >
-                  Accounts &amp; Cards ({accounts.length})
-                </button>
-                <button
-                  onClick={() => setAccountsViewMode('recurring')}
-                  className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all ${
-                    accountsViewMode === 'recurring'
-                      ? 'bg-[#253a5c] text-[#d3e3fd]'
-                      : 'text-[#8e9099] hover:text-[#e2e2e9]'
-                  }`}
-                >
-                  Recurring &amp; EMIs ({recurringCommitments.length})
-                </button>
-              </div>
-
-              <div className="flex items-center gap-2">
-                {accountsViewMode === 'accounts' ? (
-                  <button
-                    onClick={() => setIsAccountsOpen(true)}
-                    className="px-3.5 py-1.5 rounded-full bg-[#a8c7fa] hover:bg-[#b8d4ff] text-xs font-semibold text-[#003062] flex items-center gap-1.5 transition-colors"
-                  >
-                    <Plus className="h-4 w-4" />
-                    <span>Manage Accounts</span>
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => setIsRecurringOpen(true)}
-                    className="px-3.5 py-1.5 rounded-full bg-[#a8c7fa] hover:bg-[#b8d4ff] text-xs font-semibold text-[#003062] flex items-center gap-1.5 transition-colors"
-                  >
-                    <Plus className="h-4 w-4" />
-                    <span>Manage Commitments</span>
-                  </button>
-                )}
-              </div>
-            </div>
-
-            {/* Accounts Sub-view */}
-            {accountsViewMode === 'accounts' && (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                {accounts.map((acc) => {
-                  const isCC = acc.type === 'credit_card';
-
-                  return (
-                    <div
-                      key={acc.id}
-                      className="rounded-[24px] bg-[#1e2026] border border-[#2d3139] p-5 flex flex-col justify-between"
-                    >
-                      <div>
-                        <div className="flex items-start justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className="p-2.5 rounded-2xl bg-[#282a30] text-[#a8c7fa] shrink-0 border border-[#33353c]">
-                              {acc.type === 'credit_card' ? (
-                                <CreditCard className="h-5 w-5" />
-                              ) : acc.type === 'cash' ? (
-                                <Banknote className="h-5 w-5" />
-                              ) : acc.type === 'wallet' ? (
-                                <Wallet className="h-5 w-5" />
-                              ) : (
-                                <Landmark className="h-5 w-5" />
-                              )}
-                            </div>
-                            <div>
-                              <h3 className="text-sm font-semibold text-[#e2e2e9] m-0">
-                                {acc.name}
-                              </h3>
-                              <span className="text-[10px] uppercase font-mono text-[#8e9099]">
-                                {acc.institution || acc.type}
-                              </span>
-                            </div>
-                          </div>
-
-                          {acc.isDefault && (
-                            <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-[#253a5c] text-[#d3e3fd]">
-                              Primary
-                            </span>
-                          )}
-                        </div>
-
-                        <div className="mt-4">
-                          <div className="text-xs text-[#8e9099]">
-                            {isCC ? 'Current Liability' : 'Balance'}
-                          </div>
-                          <div
-                            className={`text-2xl font-normal mt-0.5 font-mono ${
-                              isCC ? 'text-[#f2b8b5]' : 'text-[#e2e2e9]'
-                            }`}
-                          >
-                            {formatINR(acc.balance)}
-                          </div>
-                        </div>
-                      </div>
-
-                      {isCC && acc.creditLimit && (
-                        <div className="mt-4 pt-3 border-t border-[#2d3139] text-xs">
-                          <div className="flex justify-between text-[#8e9099] text-[11px]">
-                            <span>Limit: {formatINR(acc.creditLimit)}</span>
-                            <span>
-                              Available: {formatINR(acc.creditLimit - (acc.balance || 0))}
-                            </span>
-                          </div>
-                          <div className="w-full bg-[#282a30] h-1.5 rounded-full mt-1.5 overflow-hidden">
-                            <div
-                              className="bg-[#f2b8b5] h-full rounded-full"
-                              style={{
-                                width: `${Math.min(
-                                100,
-                                ((acc.balance || 0) / acc.creditLimit) * 100
-                              )}%`,
-                              }}
-                            />
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-
-            {/* Recurring Sub-view */}
-            {accountsViewMode === 'recurring' && (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                {recurringCommitments.map((comm) => {
-                  const hasInstallments = Boolean(comm.totalInstallments);
-                  const progressPct = hasInstallments
-                    ? Math.round(
-                        (comm.paidInstallments / (comm.totalInstallments || 1)) * 100
-                      )
-                    : 0;
-
-                  return (
-                    <div
-                      key={comm.id}
-                      className="rounded-[24px] bg-[#1e2026] border border-[#2d3139] p-5 flex flex-col justify-between"
-                    >
-                      <div>
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded-full bg-[#253a5c] text-[#d3e3fd]">
-                              {comm.type.replace('_', ' ')}
-                            </span>
-                            <h3 className="text-sm font-semibold text-[#e2e2e9] mt-2 m-0">
-                              {comm.name}
-                            </h3>
-                          </div>
-                          <div className="text-right">
-                            <div className="text-base font-semibold text-[#e2e2e9] font-mono">
-                              {formatINR(comm.amount)}
-                            </div>
-                            <div className="text-[10px] text-[#8e9099]">
-                              Day {comm.dayOfMonth} / mo
-                            </div>
-                          </div>
-                        </div>
-
-                        {hasInstallments && (
-                          <div className="mt-4">
-                            <div className="flex justify-between text-xs text-[#8e9099] mb-1">
-                              <span>
-                                {comm.paidInstallments} of {comm.totalInstallments} paid
-                              </span>
-                              <span className="text-[#c4c6d0]">
-                                {progressPct}%
-                              </span>
-                            </div>
-                            <div className="w-full bg-[#282a30] h-2 rounded-full overflow-hidden">
-                              <div
-                                className="bg-[#a8c7fa] h-full rounded-full transition-all"
-                                style={{ width: `${progressPct}%` }}
-                              />
-                            </div>
-                            {comm.remainingAmount !== undefined && (
-                              <div className="text-[11px] text-[#8e9099] mt-1.5">
-                                Remaining: {formatINR(comm.remainingAmount)}
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="mt-4 pt-3 border-t border-[#2d3139] flex items-center justify-between text-xs">
-                        <span className="text-[#8e9099]">
-                          {comm.isReservedCommitment ? 'Reserved in Spend' : 'Not Reserved'}
-                        </span>
-                        <span className="px-2 py-0.5 rounded-full bg-[#1e2a22] text-[#a8dab5] text-[11px]">
-                          Active
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* TAB 4: ANALYTICS & CHARTS */}
-        {activeTab === 'analytics' && (
-          <AnalyticsView
-            transactions={transactions}
-            categories={categories}
-            accounts={accounts}
-            people={people}
-          />
-        )}
-
-        {/* TAB 5: SETTINGS PAGE */}
+        {/* DESTINATION 5: SETTINGS & HUB */}
         {activeTab === 'settings' && (
           <SettingsView
+            userName={userName}
+            onEditName={() => {
+              setNameInput(userName);
+              setIsNameModalOpen(true);
+            }}
             accounts={accounts}
             categories={categories}
             subcategories={subcategories}
             people={people}
             groups={groups}
             recurringCommitments={recurringCommitments}
+            overallMonthlyBudget={overallMonthlyBudget}
+            onUpdateOverallBudget={handleUpdateOverallBudget}
+            onUpdateCategoryBudget={handleUpdateCategoryBudget}
+            installPrompt={installPrompt}
+            isAppInstalled={isAppInstalled}
+            onInstallApp={handleInstallApp}
             onOpenAccounts={() => setIsAccountsOpen(true)}
             onOpenPeople={() => setIsPeopleOpen(true)}
             onOpenCategories={() => setIsCategoriesOpen(true)}
@@ -845,129 +948,108 @@ export default function App() {
         )}
       </main>
 
-      {/* Floating Action Button (Stock Android 17 Extended FAB) */}
+      {/* Floating Action Button (Stock Android 17 FAB: Simple Plus Icon Only) */}
       <button
+        type="button"
         onClick={() => setIsAddTxOpen(true)}
-        className="fixed bottom-20 right-4 sm:right-6 z-30 flex items-center gap-2 px-5 py-3.5 rounded-2xl bg-[#a8c7fa] hover:bg-[#b8d4ff] text-[#003062] font-semibold text-sm shadow-xl active:scale-95 transition-all"
+        title="New Transaction"
+        aria-label="New Transaction"
+        className="fixed bottom-20 right-4 sm:right-6 z-30 h-14 w-14 rounded-2xl bg-[#a8c7fa] hover:bg-[#b8d4ff] text-[#0d2238] shadow-2xl flex items-center justify-center active:scale-90 transition-all border border-[#b8d4ff]/20"
       >
-        <Plus className="h-5 w-5" />
-        <span>New Transaction</span>
+        <Plus className="h-6 w-6 stroke-[2.5]" />
       </button>
 
-      {/* Android 17 / Material 3 Bottom Navigation Bar */}
-      <nav className="fixed bottom-0 left-0 right-0 z-40 bg-[#1e2026]/95 backdrop-blur-md border-t border-[#282a30] px-2 py-1.5 flex items-center justify-around shadow-2xl">
-        {/* Option 1: Overview */}
+      {/* Android 17 / Material 3 Bottom Navigation Bar (4 Destinations: Settings moved to Header) */}
+      <nav className="fixed bottom-0 left-0 right-0 z-40 bg-[#16171c]/95 backdrop-blur-md border-t border-[#23252c] px-2 py-1.5 flex items-center justify-around shadow-2xl">
+        {/* Destination 1: Home */}
         <button
-          onClick={() => setActiveTab('overview')}
+          onClick={() => setActiveTab('home')}
           className="flex flex-col items-center gap-1 py-1 px-3 group flex-1 max-w-[80px]"
         >
           <div
             className={`px-4 py-1 rounded-full transition-all flex items-center justify-center ${
-              activeTab === 'overview'
-                ? 'bg-[#253a5c] text-[#d3e3fd]'
-                : 'text-[#c4c6d0] group-hover:text-[#e2e2e9]'
+              activeTab === 'home'
+                ? 'bg-[#1a2536] text-[#d3e3fd]'
+                : 'text-[#c4c6cf] group-hover:text-[#e2e2e7]'
             }`}
           >
             <Home className="h-5 w-5" />
           </div>
           <span
             className={`text-[11px] font-medium transition-colors ${
-              activeTab === 'overview' ? 'text-[#d3e3fd]' : 'text-[#8e9099]'
+              activeTab === 'home' ? 'text-[#d3e3fd]' : 'text-[#90929d]'
             }`}
           >
             Home
           </span>
         </button>
 
-        {/* Option 2: Splits */}
+        {/* Destination 2: Budget */}
         <button
-          onClick={() => setActiveTab('shared')}
+          onClick={() => setActiveTab('budget')}
           className="flex flex-col items-center gap-1 py-1 px-3 group flex-1 max-w-[80px]"
         >
           <div
             className={`px-4 py-1 rounded-full transition-all flex items-center justify-center ${
-              activeTab === 'shared'
-                ? 'bg-[#253a5c] text-[#d3e3fd]'
-                : 'text-[#c4c6d0] group-hover:text-[#e2e2e9]'
+              activeTab === 'budget'
+                ? 'bg-[#1a2536] text-[#d3e3fd]'
+                : 'text-[#c4c6cf] group-hover:text-[#e2e2e7]'
+            }`}
+          >
+            <PieChart className="h-5 w-5" />
+          </div>
+          <span
+            className={`text-[11px] font-medium transition-colors ${
+              activeTab === 'budget' ? 'text-[#d3e3fd]' : 'text-[#90929d]'
+            }`}
+          >
+            Budget
+          </span>
+        </button>
+
+        {/* Destination 3: Transactions */}
+        <button
+          onClick={() => setActiveTab('transactions')}
+          className="flex flex-col items-center gap-1 py-1 px-3 group flex-1 max-w-[80px]"
+        >
+          <div
+            className={`px-4 py-1 rounded-full transition-all flex items-center justify-center ${
+              activeTab === 'transactions'
+                ? 'bg-[#1a2536] text-[#d3e3fd]'
+                : 'text-[#c4c6cf] group-hover:text-[#e2e2e7]'
+            }`}
+          >
+            <Receipt className="h-5 w-5" />
+          </div>
+          <span
+            className={`text-[11px] font-medium transition-colors ${
+              activeTab === 'transactions' ? 'text-[#d3e3fd]' : 'text-[#90929d]'
+            }`}
+          >
+            Transactions
+          </span>
+        </button>
+
+        {/* Destination 4: Splits */}
+        <button
+          onClick={() => setActiveTab('splits')}
+          className="flex flex-col items-center gap-1 py-1 px-3 group flex-1 max-w-[80px]"
+        >
+          <div
+            className={`px-4 py-1 rounded-full transition-all flex items-center justify-center ${
+              activeTab === 'splits'
+                ? 'bg-[#1a2536] text-[#d3e3fd]'
+                : 'text-[#c4c6cf] group-hover:text-[#e2e2e7]'
             }`}
           >
             <Users className="h-5 w-5" />
           </div>
           <span
             className={`text-[11px] font-medium transition-colors ${
-              activeTab === 'shared' ? 'text-[#d3e3fd]' : 'text-[#8e9099]'
+              activeTab === 'splits' ? 'text-[#d3e3fd]' : 'text-[#90929d]'
             }`}
           >
             Splits
-          </span>
-        </button>
-
-        {/* Option 3: Accounts */}
-        <button
-          onClick={() => setActiveTab('accounts')}
-          className="flex flex-col items-center gap-1 py-1 px-3 group flex-1 max-w-[80px]"
-        >
-          <div
-            className={`px-4 py-1 rounded-full transition-all flex items-center justify-center ${
-              activeTab === 'accounts'
-                ? 'bg-[#253a5c] text-[#d3e3fd]'
-                : 'text-[#c4c6d0] group-hover:text-[#e2e2e9]'
-            }`}
-          >
-            <Wallet className="h-5 w-5" />
-          </div>
-          <span
-            className={`text-[11px] font-medium transition-colors ${
-              activeTab === 'accounts' ? 'text-[#d3e3fd]' : 'text-[#8e9099]'
-            }`}
-          >
-            Accounts
-          </span>
-        </button>
-
-        {/* Option 4: Analytics */}
-        <button
-          onClick={() => setActiveTab('analytics')}
-          className="flex flex-col items-center gap-1 py-1 px-3 group flex-1 max-w-[80px]"
-        >
-          <div
-            className={`px-4 py-1 rounded-full transition-all flex items-center justify-center ${
-              activeTab === 'analytics'
-                ? 'bg-[#253a5c] text-[#d3e3fd]'
-                : 'text-[#c4c6d0] group-hover:text-[#e2e2e9]'
-            }`}
-          >
-            <BarChart3 className="h-5 w-5" />
-          </div>
-          <span
-            className={`text-[11px] font-medium transition-colors ${
-              activeTab === 'analytics' ? 'text-[#d3e3fd]' : 'text-[#8e9099]'
-            }`}
-          >
-            Analytics
-          </span>
-        </button>
-
-        {/* Option 5: Settings */}
-        <button
-          onClick={() => setActiveTab('settings')}
-          className="flex flex-col items-center gap-1 py-1 px-3 group flex-1 max-w-[80px]"
-        >
-          <div
-            className={`px-4 py-1 rounded-full transition-all flex items-center justify-center ${
-              activeTab === 'settings'
-                ? 'bg-[#253a5c] text-[#d3e3fd]'
-                : 'text-[#c4c6d0] group-hover:text-[#e2e2e9]'
-            }`}
-          >
-            <Settings className="h-5 w-5" />
-          </div>
-          <span
-            className={`text-[11px] font-medium transition-colors ${
-              activeTab === 'settings' ? 'text-[#d3e3fd]' : 'text-[#8e9099]'
-            }`}
-          >
-            Settings
           </span>
         </button>
       </nav>
@@ -1040,6 +1122,57 @@ export default function App() {
           setTimeout(() => setActionNotice(null), 4000);
         }}
       />
+
+      {/* First-Time Launch & Profile Name Customization Modal */}
+      {isNameModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-[#16171c] border border-[#23252c] rounded-[28px] max-w-sm w-full p-6 shadow-2xl space-y-4">
+            <div className="text-center space-y-1.5">
+              <div className="h-12 w-12 rounded-2xl bg-[#1a2536] text-[#a8c7fa] flex items-center justify-center mx-auto text-xl font-bold border border-[#283a54]">
+                👋
+              </div>
+              <h2 className="text-lg font-semibold text-[#e2e2e7]">Welcome to FinTrack</h2>
+              <p className="text-xs text-[#90929d]">
+                What should we call you?
+              </p>
+            </div>
+
+            <form onSubmit={handleSaveUserName} className="space-y-4">
+              <div>
+                <label className="block text-[11px] font-medium text-[#c4c6cf] mb-1.5">
+                  Your Name
+                </label>
+                <input
+                  type="text"
+                  autoFocus
+                  value={nameInput}
+                  onChange={(e) => setNameInput(e.target.value)}
+                  placeholder="e.g. Bony"
+                  className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2.5 text-sm text-[#e2e2e7] placeholder-[#90929d] focus:outline-none"
+                />
+              </div>
+
+              <div className="flex items-center gap-2">
+                {localStorage.getItem('fintrack_user_name') && (
+                  <button
+                    type="button"
+                    onClick={() => setIsNameModalOpen(false)}
+                    className="flex-1 py-2.5 rounded-full bg-[#1a1c22] hover:bg-[#202228] text-[#e2e2e7] font-medium text-xs border border-[#262830] transition-colors"
+                  >
+                    Cancel
+                  </button>
+                )}
+                <button
+                  type="submit"
+                  className="flex-1 py-2.5 rounded-full bg-[#a8c7fa] hover:bg-[#b8d4ff] text-[#0d2238] font-semibold text-xs transition-colors shadow-sm"
+                >
+                  Continue
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

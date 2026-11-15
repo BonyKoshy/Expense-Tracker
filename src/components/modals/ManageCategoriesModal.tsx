@@ -20,7 +20,7 @@ export function ManageCategoriesModal({
 }: ManageCategoriesModalProps) {
   const [catName, setCatName] = useState('');
   const [catType, setCatType] = useState<CategoryType>('expense');
-  const [catColor, setCatColor] = useState('#253a5c');
+  const [catColor, setCatColor] = useState('#1a2536');
 
   const [selectedParentCatId, setSelectedParentCatId] = useState(
     categories[0]?.id || ''
@@ -90,27 +90,27 @@ export function ManageCategoriesModal({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-y-auto">
-      <div className="bg-[#1e2026] border border-[#2d3139] rounded-t-[28px] sm:rounded-[28px] w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-bottom-6 sm:zoom-in-95 duration-150">
-        <div className="w-10 h-1 rounded-full bg-[#44474f] mx-auto mt-3 mb-1 shrink-0 sm:hidden" />
+      <div className="bg-[#16171c] border border-[#23252c] rounded-t-[28px] sm:rounded-[28px] w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-bottom-6 sm:zoom-in-95 duration-150">
+        <div className="w-10 h-1 rounded-full bg-[#23252c] mx-auto mt-3 mb-1 shrink-0 sm:hidden" />
 
         {/* Header */}
-        <div className="px-5 py-3.5 border-b border-[#2d3139] flex items-center justify-between shrink-0">
+        <div className="px-5 py-3.5 border-b border-[#23252c] flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-2xl bg-[#282a30] text-[#a8c7fa] border border-[#33353c]">
+            <div className="p-2 rounded-2xl bg-[#1a1c22] text-[#a8c7fa] border border-[#262830]">
               <Tags className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="text-base font-semibold text-[#e2e2e9] m-0">
+              <h2 className="text-base font-semibold text-[#e2e2e7] m-0">
                 Categories &amp; Tags
               </h2>
-              <p className="text-xs text-[#8e9099] mt-0.5">
+              <p className="text-xs text-[#90929d] mt-0.5">
                 Expense and income category structure
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="h-9 w-9 rounded-full flex items-center justify-center text-[#c4c6d0] hover:text-[#e2e2e9] hover:bg-[#282a30] transition-colors"
+            className="h-9 w-9 rounded-full flex items-center justify-center text-[#c4c6cf] hover:text-[#e2e2e7] hover:bg-[#1a1c22] transition-colors"
           >
             <X className="h-5 w-5" />
           </button>
@@ -118,7 +118,7 @@ export function ManageCategoriesModal({
 
         <div className="p-5 overflow-y-auto space-y-4">
           {error && (
-            <div className="p-2.5 rounded-xl bg-[#371e1d] border border-[#60201f] text-[#ffb4ab] text-xs">
+            <div className="p-2.5 rounded-xl bg-[#2b1b1d] border border-[#48282b] text-[#f2b8b5] text-xs">
               {error}
             </div>
           )}
@@ -126,7 +126,7 @@ export function ManageCategoriesModal({
           {/* Add Category Form */}
           <form
             onSubmit={handleAddCategory}
-            className="bg-[#191b20] border border-[#2d3139] rounded-[24px] p-4 sm:p-5 space-y-3"
+            className="bg-[#111216] border border-[#23252c] rounded-[24px] p-4 sm:p-5 space-y-3"
           >
             <span className="text-xs font-semibold text-[#a8c7fa] block">
               Add Category
@@ -134,7 +134,7 @@ export function ManageCategoriesModal({
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
-                <label className="text-xs font-medium text-[#c4c6d0] block mb-1">
+                <label className="text-xs font-medium text-[#c4c6cf] block mb-1">
                   Name
                 </label>
                 <input
@@ -143,18 +143,18 @@ export function ManageCategoriesModal({
                   placeholder="e.g., Electronics"
                   value={catName}
                   onChange={(e) => setCatName(e.target.value)}
-                  className="w-full bg-[#111318] border border-[#44474f] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e9] focus:outline-none"
+                  className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e7] focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="text-xs font-medium text-[#c4c6d0] block mb-1">
+                <label className="text-xs font-medium text-[#c4c6cf] block mb-1">
                   Type
                 </label>
                 <select
                   value={catType}
                   onChange={(e) => setCatType(e.target.value as CategoryType)}
-                  className="w-full bg-[#111318] border border-[#44474f] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e9] focus:outline-none"
+                  className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e7] focus:outline-none"
                 >
                   <option value="expense">Expense</option>
                   <option value="income">Income</option>
@@ -163,7 +163,7 @@ export function ManageCategoriesModal({
               </div>
 
               <div>
-                <label className="text-xs font-medium text-[#c4c6d0] block mb-1">
+                <label className="text-xs font-medium text-[#c4c6cf] block mb-1">
                   Color
                 </label>
                 <div className="flex items-center gap-2">
@@ -173,7 +173,7 @@ export function ManageCategoriesModal({
                     onChange={(e) => setCatColor(e.target.value)}
                     className="h-8 w-12 rounded border-0 bg-transparent cursor-pointer"
                   />
-                  <span className="text-xs font-mono text-[#8e9099]">{catColor}</span>
+                  <span className="text-xs font-mono text-[#90929d]">{catColor}</span>
                 </div>
               </div>
             </div>
@@ -192,7 +192,7 @@ export function ManageCategoriesModal({
           {/* Add Subcategory Form */}
           <form
             onSubmit={handleAddSubcategory}
-            className="bg-[#191b20] border border-[#2d3139] rounded-[24px] p-4 sm:p-5 space-y-3"
+            className="bg-[#111216] border border-[#23252c] rounded-[24px] p-4 sm:p-5 space-y-3"
           >
             <span className="text-xs font-semibold text-[#a8c7fa] block">
               Add Subcategory
@@ -200,13 +200,13 @@ export function ManageCategoriesModal({
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="text-xs font-medium text-[#c4c6d0] block mb-1">
+                <label className="text-xs font-medium text-[#c4c6cf] block mb-1">
                   Parent Category
                 </label>
                 <select
                   value={selectedParentCatId}
                   onChange={(e) => setSelectedParentCatId(e.target.value)}
-                  className="w-full bg-[#111318] border border-[#44474f] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e9] focus:outline-none"
+                  className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e7] focus:outline-none"
                 >
                   {categories.map((c) => (
                     <option key={c.id} value={c.id}>
@@ -217,7 +217,7 @@ export function ManageCategoriesModal({
               </div>
 
               <div>
-                <label className="text-xs font-medium text-[#c4c6d0] block mb-1">
+                <label className="text-xs font-medium text-[#c4c6cf] block mb-1">
                   Subcategory Name
                 </label>
                 <input
@@ -226,7 +226,7 @@ export function ManageCategoriesModal({
                   placeholder="e.g., Tea & Chai, Samosas"
                   value={subName}
                   onChange={(e) => setSubName(e.target.value)}
-                  className="w-full bg-[#111318] border border-[#44474f] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e9] focus:outline-none"
+                  className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e7] focus:outline-none"
                 />
               </div>
             </div>
@@ -249,15 +249,15 @@ export function ManageCategoriesModal({
               return (
                 <div
                   key={c.id}
-                  className="p-3 rounded-2xl bg-[#191b20] border border-[#2d3139]"
+                  className="p-3 rounded-2xl bg-[#111216] border border-[#23252c]"
                 >
                   <div className="flex items-center gap-2">
                     <div
                       className="h-2.5 w-2.5 rounded-full shrink-0"
                       style={{ backgroundColor: c.color }}
                     />
-                    <span className="text-sm font-semibold text-[#e2e2e9]">{c.name}</span>
-                    <span className="text-[10px] font-mono px-2 py-0.2 rounded-full bg-[#282a30] text-[#8e9099] uppercase ml-auto">
+                    <span className="text-sm font-semibold text-[#e2e2e7]">{c.name}</span>
+                    <span className="text-[10px] font-mono px-2 py-0.2 rounded-full bg-[#1a1c22] text-[#90929d] uppercase ml-auto">
                       {c.type}
                     </span>
                   </div>
@@ -266,7 +266,7 @@ export function ManageCategoriesModal({
                     {subs.map((s) => (
                       <span
                         key={s.id}
-                        className="text-[11px] px-2.5 py-0.5 rounded-full bg-[#282a30] text-[#c4c6d0]"
+                        className="text-[11px] px-2.5 py-0.5 rounded-full bg-[#1a1c22] text-[#c4c6cf]"
                       >
                         {s.name}
                       </span>

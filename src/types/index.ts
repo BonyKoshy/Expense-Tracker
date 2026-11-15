@@ -42,6 +42,7 @@ export interface Category {
   type: CategoryType;
   icon: string;
   color: string;
+  monthlyBudget?: number;
   isDefault?: boolean;
   subcategories?: Subcategory[];
   createdAt: string;
@@ -154,11 +155,20 @@ export interface RecurringCommitment {
 
 export interface AvailableToSpendBreakdown {
   totalLiquidBalances: number; // Bank accounts + Cash + Wallets
-  reservedCommitments: number; // Active commitments for this billing cycle
-  unbilledCCLiability: number; // Total unpaid credit card balances
+  reservedCommitments: number; // Total reserved commitments
+  hdfcReservedCommitments: number; // Reserved commitments specifically from HDFC
+  unbilledCCLiability: number; // Total unpaid credit card balances (HDFC MoneyBack+)
   totalReceivables: number; // Money friends owe to user (positive net balances)
   totalPayables: number; // Money user owes to friends (negative net balances)
   netMoneyOwedToOthers: number; // max(0, totalPayables - totalReceivables)
-  availableToSpend: number; // Total Liquid - (Reserved + CC Liability + Net Owed)
+  availableToSpend: number; // HDFC Balance - CC Liability - HDFC Reserved Commitments
   totalNetWorth: number; // Liquid Balances + Investments + Receivables - (CC Liability + Payables)
+  netMoneyOwned: number; // Entire balance of HDFC + Amazon Wallet + Cash
+  lent: number; // Entire amount user needs to receive from friends
+  savingsBalance: number; // Total accumulated savings (Canara Bank + RD investments)
+  hdfcBalance: number;
+  canaraBalance: number;
+  amazonWalletBalance: number;
+  cashBalance: number;
+  totalInvestments: number;
 }

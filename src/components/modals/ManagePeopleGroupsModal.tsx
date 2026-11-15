@@ -153,41 +153,41 @@ export function ManagePeopleGroupsModal({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-y-auto">
-      <div className="bg-[#1e2026] border border-[#2d3139] rounded-t-[28px] sm:rounded-[28px] w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-bottom-6 sm:zoom-in-95 duration-150">
-        <div className="w-10 h-1 rounded-full bg-[#44474f] mx-auto mt-3 mb-1 shrink-0 sm:hidden" />
+      <div className="bg-[#16171c] border border-[#23252c] rounded-t-[28px] sm:rounded-[28px] w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-bottom-6 sm:zoom-in-95 duration-150">
+        <div className="w-10 h-1 rounded-full bg-[#23252c] mx-auto mt-3 mb-1 shrink-0 sm:hidden" />
 
         {/* Header */}
-        <div className="px-5 py-3.5 border-b border-[#2d3139] flex items-center justify-between shrink-0">
+        <div className="px-5 py-3.5 border-b border-[#23252c] flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-2xl bg-[#282a30] text-[#a8c7fa] border border-[#33353c]">
+            <div className="p-2 rounded-2xl bg-[#1a1c22] text-[#a8c7fa] border border-[#262830]">
               <Users className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="text-base font-semibold text-[#e2e2e9] m-0">
+              <h2 className="text-base font-semibold text-[#e2e2e7] m-0">
                 Friends &amp; Groups
               </h2>
-              <p className="text-xs text-[#8e9099] mt-0.5">
+              <p className="text-xs text-[#90929d] mt-0.5">
                 Friends, UPI IDs, and GPay group memberships
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="h-9 w-9 rounded-full flex items-center justify-center text-[#c4c6d0] hover:text-[#e2e2e9] hover:bg-[#282a30] transition-colors"
+            className="h-9 w-9 rounded-full flex items-center justify-center text-[#c4c6cf] hover:text-[#e2e2e7] hover:bg-[#1a1c22] transition-colors"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
         {/* M3 Segmented Navigation Chips */}
-        <div className="px-5 pt-3 pb-2 border-b border-[#2d3139] flex gap-2 shrink-0">
+        <div className="px-5 pt-3 pb-2 border-b border-[#23252c] flex gap-2 shrink-0">
           <button
             type="button"
             onClick={() => setActiveSubTab('people')}
             className={`px-4 py-1.5 text-xs font-medium rounded-full transition-all ${
               activeSubTab === 'people'
-                ? 'bg-[#253a5c] text-[#d3e3fd]'
-                : 'bg-[#282a30] text-[#8e9099] hover:text-[#e2e2e9]'
+                ? 'bg-[#1a2536] text-[#d3e3fd]'
+                : 'bg-[#1a1c22] text-[#90929d] hover:text-[#e2e2e7]'
             }`}
           >
             Friends ({people.length})
@@ -197,8 +197,8 @@ export function ManagePeopleGroupsModal({
             onClick={() => setActiveSubTab('groups')}
             className={`px-4 py-1.5 text-xs font-medium rounded-full transition-all ${
               activeSubTab === 'groups'
-                ? 'bg-[#253a5c] text-[#d3e3fd]'
-                : 'bg-[#282a30] text-[#8e9099] hover:text-[#e2e2e9]'
+                ? 'bg-[#1a2536] text-[#d3e3fd]'
+                : 'bg-[#1a1c22] text-[#90929d] hover:text-[#e2e2e7]'
             }`}
           >
             Groups ({groups.length})
@@ -208,7 +208,7 @@ export function ManagePeopleGroupsModal({
         {/* Content */}
         <div className="p-5 overflow-y-auto space-y-4">
           {error && (
-            <div className="p-2.5 rounded-xl bg-[#371e1d] border border-[#60201f] text-[#ffb4ab] text-xs">
+            <div className="p-2.5 rounded-xl bg-[#2b1b1d] border border-[#48282b] text-[#f2b8b5] text-xs">
               {error}
             </div>
           )}
@@ -218,7 +218,7 @@ export function ManagePeopleGroupsModal({
               {/* Add / Edit Person Form */}
               <form
                 onSubmit={handleSavePerson}
-                className="bg-[#191b20] border border-[#2d3139] rounded-[24px] p-4 sm:p-5 space-y-3"
+                className="bg-[#111216] border border-[#23252c] rounded-[24px] p-4 sm:p-5 space-y-3"
               >
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-semibold text-[#a8c7fa]">
@@ -228,7 +228,7 @@ export function ManagePeopleGroupsModal({
                     <button
                       type="button"
                       onClick={resetPersonForm}
-                      className="text-xs text-[#8e9099] hover:text-[#e2e2e9]"
+                      className="text-xs text-[#90929d] hover:text-[#e2e2e7]"
                     >
                       Cancel Edit
                     </button>
@@ -237,7 +237,7 @@ export function ManagePeopleGroupsModal({
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="text-xs font-medium text-[#c4c6d0] block mb-1">
+                    <label className="text-xs font-medium text-[#c4c6cf] block mb-1">
                       Friend Name
                     </label>
                     <input
@@ -246,18 +246,18 @@ export function ManagePeopleGroupsModal({
                       placeholder="e.g., Sneha, Rahul"
                       value={personName}
                       onChange={(e) => setPersonName(e.target.value)}
-                      className="w-full bg-[#111318] border border-[#44474f] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e9] focus:outline-none"
+                      className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e7] focus:outline-none"
                     />
                   </div>
 
                   <div>
-                    <label className="text-xs font-medium text-[#c4c6d0] block mb-1">
+                    <label className="text-xs font-medium text-[#c4c6cf] block mb-1">
                       Avatar Emoji
                     </label>
                     <select
                       value={personAvatar}
                       onChange={(e) => setPersonAvatar(e.target.value)}
-                      className="w-full bg-[#111318] border border-[#44474f] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e9] focus:outline-none"
+                      className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e7] focus:outline-none"
                     >
                       <option value="👤">👤 Person</option>
                       <option value="👨‍💼">👨‍💼 Office</option>
@@ -268,7 +268,7 @@ export function ManagePeopleGroupsModal({
                   </div>
 
                   <div>
-                    <label className="text-xs font-medium text-[#c4c6d0] block mb-1">
+                    <label className="text-xs font-medium text-[#c4c6cf] block mb-1">
                       UPI ID (for GPay settlement)
                     </label>
                     <input
@@ -276,12 +276,12 @@ export function ManagePeopleGroupsModal({
                       placeholder="e.g., sneha@okaxis"
                       value={personUpi}
                       onChange={(e) => setPersonUpi(e.target.value)}
-                      className="w-full bg-[#111318] border border-[#44474f] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e9] font-mono focus:outline-none"
+                      className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e7] font-mono focus:outline-none"
                     />
                   </div>
 
                   <div>
-                    <label className="text-xs font-medium text-[#c4c6d0] block mb-1">
+                    <label className="text-xs font-medium text-[#c4c6cf] block mb-1">
                       Phone Number
                     </label>
                     <input
@@ -289,12 +289,12 @@ export function ManagePeopleGroupsModal({
                       placeholder="+91 98765 43210"
                       value={personPhone}
                       onChange={(e) => setPersonPhone(e.target.value)}
-                      className="w-full bg-[#111318] border border-[#44474f] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e9] focus:outline-none"
+                      className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e7] focus:outline-none"
                     />
                   </div>
 
                   <div className="sm:col-span-2">
-                    <label className="text-xs font-medium text-[#c4c6d0] block mb-1">
+                    <label className="text-xs font-medium text-[#c4c6cf] block mb-1">
                       Notes
                     </label>
                     <input
@@ -302,7 +302,7 @@ export function ManagePeopleGroupsModal({
                       placeholder="Room 514 flatmate"
                       value={personNotes}
                       onChange={(e) => setPersonNotes(e.target.value)}
-                      className="w-full bg-[#111318] border border-[#44474f] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e9] focus:outline-none"
+                      className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e7] focus:outline-none"
                     />
                   </div>
                 </div>
@@ -323,15 +323,15 @@ export function ManagePeopleGroupsModal({
                 {people.map((p) => (
                   <div
                     key={p.id}
-                    className="p-3 rounded-2xl bg-[#191b20] border border-[#2d3139] flex items-center justify-between hover:bg-[#282a30]/40 transition-colors"
+                    className="p-3 rounded-2xl bg-[#111216] border border-[#23252c] flex items-center justify-between hover:bg-[#1a1c22]/40 transition-colors"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="h-9 w-9 rounded-full bg-[#282a30] flex items-center justify-center text-lg">
+                      <div className="h-9 w-9 rounded-full bg-[#1a1c22] flex items-center justify-center text-lg">
                         {p.avatar || '👤'}
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="text-sm font-semibold text-[#e2e2e9]">
+                          <span className="text-sm font-semibold text-[#e2e2e7]">
                             {p.name}
                           </span>
                           {p.upiId && (
@@ -340,7 +340,7 @@ export function ManagePeopleGroupsModal({
                             </span>
                           )}
                         </div>
-                        <div className="text-[11px] text-[#8e9099]">
+                        <div className="text-[11px] text-[#90929d]">
                           Balance:{' '}
                           <span
                             className={
@@ -348,7 +348,7 @@ export function ManagePeopleGroupsModal({
                                 ? 'text-[#ffb77c] font-semibold'
                                 : p.netBalance < 0
                                 ? 'text-[#f2b8b5] font-semibold'
-                                : 'text-[#8e9099]'
+                                : 'text-[#90929d]'
                             }
                           >
                             {p.netBalance > 0
@@ -363,7 +363,7 @@ export function ManagePeopleGroupsModal({
 
                     <button
                       onClick={() => startEditPerson(p)}
-                      className="p-1.5 text-[#8e9099] hover:text-[#e2e2e9] rounded-full hover:bg-[#282a30]"
+                      className="p-1.5 text-[#90929d] hover:text-[#e2e2e7] rounded-full hover:bg-[#1a1c22]"
                     >
                       <Edit2 className="h-4 w-4" />
                     </button>
@@ -378,7 +378,7 @@ export function ManagePeopleGroupsModal({
               {/* Add / Edit Group Form */}
               <form
                 onSubmit={handleSaveGroup}
-                className="bg-[#191b20] border border-[#2d3139] rounded-[24px] p-4 sm:p-5 space-y-3"
+                className="bg-[#111216] border border-[#23252c] rounded-[24px] p-4 sm:p-5 space-y-3"
               >
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-semibold text-[#a8c7fa]">
@@ -388,7 +388,7 @@ export function ManagePeopleGroupsModal({
                     <button
                       type="button"
                       onClick={resetGroupForm}
-                      className="text-xs text-[#8e9099] hover:text-[#e2e2e9]"
+                      className="text-xs text-[#90929d] hover:text-[#e2e2e7]"
                     >
                       Cancel Edit
                     </button>
@@ -397,7 +397,7 @@ export function ManagePeopleGroupsModal({
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="text-xs font-medium text-[#c4c6d0] block mb-1">
+                    <label className="text-xs font-medium text-[#c4c6cf] block mb-1">
                       Group Name
                     </label>
                     <input
@@ -406,12 +406,12 @@ export function ManagePeopleGroupsModal({
                       placeholder="e.g., 514, PG Common"
                       value={groupName}
                       onChange={(e) => setGroupName(e.target.value)}
-                      className="w-full bg-[#111318] border border-[#44474f] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e9] focus:outline-none"
+                      className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e7] focus:outline-none"
                     />
                   </div>
 
                   <div>
-                    <label className="text-xs font-medium text-[#c4c6d0] block mb-1">
+                    <label className="text-xs font-medium text-[#c4c6cf] block mb-1">
                       Description
                     </label>
                     <input
@@ -419,14 +419,14 @@ export function ManagePeopleGroupsModal({
                       placeholder="PG Flatmates bill splits"
                       value={groupDesc}
                       onChange={(e) => setGroupDesc(e.target.value)}
-                      className="w-full bg-[#111318] border border-[#44474f] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e9] focus:outline-none"
+                      className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e7] focus:outline-none"
                     />
                   </div>
                 </div>
 
                 {/* Member selection chips */}
                 <div>
-                  <label className="text-xs font-medium text-[#c4c6d0] block mb-1.5">
+                  <label className="text-xs font-medium text-[#c4c6cf] block mb-1.5">
                     Select Members
                   </label>
                   <div className="flex flex-wrap gap-1.5">
@@ -445,8 +445,8 @@ export function ManagePeopleGroupsModal({
                           }}
                           className={`px-3 py-1 rounded-full text-xs font-medium transition-colors flex items-center gap-1.5 ${
                             isIncluded
-                              ? 'bg-[#253a5c] text-[#d3e3fd]'
-                              : 'bg-[#282a30] text-[#8e9099] hover:text-[#e2e2e9]'
+                              ? 'bg-[#1a2536] text-[#d3e3fd]'
+                              : 'bg-[#1a1c22] text-[#90929d] hover:text-[#e2e2e7]'
                           }`}
                         >
                           <span>{p.avatar || '👤'}</span>
@@ -473,23 +473,23 @@ export function ManagePeopleGroupsModal({
                 {groups.map((g) => (
                   <div
                     key={g.id}
-                    className="p-3 rounded-2xl bg-[#191b20] border border-[#2d3139] flex items-center justify-between hover:bg-[#282a30]/40 transition-colors"
+                    className="p-3 rounded-2xl bg-[#111216] border border-[#23252c] flex items-center justify-between hover:bg-[#1a1c22]/40 transition-colors"
                   >
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="text-sm font-semibold text-[#e2e2e9]">{g.name}</span>
-                        <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#282a30] text-[#8e9099]">
+                        <span className="text-sm font-semibold text-[#e2e2e7]">{g.name}</span>
+                        <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#1a1c22] text-[#90929d]">
                           {g.memberIds.length} members
                         </span>
                       </div>
                       {g.description && (
-                        <p className="text-xs text-[#8e9099] mt-0.5">{g.description}</p>
+                        <p className="text-xs text-[#90929d] mt-0.5">{g.description}</p>
                       )}
                     </div>
 
                     <button
                       onClick={() => startEditGroup(g)}
-                      className="p-1.5 text-[#8e9099] hover:text-[#e2e2e9] rounded-full hover:bg-[#282a30]"
+                      className="p-1.5 text-[#90929d] hover:text-[#e2e2e7] rounded-full hover:bg-[#1a1c22]"
                     >
                       <Edit2 className="h-4 w-4" />
                     </button>
