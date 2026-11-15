@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import {
   X,
   Download,
@@ -8,30 +8,45 @@ import {
   ShieldCheck,
   CheckCircle,
   AlertCircle,
+  FileSpreadsheet,
+  ArrowRight,
 } from 'lucide-react';
 import {
   exportEncryptedBackup,
   exportPlainBackup,
   restoreBackup,
 } from '@/utils/cryptoBackup';
+import { importCashewCSV } from '@/services/cashewImporter';
 
 interface BackupRestoreModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: (msg: string) => void;
+  initialTab?: 'backup' | 'restore' | 'cashew';
 }
 
 export function BackupRestoreModal({
   isOpen,
   onClose,
   onSuccess,
+  initialTab = 'backup',
 }: BackupRestoreModalProps) {
+  const [activeTab, setActiveTab] = useState<'backup' | 'restore' | 'cashew'>(initialTab);
   const [encryptPassword, setEncryptPassword] = useState('');
   const [decryptPassword, setDecryptPassword] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cashewFileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      setActiveTab(initialTab);
+      setStatusMessage(null);
+      setErrorMessage(null);
+    }
+  }, [isOpen, initialTab]);
 
   if (!isOpen) return null;
 
@@ -128,6 +143,35 @@ export function BackupRestoreModal({
     }
   };
 
+  const handleCashewCSVSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setErrorMessage(null);
+    setIsProcessing(true);
+
+    try {
+      const text = await file.text();
+      const res = await importCashewCSV(text);
+      const msg = `Imported ${res.transactionsAdded} transactions, ${res.accountsAdded} accounts, and ${res.peopleAdded} friends from Cashew!`;
+      setStatusMessage(msg);
+      if (onSuccess) {
+        onSuccess(msg);
+      }
+      setTimeout(() => setStatusMessage(null), 5000);
+    } catch (err: unknown) {
+      console.error(err);
+      setErrorMessage(
+        err instanceof Error ? err.message : 'Failed to import Cashew CSV'
+      );
+    } finally {
+      setIsProcessing(false);
+      if (cashewFileInputRef.current) {
+        cashewFileInputRef.current.value = '';
+      }
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-y-auto">
       <div className="bg-[#1e2026] border border-[#2d3139] rounded-t-[28px] sm:rounded-[28px] w-full max-w-xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-bottom-6 sm:zoom-in-95 duration-150">
@@ -141,10 +185,10 @@ export function BackupRestoreModal({
             </div>
             <div>
               <h2 className="text-base font-semibold text-[#e2e2e9] m-0">
-                Backup &amp; Restore
+                Backup, Restore &amp; Import
               </h2>
               <p className="text-xs text-[#8e9099] mt-0.5">
-                Encrypted local JSON backup (AES-GCM 256-bit)
+                On-device encryption &amp; Cashew CSV migration
               </p>
             </div>
           </div>
@@ -154,6 +198,46 @@ export function BackupRestoreModal({
           >
             <X className="h-5 w-5" />
           </button>
+        </div>
+
+        {/* Material 3 Segmented Pill Tabs */}
+        <div className="px-5 pt-3 pb-1 shrink-0">
+          <div className="flex p-1 bg-[#14161b] rounded-full border border-[#2d3139]">
+            <button
+              type="button"
+              onClick={() => setActiveTab('backup')}
+              className={`flex-1 py-1.5 px-3 rounded-full text-xs font-semibold transition-all ${
+                activeTab === 'backup'
+                  ? 'bg-[#a8c7fa] text-[#003062] shadow-sm'
+                  : 'text-[#8e9099] hover:text-[#e2e2e9]'
+              }`}
+            >
+              Export
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('restore')}
+              className={`flex-1 py-1.5 px-3 rounded-full text-xs font-semibold transition-all ${
+                activeTab === 'restore'
+                  ? 'bg-[#a8c7fa] text-[#003062] shadow-sm'
+                  : 'text-[#8e9099] hover:text-[#e2e2e9]'
+              }`}
+            >
+              Restore
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('cashew')}
+              className={`flex-1 py-1.5 px-3 rounded-full text-xs font-semibold transition-all flex items-center justify-center gap-1.5 ${
+                activeTab === 'cashew'
+                  ? 'bg-[#a8dab5] text-[#00391c] shadow-sm'
+                  : 'text-[#8e9099] hover:text-[#a8dab5]'
+              }`}
+            >
+              <FileSpreadsheet className="h-3.5 w-3.5" />
+              <span>Cashew CSV</span>
+            </button>
+          </div>
         </div>
 
         <div className="p-5 overflow-y-auto space-y-4">
@@ -171,101 +255,161 @@ export function BackupRestoreModal({
             </div>
           )}
 
-          {/* Encrypted Export */}
-          <div className="bg-[#191b20] border border-[#2d3139] rounded-[24px] p-4 space-y-2.5">
-            <div className="flex items-center gap-2">
-              <Lock className="h-4 w-4 text-[#a8c7fa]" />
-              <span className="text-xs font-semibold text-[#e2e2e9]">
-                Password Protected Backup
-              </span>
-            </div>
-            <p className="text-xs text-[#8e9099] leading-relaxed">
-              Standard PBKDF2 + AES-GCM 256-bit envelope. Protects financial balances and friends data.
-            </p>
+          {/* TAB 1: EXPORT / BACKUP */}
+          {activeTab === 'backup' && (
+            <div className="space-y-4">
+              {/* Encrypted Export */}
+              <div className="bg-[#191b20] border border-[#2d3139] rounded-[24px] p-4 space-y-2.5">
+                <div className="flex items-center gap-2">
+                  <Lock className="h-4 w-4 text-[#a8c7fa]" />
+                  <span className="text-xs font-semibold text-[#e2e2e9]">
+                    Password Protected Backup
+                  </span>
+                </div>
+                <p className="text-xs text-[#8e9099] leading-relaxed">
+                  PBKDF2 + AES-GCM 256-bit envelope. Protects accounts, personal expenses, and friend split debts.
+                </p>
 
-            <div className="flex flex-col sm:flex-row gap-2 pt-1">
-              <input
-                type="password"
-                placeholder="Password (minimum 6 chars)"
-                value={encryptPassword}
-                onChange={(e) => setEncryptPassword(e.target.value)}
-                className="flex-1 bg-[#111318] border border-[#44474f] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e9] placeholder-[#8e9099] focus:outline-none"
-              />
-              <button
-                type="button"
-                onClick={handleExportEncrypted}
-                disabled={isProcessing}
-                className="px-5 py-2 rounded-full bg-[#a8c7fa] hover:bg-[#b8d4ff] text-[#003062] text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
-              >
-                <Download className="h-4 w-4" />
-                <span>Export</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Plain Export */}
-          <div className="bg-[#191b20] border border-[#2d3139] rounded-[24px] p-4 space-y-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <FileJson className="h-4 w-4 text-[#8e9099]" />
-                <span className="text-xs font-semibold text-[#e2e2e9]">
-                  Plain JSON Export
-                </span>
+                <div className="flex flex-col sm:flex-row gap-2 pt-1">
+                  <input
+                    type="password"
+                    placeholder="Password (minimum 6 chars)"
+                    value={encryptPassword}
+                    onChange={(e) => setEncryptPassword(e.target.value)}
+                    className="flex-1 bg-[#111318] border border-[#44474f] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e9] placeholder-[#8e9099] focus:outline-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleExportEncrypted}
+                    disabled={isProcessing}
+                    className="px-5 py-2 rounded-full bg-[#a8c7fa] hover:bg-[#b8d4ff] text-[#003062] text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
+                  >
+                    <Download className="h-4 w-4" />
+                    <span>Export</span>
+                  </button>
+                </div>
               </div>
-              <button
-                type="button"
-                onClick={handleExportPlain}
-                disabled={isProcessing}
-                className="px-4 py-1.5 rounded-full bg-[#282a30] hover:bg-[#33353c] text-[#e2e2e9] text-xs font-medium border border-[#33353c] flex items-center gap-1.5 transition-colors"
-              >
-                <Download className="h-3.5 w-3.5" />
-                <span>Download</span>
-              </button>
+
+              {/* Plain Export */}
+              <div className="bg-[#191b20] border border-[#2d3139] rounded-[24px] p-4 space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <FileJson className="h-4 w-4 text-[#8e9099]" />
+                    <span className="text-xs font-semibold text-[#e2e2e9]">
+                      Plain JSON Export
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleExportPlain}
+                    disabled={isProcessing}
+                    className="px-4 py-1.5 rounded-full bg-[#282a30] hover:bg-[#33353c] text-[#e2e2e9] text-xs font-medium border border-[#33353c] flex items-center gap-1.5 transition-colors"
+                  >
+                    <Download className="h-3.5 w-3.5" />
+                    <span>Download</span>
+                  </button>
+                </div>
+                <p className="text-xs text-[#8e9099]">
+                  Unencrypted JSON for spreadsheet auditing and manual inspection.
+                </p>
+              </div>
             </div>
-            <p className="text-xs text-[#8e9099]">
-              Unencrypted JSON for spreadsheet auditing.
-            </p>
-          </div>
+          )}
 
-          {/* Restore */}
-          <div className="bg-[#191b20] border border-[#2d3139] rounded-[24px] p-4 space-y-2.5">
-            <div className="flex items-center gap-2">
-              <Upload className="h-4 w-4 text-[#a8c7fa]" />
-              <span className="text-xs font-semibold text-[#e2e2e9]">
-                Restore Database
-              </span>
+          {/* TAB 2: RESTORE */}
+          {activeTab === 'restore' && (
+            <div className="space-y-4">
+              <div className="bg-[#191b20] border border-[#2d3139] rounded-[24px] p-4 space-y-2.5">
+                <div className="flex items-center gap-2">
+                  <Upload className="h-4 w-4 text-[#a8c7fa]" />
+                  <span className="text-xs font-semibold text-[#e2e2e9]">
+                    Restore Database from JSON
+                  </span>
+                </div>
+
+                <div className="space-y-2 pt-1">
+                  <input
+                    type="password"
+                    placeholder="Enter password (if backup was encrypted)"
+                    value={decryptPassword}
+                    onChange={(e) => setDecryptPassword(e.target.value)}
+                    className="w-full bg-[#111318] border border-[#44474f] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e9] placeholder-[#8e9099] focus:outline-none"
+                  />
+
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    accept=".json"
+                    onChange={handleFileSelect}
+                    className="hidden"
+                    id="backup-file-input"
+                  />
+
+                  <label
+                    htmlFor="backup-file-input"
+                    className="w-full p-4 rounded-2xl border border-dashed border-[#44474f] hover:border-[#a8c7fa] bg-[#111318] transition-colors cursor-pointer flex flex-col items-center justify-center gap-1 text-center text-xs text-[#c4c6d0]"
+                  >
+                    <Upload className="h-5 w-5 text-[#a8c7fa]" />
+                    <span className="font-semibold text-[#e2e2e9]">Tap to select backup .json file</span>
+                    <span className="text-[11px] text-[#8e9099]">
+                      Restores all accounts, splits, and history
+                    </span>
+                  </label>
+                </div>
+              </div>
             </div>
+          )}
 
-            <div className="space-y-2 pt-1">
-              <input
-                type="password"
-                placeholder="Enter password (if backup was encrypted)"
-                value={decryptPassword}
-                onChange={(e) => setDecryptPassword(e.target.value)}
-                className="w-full bg-[#111318] border border-[#44474f] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e9] placeholder-[#8e9099] focus:outline-none"
-              />
+          {/* TAB 3: CASHEW CSV MIGRATION */}
+          {activeTab === 'cashew' && (
+            <div className="space-y-4">
+              <div className="bg-[#191b20] border border-[#2d3139] rounded-[24px] p-4 space-y-3">
+                <div className="flex items-center gap-2">
+                  <FileSpreadsheet className="h-4 w-4 text-[#a8dab5]" />
+                  <span className="text-xs font-semibold text-[#e2e2e9]">
+                    Import Cashew Export CSV
+                  </span>
+                </div>
+                <p className="text-xs text-[#8e9099] leading-relaxed">
+                  FinTrack parses your Cashew CSV export, automatically discovers your accounts, categories, and group split breakdowns, and converts friend repayments into pure non-income balance transfers.
+                </p>
 
-              <input
-                type="file"
-                ref={fileInputRef}
-                accept=".json"
-                onChange={handleFileSelect}
-                className="hidden"
-                id="backup-file-input"
-              />
+                <div className="p-3 rounded-2xl bg-[#14161b] border border-[#282a30] space-y-1.5 text-[11px] text-[#c4c6d0]">
+                  <div className="flex items-center gap-1.5 text-[#a8dab5] font-semibold">
+                    <ArrowRight className="h-3.5 w-3.5" />
+                    <span>How FinTrack fixes Cashew:</span>
+                  </div>
+                  <ul className="list-disc list-inside space-y-1 text-[#8e9099] pl-1">
+                    <li><strong className="text-[#e2e2e9]">DMart &amp; Pepper Leaf splits:</strong> Only personal share is counted as expense; friend shares are stored as receivables.</li>
+                    <li><strong className="text-[#e2e2e9]">GPay / UPI repayments:</strong> Treated as asset transfers, not false monthly income.</li>
+                    <li><strong className="text-[#e2e2e9]">Loans &amp; Lent:</strong> Booked as receivables from friends.</li>
+                  </ul>
+                </div>
 
-              <label
-                htmlFor="backup-file-input"
-                className="w-full p-4 rounded-2xl border border-dashed border-[#44474f] hover:border-[#a8c7fa] bg-[#111318] transition-colors cursor-pointer flex flex-col items-center justify-center gap-1 text-center text-xs text-[#c4c6d0]"
-              >
-                <Upload className="h-5 w-5 text-[#a8c7fa]" />
-                <span className="font-semibold text-[#e2e2e9]">Tap to select backup .json file</span>
-                <span className="text-[11px] text-[#8e9099]">
-                  Restores all accounts, splits, and history
-                </span>
-              </label>
+                <div className="pt-1">
+                  <input
+                    type="file"
+                    ref={cashewFileInputRef}
+                    accept=".csv"
+                    onChange={handleCashewCSVSelect}
+                    className="hidden"
+                    id="cashew-file-input"
+                  />
+
+                  <label
+                    htmlFor="cashew-file-input"
+                    className="w-full p-4 rounded-2xl border border-dashed border-[#2e4d38] hover:border-[#a8dab5] bg-[#111318] transition-colors cursor-pointer flex flex-col items-center justify-center gap-1 text-center text-xs text-[#c4c6d0]"
+                  >
+                    <FileSpreadsheet className="h-6 w-6 text-[#a8dab5]" />
+                    <span className="font-semibold text-[#e2e2e9]">Tap to select cashew-*.csv</span>
+                    <span className="text-[11px] text-[#8e9099]">
+                      Supports exports from Cashew Android / iOS app
+                    </span>
+                  </label>
+                </div>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>

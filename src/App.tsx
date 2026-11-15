@@ -49,6 +49,7 @@ export default function App() {
   const [isCategoriesOpen, setIsCategoriesOpen] = useState(false);
   const [isRecurringOpen, setIsRecurringOpen] = useState(false);
   const [isBackupOpen, setIsBackupOpen] = useState(false);
+  const [backupModalTab, setBackupModalTab] = useState<'backup' | 'restore' | 'cashew'>('backup');
 
   // Initialize and seed database if empty
   useEffect(() => {
@@ -803,7 +804,14 @@ export default function App() {
             onOpenPeople={() => setIsPeopleOpen(true)}
             onOpenCategories={() => setIsCategoriesOpen(true)}
             onOpenRecurring={() => setIsRecurringOpen(true)}
-            onOpenBackup={() => setIsBackupOpen(true)}
+            onOpenBackup={() => {
+              setBackupModalTab('backup');
+              setIsBackupOpen(true);
+            }}
+            onOpenCashewImport={() => {
+              setBackupModalTab('cashew');
+              setIsBackupOpen(true);
+            }}
             onResetData={handleResetData}
           />
         )}
@@ -997,6 +1005,7 @@ export default function App() {
 
       <BackupRestoreModal
         isOpen={isBackupOpen}
+        initialTab={backupModalTab}
         onClose={() => setIsBackupOpen(false)}
         onSuccess={(msg) => {
           setActionNotice(msg);

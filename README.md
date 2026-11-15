@@ -123,6 +123,23 @@ npm run preview
 
 ---
 
+## 📂 Real-World PG Dataset & Cashew CSV Migration
+
+FinTrack comes pre-seeded with authentic, relatable PG living data modeled directly from real-world flat expense sharing:
+- **Real Accounts:** `HDFC Bank` (Salary/UPI), `CANARA Bank` (Savings/PF Buffer), `HDFC MoneyBack+` (Credit Card Liability), `Amazon Pay Wallet`, `CASH`, and `ICCSL RD` (Recurring Deposit).
+- **Room 514 & PG Community:** Flatmates (`Rijosh`, `Jithu`, `Sreerag`, `Alan`, `Rohan`) and PG friends (`Akhil`, `Arunima`, `Amal`, `Aishwarya`).
+- **Real Shared Bill Splits:**
+  - **DMart Grocery Split (₹1,505.00):** Bony's share: ₹282.25; Jithu: ₹381.25 (settled); Sreerag: ₹212.25 (settled); Alan: ₹99.00 (settled); Rijosh: ₹530.25 (unpaid receivable).
+  - **Pepper Leaf Dinner (₹914.00):** Bony: ₹180; Alan: ₹180; Rijosh: ₹170; Jithu: ₹204; Sreerag: ₹180 (All settled).
+  - **Masala Dosa (₹210.00):** Bony ₹70, Akhil ₹70, Sreerag ₹70.
+  - **Thekku Island (₹175.00):** Bony ₹43.75, Rijosh ₹43.75, Jithu ₹43.75, Rohan ₹43.75.
+- **In-Browser Cashew CSV Importer:**
+  - Got a `cashew-*.csv` backup from the Cashew mobile app?
+  - Open **Settings** -> **Import Cashew CSV Export** (or **Backup & Restore** -> **Cashew CSV** tab) to migrate your accounts, categories, and transactions in seconds.
+  - FinTrack automatically repairs Cashew's broken split and repayment records on-the-fly!
+
+---
+
 ## 🗄️ Database Schema (Dexie.js)
 
 ```

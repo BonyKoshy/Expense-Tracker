@@ -11,6 +11,7 @@ import {
   FolderPlus,
   HardDriveDownload,
   Info,
+  FileSpreadsheet,
 } from 'lucide-react';
 import type {
   Account,
@@ -33,6 +34,7 @@ interface SettingsViewProps {
   onOpenCategories: () => void;
   onOpenRecurring: () => void;
   onOpenBackup: () => void;
+  onOpenCashewImport?: () => void;
   onResetData: () => void;
 }
 
@@ -48,6 +50,7 @@ export function SettingsView({
   onOpenCategories,
   onOpenRecurring,
   onOpenBackup,
+  onOpenCashewImport,
   onResetData,
 }: SettingsViewProps) {
   return (
@@ -242,6 +245,42 @@ export function SettingsView({
               >
                 <HardDriveDownload className="h-3.5 w-3.5" />
                 <span>Backup</span>
+              </button>
+              <ChevronRight className="h-5 w-5 text-[#8e9099] group-hover:text-[#e2e2e9] transition-colors" />
+            </div>
+          </div>
+
+          {/* Import Cashew CSV */}
+          <div
+            onClick={onOpenCashewImport || onOpenBackup}
+            className="p-4 sm:p-5 flex items-center justify-between hover:bg-[#282a30]/50 transition-colors cursor-pointer group"
+          >
+            <div className="flex items-center gap-3.5">
+              <div className="h-11 w-11 rounded-2xl bg-[#14231b] text-[#a8dab5] flex items-center justify-center shrink-0 border border-[#234b32]">
+                <FileSpreadsheet className="h-5 w-5" />
+              </div>
+              <div>
+                <div className="text-sm font-semibold text-[#e2e2e9] group-hover:text-[#a8dab5] transition-colors">
+                  Import Cashew CSV Export
+                </div>
+                <div className="text-xs text-[#8e9099] mt-0.5">
+                  Migrate transactions from cashew-*.csv, automatically fixing shared PG splits and friend repayments
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (onOpenCashewImport) onOpenCashewImport();
+                  else onOpenBackup();
+                }}
+                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#14231b] hover:bg-[#1e3629] text-[#a8dab5] text-xs font-medium border border-[#234b32] transition-colors"
+              >
+                <FileSpreadsheet className="h-3.5 w-3.5" />
+                <span>Import CSV</span>
               </button>
               <ChevronRight className="h-5 w-5 text-[#8e9099] group-hover:text-[#e2e2e9] transition-colors" />
             </div>

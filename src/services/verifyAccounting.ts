@@ -9,7 +9,7 @@ import {
   calculateTransactionDeltas,
 } from './accountingEngine';
 
-console.log('--- FinTrack Accounting Engine Verification ---');
+console.log('--- FinTrack Accounting Engine Verification (Real Cashew Data) ---');
 
 // 1. Verify Available to Spend Calculation
 const breakdown = calculateAvailableToSpend(
@@ -29,8 +29,20 @@ console.log('  ------------------------------------------');
 console.log('  AVAILABLE TO SPEND:     ₹' + breakdown.availableToSpend.toFixed(2));
 console.log('  TOTAL NET WORTH:        ₹' + breakdown.totalNetWorth.toFixed(2));
 
-if (breakdown.availableToSpend !== 45146.00) {
-  throw new Error(`Expected Available to Spend to be 45146.00, got ${breakdown.availableToSpend}`);
+// Total liquid = 6145.33 (HDFC) + 12973.00 (Canara) + 236.11 (Amazon Pay) + 344.44 (Cash) = 19698.88
+// Reserved = 8500 (Rent) + 3610 (EMI) + 3000 (RD) = 15110.00
+// Unbilled CC = 4397.61 (HDFC MoneyBack+)
+// Available to spend = 19698.88 - 15110.00 - 4397.61 = 191.27
+const expectedLiquid = 19698.88;
+const expectedReserved = 15110.00;
+const expectedCC = 4397.61;
+const expectedAvailable = Math.round((expectedLiquid - expectedReserved - expectedCC) * 100) / 100;
+
+if (Math.abs(breakdown.totalLiquidBalances - expectedLiquid) > 0.01) {
+  throw new Error(`Expected liquid balance ${expectedLiquid}, got ${breakdown.totalLiquidBalances}`);
+}
+if (Math.abs(breakdown.availableToSpend - expectedAvailable) > 0.01) {
+  throw new Error(`Expected Available to Spend ${expectedAvailable}, got ${breakdown.availableToSpend}`);
 }
 
 // 2. Verify Shared Expense (DMart Split)
@@ -49,24 +61,41 @@ console.log('  Sum of Friend Shares:   ₹' + friendSharesSum.toFixed(2));
 if (Math.abs(dmartTx.personalExpenseAmount + friendSharesSum - dmartTx.amount) > 0.001) {
   throw new Error('Split mismatch: personal share + friend shares != total amount');
 }
+if (dmartDeltas.peopleDeltas.get('person_rijosh') !== 530.25) {
+  throw new Error('Rijosh split should be 530.25');
+}
 
 // 3. Verify Asynchronous GPay Settlement
-const rahulSettlementTx = INITIAL_TRANSACTIONS.find((tx) => tx.id === 'tx_rahul_settlement_002')!;
-const settlementDeltas = calculateTransactionDeltas(rahulSettlementTx);
+const sreeragSettlementTx = INITIAL_TRANSACTIONS.find((tx) => tx.id === 'tx_sreerag_dmart_settle')!;
+const settlementDeltas = calculateTransactionDeltas(sreeragSettlementTx);
 
-console.log('\n[3] Rahul GPay Settlement Deltas:');
-console.log('  Personal Expense Share: ₹' + rahulSettlementTx.personalExpenseAmount.toFixed(2) + ' (MUST BE ZERO)');
-console.log('  Account (Salary) Delta:', Array.from(settlementDeltas.accountDeltas.entries()));
-console.log('  People (Rahul) Delta:  ', Array.from(settlementDeltas.peopleDeltas.entries()));
+console.log('\n[3] Sreerag GPay Settlement Deltas:');
+console.log('  Personal Expense Share: ₹' + sreeragSettlementTx.personalExpenseAmount.toFixed(2) + ' (MUST BE ZERO)');
+console.log('  Account (HDFC Bank) Delta:', Array.from(settlementDeltas.accountDeltas.entries()));
+console.log('  People (Sreerag) Delta:  ', Array.from(settlementDeltas.peopleDeltas.entries()));
 
-if (rahulSettlementTx.personalExpenseAmount !== 0) {
+if (sreeragSettlementTx.personalExpenseAmount !== 0) {
   throw new Error('Settlement cannot count as expense or income!');
 }
-if (settlementDeltas.accountDeltas.get('acc_hdfc_salary') !== 305.50) {
-  throw new Error('HDFC Salary account should increase by 305.50');
+if (settlementDeltas.accountDeltas.get('acc_hdfc_salary') !== 212.25) {
+  throw new Error('HDFC Bank account should increase by 212.25');
 }
-if (settlementDeltas.peopleDeltas.get('person_rahul') !== -305.50) {
-  throw new Error('Rahul receivable should decrease by 305.50');
+if (settlementDeltas.peopleDeltas.get('person_sreerag') !== -212.25) {
+  throw new Error('Sreerag receivable should decrease by 212.25');
 }
 
-console.log('\n✅ All Accounting & Settlement Engine Invariants Passed Successfully!');
+// 4. Verify Credit Card Payment Deltas
+const ccPaymentTx = INITIAL_TRANSACTIONS.find((tx) => tx.id === 'tx_cc_pay_012')!;
+const ccDeltas = calculateTransactionDeltas(ccPaymentTx);
+console.log('\n[4] Credit Card Bill Payment Deltas:');
+console.log('  HDFC Bank Delta:        ', ccDeltas.accountDeltas.get('acc_hdfc_salary'));
+console.log('  CC Inflow Delta:        ', ccDeltas.accountDeltas.get('acc_hdfc_credit_card'));
+
+if (ccDeltas.accountDeltas.get('acc_hdfc_salary') !== -2488.00) {
+  throw new Error('Bank account should decrease by 2488.00 on CC payment');
+}
+if (ccDeltas.accountDeltas.get('acc_hdfc_credit_card') !== 2488.00) {
+  throw new Error('Credit card inflow delta should be 2488.00');
+}
+
+console.log('\n✅ All Accounting & Settlement Engine Invariants Passed Successfully with Real Cashew Data!');

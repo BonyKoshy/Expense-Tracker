@@ -137,10 +137,10 @@ export function calculateTransactionDeltas(tx: Transaction): BalanceDeltas {
     }
 
     case 'credit_card_payment': {
-      // Paid from bank account (outflow: -amount), paying CC reduces CC liability (-amount)
+      // Paid from bank account (outflow: -amount), inflow to CC settles liability
       adjustAccount(tx.accountId, -tx.amount);
       if (tx.toAccountId) {
-        adjustAccount(tx.toAccountId, -tx.amount);
+        adjustAccount(tx.toAccountId, tx.amount);
       }
       break;
     }

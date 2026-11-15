@@ -101,3 +101,9 @@ Where:
 - [x] **Phase 7: PWA Polish & Offline Verification**
   - [x] Service worker registration & manifest generation via `vite-plugin-pwa`
   - [x] Responsive mobile-first touch UI (dark mode native with floating action button)
+
+- [x] **Phase 8: Real Cashew Dataset Synchronization & In-Browser CSV Importer**
+  - [x] Analyzed user's real Cashew export CSV (`cashew-2026-11-09-21-16-28-277959.csv`)
+  - [x] Synchronized seed data with exact accounts (HDFC Bank, CANARA Bank, HDFC MoneyBack+, Amazon Pay Wallet, CASH, ICCSL RD), real people (Rijosh, Jithu, Sreerag, Alan, Rohan, Akhil, Arunima, Amal, Aishwarya), Room 514 / PG groups, and authentic transactions
+  - [x] Implemented native in-browser Cashew CSV Importer (`src/services/cashewImporter.ts`) and direct Settings / Backup modal migration tab
+  - [x] Verified 100% accounting invariants with automated test runner (`npm run test:accounting`)
