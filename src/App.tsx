@@ -6,7 +6,6 @@ import {
   Layers,
   ArrowUpRight,
   ArrowDownLeft,
-  RefreshCw,
   CreditCard,
   Banknote,
   Landmark,
@@ -14,7 +13,6 @@ import {
   ArrowRightLeft,
   Plus,
   BarChart3,
-  HardDriveDownload,
   Trash2,
   Settings,
 } from 'lucide-react';
@@ -42,7 +40,6 @@ export default function App() {
   const [accountsViewMode, setAccountsViewMode] = useState<
     'accounts' | 'recurring'
   >('accounts');
-  const [isResetting, setIsResetting] = useState(false);
   const [actionNotice, setActionNotice] = useState<string | null>(null);
 
   // Modals visibility state
@@ -83,15 +80,12 @@ export default function App() {
 
   const handleResetData = async () => {
     if (confirm('Reset database back to initial seed data with sample PG split?')) {
-      setIsResetting(true);
       try {
         await resetDatabaseToDefaults();
         setActionNotice('Database restored to default demo state.');
         setTimeout(() => setActionNotice(null), 4000);
       } catch (err) {
         console.error(err);
-      } finally {
-        setIsResetting(false);
       }
     }
   };
@@ -148,54 +142,45 @@ export default function App() {
       {/* Android 17 / Material 3 Top App Bar */}
       <header className="sticky top-0 z-30 bg-[#111318]/90 backdrop-blur-md px-4 sm:px-6 py-3.5 flex items-center justify-between border-b border-[#282a30]">
         <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-2xl bg-[#282a30] text-[#a8c7fa] flex items-center justify-center font-bold text-lg border border-[#33353c]">
+          <div className="h-9 w-9 rounded-2xl bg-[#282a30] text-[#a8c7fa] flex items-center justify-center font-bold text-base border border-[#33353c]">
             F
           </div>
           <div>
-            <h1 className="text-lg font-semibold tracking-tight text-[#e2e2e9] m-0">
-              FinTrack
+            <h1 className="text-base font-semibold tracking-tight text-[#e2e2e9] m-0">
+              {activeTab === 'overview'
+                ? 'FinTrack'
+                : activeTab === 'shared'
+                ? 'Shared Splits'
+                : activeTab === 'accounts'
+                ? accountsViewMode === 'accounts'
+                  ? 'Accounts & Cards'
+                  : 'Recurring Commitments'
+                : activeTab === 'analytics'
+                ? 'Analytics'
+                : 'Settings'}
             </h1>
-            <p className="text-[11px] text-[#c4c6d0] m-0">
-              PG Splits &amp; Settlements
+            <p className="text-[11px] text-[#8e9099] m-0">
+              {activeTab === 'overview'
+                ? 'Available to Spend & Ledger'
+                : activeTab === 'shared'
+                ? 'PG Flatmates & Settlements'
+                : activeTab === 'accounts'
+                ? accountsViewMode === 'accounts'
+                  ? `${accounts.length} active accounts`
+                  : `${recurringCommitments.length} commitments tracked`
+                : activeTab === 'analytics'
+                ? 'Spending breakdown'
+                : 'Taxonomy, friends & backups'}
             </p>
           </div>
         </div>
 
-        {/* Top App Bar Actions */}
-        <div className="flex items-center gap-1 sm:gap-2">
-          {/* Backup / Export Button */}
-          <button
-            onClick={() => setIsBackupOpen(true)}
-            title="Encrypted Backup / Restore"
-            className="h-10 w-10 rounded-full flex items-center justify-center text-[#c4c6d0] hover:text-[#e2e2e9] hover:bg-[#282a30] transition-colors"
-          >
-            <HardDriveDownload className="h-5 w-5" />
-          </button>
-
-          {/* Reset Demo Data Button */}
-          <button
-            onClick={handleResetData}
-            disabled={isResetting}
-            title="Reset to default seed dataset"
-            className="h-10 w-10 rounded-full flex items-center justify-center text-[#c4c6d0] hover:text-[#e2e2e9] hover:bg-[#282a30] transition-colors"
-          >
-            <RefreshCw
-              className={`h-4 w-4 ${isResetting ? 'animate-spin' : ''}`}
-            />
-          </button>
-
-          {/* Settings Shortcut Button */}
-          <button
-            onClick={() => setActiveTab('settings')}
-            title="Settings"
-            className={`h-10 w-10 rounded-full flex items-center justify-center transition-colors ${
-              activeTab === 'settings'
-                ? 'bg-[#253a5c] text-[#d3e3fd]'
-                : 'text-[#c4c6d0] hover:text-[#e2e2e9] hover:bg-[#282a30]'
-            }`}
-          >
-            <Settings className="h-5 w-5" />
-          </button>
+        {/* Clean, Non-Duplicated Right Status Badge */}
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#1e2026] border border-[#2d3139] text-[#a8dab5] text-[11px] font-medium">
+            <span className="h-1.5 w-1.5 rounded-full bg-[#a8dab5]" />
+            <span>On-Device</span>
+          </div>
         </div>
       </header>
 
@@ -453,14 +438,9 @@ export default function App() {
         {activeTab === 'shared' && (
           <div className="space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div>
-                <h2 className="text-base font-semibold text-[#e2e2e9] m-0">
-                  Shared PG Expenses &amp; Settlements
-                </h2>
-                <p className="text-xs text-[#8e9099] mt-0.5">
-                  Friend-wise receivables, group splits (`514`, `PG`), and debt clearance
-                </p>
-              </div>
+              <span className="text-xs text-[#8e9099]">
+                PG Flatmates &amp; Asynchronous Debt Clearance
+              </span>
 
               <div className="flex items-center gap-2">
                 <button

@@ -52,14 +52,6 @@ export function SettingsView({
 }: SettingsViewProps) {
   return (
     <div className="space-y-4 max-w-4xl mx-auto pb-6">
-      {/* Settings Header */}
-      <div>
-        <h2 className="text-xl font-semibold text-[#e2e2e9] m-0">Settings</h2>
-        <p className="text-xs text-[#8e9099] mt-0.5">
-          Dynamic management for accounts, people, groups, and categories
-        </p>
-      </div>
-
       {/* Group 1: Financial & Entity Management */}
       <div className="bg-[#1e2026] border border-[#2d3139] rounded-[28px] overflow-hidden">
         <div className="px-5 pt-4 pb-2 border-b border-[#2d3139]/60">
