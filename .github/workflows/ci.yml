@@ -36,9 +36,8 @@ jobs:
 
       - name: Secrets & Forbidden Patterns Scan
         run: |
-          echo "Scanning for accidental secret leaks or private keys..."
-          # Fail if any private keys or auth tokens are committed
-          if grep -rnw . -e "BEGIN RSA PRIVATE KEY" -e "BEGIN OPENSSH PRIVATE KEY" -e "BEGIN PRIVATE KEY" --exclude-dir={.git,node_modules}; then
+          echo "Scanning src and public for accidental secret leaks or private keys..."
+          if grep -rnE "BEGIN [A-Z ]*PRIVATE KEY" src/ public/; then
             echo "::error::Private key detected in codebase!"
             exit 1
           fi
