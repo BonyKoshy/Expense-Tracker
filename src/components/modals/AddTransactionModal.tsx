@@ -421,6 +421,95 @@ export function AddTransactionModal({
               </div>
             )}
 
+            {/* Quick Transaction Type Chips */}
+            <div>
+              <div className="flex items-center justify-between mb-2.5">
+                <label className="text-xs sm:text-sm font-medium text-[#c4c6cf]">
+                  Transaction Type
+                </label>
+                <span className="text-xs text-[#90929d]">Step 1 of 2</span>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => setType('shared_expense')}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-2xl text-xs sm:text-sm font-medium transition-all ${
+                    type === 'shared_expense'
+                      ? 'bg-[#1a2536] text-[#d3e3fd] border border-[#263750]'
+                      : 'bg-[#1a1c22] text-[#c4c6cf] hover:bg-[#262830] border border-transparent'
+                  }`}
+                >
+                  <Users className="h-4 w-4" />
+                  <span>Shared Split</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setType('expense')}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-2xl text-xs sm:text-sm font-medium transition-all ${
+                    type === 'expense'
+                      ? 'bg-[#1a2536] text-[#d3e3fd] border border-[#263750]'
+                      : 'bg-[#1a1c22] text-[#c4c6cf] hover:bg-[#262830] border border-transparent'
+                  }`}
+                >
+                  <ArrowUpRight className="h-4 w-4" />
+                  <span>Personal Expense</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setType('settlement_received')}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-2xl text-xs sm:text-sm font-medium transition-all ${
+                    type === 'settlement_received'
+                      ? 'bg-[#15241b] text-[#a8dab5] border border-[#22382a]'
+                      : 'bg-[#1a1c22] text-[#c4c6cf] hover:bg-[#262830] border border-transparent'
+                  }`}
+                >
+                  <ArrowDownLeft className="h-4 w-4" />
+                  <span>Settlement</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setType('transfer')}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-2xl text-xs sm:text-sm font-medium transition-all ${
+                    type === 'transfer'
+                      ? 'bg-[#1a2536] text-[#d3e3fd] border border-[#263750]'
+                      : 'bg-[#1a1c22] text-[#c4c6cf] hover:bg-[#262830] border border-transparent'
+                  }`}
+                >
+                  <ArrowRightLeft className="h-4 w-4" />
+                  <span>Transfer</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setType('credit_card_payment')}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-2xl text-xs sm:text-sm font-medium transition-all ${
+                    type === 'credit_card_payment'
+                      ? 'bg-[#1a2536] text-[#d3e3fd] border border-[#263750]'
+                      : 'bg-[#1a1c22] text-[#c4c6cf] hover:bg-[#262830] border border-transparent'
+                  }`}
+                >
+                  <CreditCard className="h-4 w-4" />
+                  <span>CC Bill</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setType('income')}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-2xl text-xs sm:text-sm font-medium transition-all ${
+                    type === 'income'
+                      ? 'bg-[#15241b] text-[#a8dab5] border border-[#22382a]'
+                      : 'bg-[#1a1c22] text-[#c4c6cf] hover:bg-[#262830] border border-transparent'
+                  }`}
+                >
+                  <ArrowDownLeft className="h-4 w-4" />
+                  <span>Income</span>
+                </button>
+              </div>
+            </div>
+
             {/* Calculator Display Screen */}
             <div className="bg-[#111216] border border-[#23252c] rounded-3xl p-5 sm:p-6 flex flex-col justify-between min-h-[120px] shadow-inner">
               {/* Live Formula / Calculation Line */}
@@ -459,23 +548,6 @@ export function AddTransactionModal({
                     : '0'}
                 </span>
               </div>
-            </div>
-
-            {/* Quick Presets Row */}
-            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
-              <span className="text-xs text-[#90929d] uppercase font-semibold shrink-0 mr-1">
-                Quick:
-              </span>
-              {[50, 100, 200, 500, 1000, 2000].map((preset) => (
-                <button
-                  key={preset}
-                  type="button"
-                  onClick={() => handleKeypad(`+${preset}`)}
-                  className="shrink-0 px-3.5 py-1.5 rounded-xl bg-[#1a1c22] hover:bg-[#262830] active:scale-95 text-[#c4c6cf] hover:text-[#e2e2e7] text-xs sm:text-sm font-mono font-medium border border-[#23252c] transition-all"
-                >
-                  +₹{preset}
-                </button>
-              ))}
             </div>
 
             {/* Tactile Material 3 Keypad Grid */}
