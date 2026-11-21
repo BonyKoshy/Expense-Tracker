@@ -40,4 +40,21 @@
   * {
     box-sizing: border-box;
   }
+
+  /* Suppress any injected Netlify deploy preview drawers or badges */
+  #netlify-drawer,
+  #netlify-drawer-container,
+  [data-netlify-drawer],
+  .netlify-drawer,
+  .netlify-badge,
+  [data-netlify-badge],
+  iframe[id*="netlify"],
+  div[id*="netlify-drawer"] {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    height: 0 !important;
+    width: 0 !important;
+  }
 }
