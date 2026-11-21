@@ -1,97 +1,112 @@
-# FinTrack PWA 💸 (The Cashew Killer)
+# FinTrack 💸
 
-> **A local-first, Progressive Web App engineered with React 19, Vite, TypeScript, Tailwind CSS v4, and Dexie.js (IndexedDB).**  
-> Designed with a native **Stock Android 17 / Material 3 (Material You)** design language, featuring clean tonal surfaces, bottom navigation, and zero AI-slop color gradients.
+> **A modern, offline-first personal finance & expense intelligence Progressive Web App.**  
+> Built from the ground up with React 19, TypeScript, Tailwind CSS, Dexie.js (IndexedDB), and a clean Material 3 design system.
 
-[![React](https://img.shields.io/badge/React-19-blue.svg)](https://react.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.8-blue.svg)](https://www.typescriptlang.org/)
-[![Vite](https://img.shields.io/badge/Vite-6-purple.svg)](https://vitejs.dev/)
-[![Dexie.js](https://img.shields.io/badge/Dexie.js-v4_(IndexedDB)-green.svg)](https://dexie.org/)
+[![React](https://img.shields.io/badge/React-19-61dafb.svg)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178c6.svg)](https://www.typescriptlang.org/)
+[![Vite](https://img.shields.io/badge/Vite-6-646cff.svg)](https://vitejs.dev/)
+[![Dexie.js](https://img.shields.io/badge/Dexie.js-v4_(IndexedDB)-2ea44f.svg)](https://dexie.org/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4-38bdf8.svg)](https://tailwindcss.com/)
-[![PWA Ready](https://img.shields.io/badge/PWA-Installable_%26_Offline-orange.svg)](https://web.dev/progressive-web-apps/)
+[![PWA Ready](https://img.shields.io/badge/PWA-Installable_%26_Offline-f59e0b.svg)](https://web.dev/progressive-web-apps/)
+[![CI/CD](https://github.com/BonyKoshy/Expense-Tracker/actions/workflows/ci.yml/badge.svg)](https://github.com/BonyKoshy/Expense-Tracker/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 ---
 
-## 💡 The Problem FinTrack Solves
+## 🌟 Overview
 
-Traditional personal finance apps like **Cashew** are rigidly designed for single-individual accounting. They critically break down when faced with real-world Indian living situations: **shared PG flat expenses, bulk bill swiping, and asynchronous GPay/UPI group settlements**.
+**FinTrack** is an independent, purpose-built personal finance operating system engineered for real-world personal spending, multi-account liquidity management, and shared group expenses.
 
-### The Traditional App Failure:
-1. **Double-Counted Expenses:** When you pay a bulk bill of **₹1,505** at DMart on your credit card for 5 PG flatmates:
-   - Traditional apps record a **₹1,505 personal expense**, blowing up your monthly grocery budget.
-2. **Artificial "Income" on Repayments:** When Rahul repays his **₹305.50** share via GPay:
-   - Traditional apps record a **₹305.50 Income**, falsifying your cash flow and tax tracking.
-3. **Misleading Bank Balances:** Showing a ₹45,000 bank balance makes you feel solvent, while failing to subtract upcoming rent (₹8,500), Phone EMI (₹2,499), 2-year RD (₹3,000), and unbilled credit card bills (₹1,505).
+Traditional budgeting apps struggle when personal finances intersect with shared living—swiping a large credit card bill for flatmates corrupts your monthly budget, and friends repaying their share gets falsely logged as "income." FinTrack solves this at the architectural level with a double-entry receivable/payable engine that keeps your personal expenses, friend debts, and account balances cleanly separated and mathematically accurate.
+
+100% of your data remains strictly on your device using IndexedDB, guaranteeing total privacy, instant offline performance, and zero cloud lock-in.
 
 ---
 
-## ⚡ The Cashew Killer Architecture
+## ✨ Key Features
 
-FinTrack solves this with a **pure double-entry receivable/payable engine**:
+### 🧮 Integrated Calculator Transaction Entry
+- **Live Keypad & Expression Evaluator:** Add amounts directly with a full mathematical keypad (`+`, `-`, `×`, `÷`) and real-time computation preview before proceeding.
+- **Two-Step Guided Flow:** Enter and compute the exact amount first, then seamlessly select category, account, tags, and split details.
 
-| Scenario | What Traditional Apps Do | How FinTrack Solves It (The Right Way) |
-| :--- | :--- | :--- |
-| **Swiping ₹1,505 at DMart for 5 people** | Records ₹1,505 personal expense | **Personal Expense:** Increases *only* by your personal share (**₹282.25**).<br>**Receivables:** Friends owe you **₹1,222.75** (`netBalance` booked).<br>**Liability:** Credit Card outstanding increases by full **₹1,505.00**. |
-| **Friend repays ₹305.50 via GPay UPI** | Records ₹305.50 as "Income" | **Liquid Balance:** Increases by ₹305.50 in HDFC Salary.<br>**Friend Receivable:** Reduces by ₹305.50 (cleared to ₹0).<br>**Expense/Income Impact:** **₹0.00** (Pure asset transfer). |
-| **Friend pays dinner on your behalf** | Untracked or manually hacked | **Personal Expense:** Recorded in Food & Dining.<br>**Bank Account:** Untouched.<br>**Friend Payable:** You now owe the friend your share. |
+### 👥 Precision Group Splits & Debt Ledger
+- **Accurate Personal Accounting:** When you swipe for a group, only your personal share affects your expense analytics. Friends' shares are booked directly to individual debt ledgers.
+- **Pending Due Drill-Down:** Click any person to inspect all pending transactions contributing to their outstanding balance.
+- **One-Click Settlement:** Log repayments in a tap without distorting your income or cash flow reports.
+- **Third-Party Bill Handling:** Accurately track situations where a friend pays a bill on your behalf.
 
----
+### 🧠 "Available to Spend" Liquidity Engine
+Never get caught off-guard by a superficial bank balance. FinTrack dynamically computes your true disposable liquidity:
 
-## 🧠 "Available to Spend" Intelligence Engine
+$$\text{Available to Spend} = \text{Liquid Assets} - (\text{Reserved Commitments} + \text{Unbilled Credit Liabilities} + \text{Net Monies Owed})$$
 
-FinTrack never shows a naive bank balance. Instead, it computes your true, disposable spending liquidity:
+- Deducts upcoming monthly rent, loan EMIs, and recurring deposits.
+- Accounts for current unbilled credit card liabilities.
+- Prevents overspending before fixed commitments come due.
 
-$$\text{Available to Spend} = \text{Total Liquid Balances} - (\text{Reserved Commitments} + \text{Unbilled CC Liability} + \text{Net Money Owed to Others})$$
+### 📊 Monthly Budgeting & Daily Spend Allowance
+- **Dynamic Daily Allowance:** Calculates exactly how much you can safely spend per day based on remaining budget and remaining days in the month (`Remaining ÷ Days Left`).
+- **Tea & Chai Tracker:** Dedicated micro-category widget to keep tabs on daily tea breaks, coffee runs, and quick refreshments alongside the broader Food & Dining budget.
+- **Category Caps & Alert Thresholds:** Visual progress meters with automated warning states at 80% and 100% utilization.
 
-Where:
-- **Total Liquid Balances:** $\sum (\text{Bank Accounts} + \text{Physical Cash} + \text{Digital Wallets})$
-- **Reserved Commitments:** Active duration-bound EMIs, RDs, and Rent for the current cycle.
-- **Unbilled CC Liability:** Total outstanding liability across credit cards.
-- **Net Money Owed to Others:** $\max(0, \sum \text{Payables} - \sum \text{Receivables})$
+### 💳 Complete Multi-Account Management
+- **Account Types:** Bank Accounts (Savings/Salary), Credit Cards, Cash, Digital Wallets, and Fixed/Recurring Deposits.
+- **Credit Card Intelligence:** Statement cycle day alerts, total credit limit monitoring, and automated credit card bill payment transfers.
+- **Commitments & EMIs:** Track active loans and recurring subscriptions with installment counts, remaining tenures, and cycle dates.
 
----
+### 🔒 Local-First, Zero-Knowledge Privacy
+- **100% Client-Side:** Powered by Dexie.js (IndexedDB). Your financial transactions never leave your device or hit a remote server.
+- **Military-Grade Encrypted Backups:** Export and import password-protected backups encrypted via the native browser **Web Crypto API** using **PBKDF2** (100,000 iterations) and **AES-GCM 256-bit** encryption.
+- **Data Portability:** Full JSON and CSV export/import capabilities for complete data ownership.
 
-## 🎨 Stock Android 17 / Material 3 Design Language
-
-FinTrack is completely styled in **Material 3 (Material You)**, rejecting artificial AI gradients and neon glowing blurs in favor of authentic Material design:
-
-- **Tonal Palette:** Deep OLED surfaces (`#111318`, `#1e2026`, `#282a30`) with soft Google Pixel blue accents (`#a8c7fa`, `#253a5c`, `#d3e3fd`).
-- **Fixed Bottom Navigation Bar:** Ergonomic 5-destination bottom bar with Material You rounded pill indicators:
-  1. **Home:** Overview, Available to Spend intelligence card, and recent transaction feed.
-  2. **Splits:** PG Flatmates ledger, group split balances, and 1-click GPay settlement simulation.
-  3. **Accounts:** Multi-account balances, credit card limit gauges, and recurring commitments toggle.
-  4. **Analytics:** Recharts spending donut and friend receivables bar distribution.
-  5. **Settings:** Centralized entity hub to manage accounts, friends, groups, categories, and backups.
-- **Material 3 Extended FAB:** Floating action button (`+ New Transaction`) docked above the bottom bar.
-- **Bottom Sheet Dialogs:** Outlined text fields, top drag handles (`rounded-full`), and rounded pill buttons.
-
----
-
-## 🔐 Local-First & Zero-Knowledge Security
-
-- **Dexie.js (IndexedDB):** 100% of your data lives in your browser's IndexedDB. No remote database, no tracking, zero cloud latency.
-- **AES-GCM 256-bit Encrypted Backup:** Export password-protected `.json` backups encrypted via the browser's native **Web Crypto API** using PBKDF2 (100,000 rounds) and AES-GCM 256-bit encryption.
-- **Plain JSON Audits:** One-click export for spreadsheet auditing or manual migrations.
+### 📱 Native PWA & Material 3 Interface
+- **Installable Progressive Web App:** Installs natively on Android, iOS, Windows, and macOS with full offline capabilities via Service Workers.
+- **Clean Material 3 Theme:** Deep dark-mode OLED surfaces, ergonomic bottom navigation, tactile touch targets, and Geist typography.
 
 ---
 
-## 🏗️ Tech Stack
+## 🏗️ Architecture & Technology Stack
 
-- **Core Framework:** React 19 + TypeScript + Vite 6
-- **Styling:** Tailwind CSS v4 + Material 3 design tokens
-- **Local Database:** Dexie.js v4 (`dexie` + `dexie-react-hooks`)
-- **Visual Analytics:** Recharts v3
-- **Icons:** Lucide React
-- **PWA Service Worker:** `vite-plugin-pwa` with Workbox offline precaching
+| Layer | Technologies |
+| :--- | :--- |
+| **Frontend Framework** | [React 19](https://react.dev/) + [TypeScript 5.8](https://www.typescriptlang.org/) |
+| **Build Tooling** | [Vite 6](https://vitejs.dev/) + `@vite-pwa/plugin` |
+| **Styling & Design** | [Tailwind CSS v4](https://tailwindcss.com/) + Material 3 Tokens + Geist Sans/Mono |
+| **Database** | [Dexie.js v4](https://dexie.org/) (IndexedDB wrapper with live reactive hooks) |
+| **Visualizations** | [Recharts v3](https://recharts.org/) |
+| **Cryptography** | Browser Native Web Crypto API (PBKDF2 + AES-GCM 256) |
+| **Icons** | [Lucide React](https://lucide.dev/) |
+| **CI / CD Pipeline** | GitHub Actions (Typecheck, Oxlint, Vitest, Accounting Invariants, Build Gate) |
+
+---
+
+## 🗄️ Database Schema
+
+FinTrack uses a normalized client-side schema managed through Dexie:
+
+```
++-------------------------------------------------------------------------------+
+|                               FinanceTrackerDB                                |
++-------------------------------------------------------------------------------+
+| accounts             -> id, name, type, balance, creditLimit, cycleDay        |
+| categories           -> id, name, type, color, icon, monthlyLimit             |
+| subcategories        -> id, categoryId, name                                  |
+| people               -> id, name, phone, upiId, netBalance                    |
+| groups               -> id, name, memberIds, defaultSplitType                 |
+| transactions         -> id, type, date, amount, accountId, categoryId,        |
+|                         personalExpenseAmount, isShared, splits[], notes      |
+| recurringCommitments -> id, name, type, amount, installments, isActive        |
++-------------------------------------------------------------------------------+
+```
 
 ---
 
 ## 🚀 Getting Started
 
 ### Prerequisites
-- [Node.js](https://nodejs.org/) (v20+ recommended)
-- [npm](https://www.npmjs.com/) (v10+)
+- [Node.js](https://nodejs.org/) (v22 or higher recommended)
+- [npm](https://www.npmjs.com/) (v10 or higher)
 
 ### Installation
 ```bash
@@ -103,66 +118,52 @@ cd Expense-Tracker
 npm install
 ```
 
-### Development Server
+### Development
+Start the local development server with Hot Module Replacement:
 ```bash
 npm run dev
 ```
 Open your browser at `http://localhost:5173`.
 
-### Automated Accounting Verification Test
-Run the automated invariant verification suite that mathematically verifies the DMart 5-person split and the GPay debt clearance:
+### Verification & Testing
+FinTrack includes a comprehensive quality gate verifying TypeScript types, linting rules, unit tests, and financial accounting invariants:
+
 ```bash
+# Run all verification checks (typecheck + lint + tests + accounting invariants + build)
+npm run verify
+
+# Run unit tests with Vitest
+npm test
+
+# Run financial accounting invariant test suite
 npm run test:accounting
 ```
 
-### Production Build & PWA Generation
+### Production Build
 ```bash
+# Build the production bundle with offline PWA service workers
 npm run build
+
+# Preview the production build locally
 npm run preview
 ```
 
 ---
 
-## 📂 Real-World PG Dataset & Cashew CSV Migration
+## 🛡️ CI/CD Quality Gate
 
-FinTrack comes pre-seeded with authentic, relatable PG living data modeled directly from real-world flat expense sharing:
-- **Real Accounts:** `HDFC Bank` (Salary/UPI), `CANARA Bank` (Savings/PF Buffer), `HDFC MoneyBack+` (Credit Card Liability), `Amazon Pay Wallet`, `CASH`, and `ICCSL RD` (Recurring Deposit).
-- **Room 514 & PG Community:** Flatmates (`Rijosh`, `Jithu`, `Sreerag`, `Alan`, `Rohan`) and PG friends (`Akhil`, `Arunima`, `Amal`, `Aishwarya`).
-- **Real Shared Bill Splits:**
-  - **DMart Grocery Split (₹1,505.00):** Bony's share: ₹282.25; Jithu: ₹381.25 (settled); Sreerag: ₹212.25 (settled); Alan: ₹99.00 (settled); Rijosh: ₹530.25 (unpaid receivable).
-  - **Pepper Leaf Dinner (₹914.00):** Bony: ₹180; Alan: ₹180; Rijosh: ₹170; Jithu: ₹204; Sreerag: ₹180 (All settled).
-  - **Masala Dosa (₹210.00):** Bony ₹70, Akhil ₹70, Sreerag ₹70.
-  - **Thekku Island (₹175.00):** Bony ₹43.75, Rijosh ₹43.75, Jithu ₹43.75, Rohan ₹43.75.
-- **In-Browser Cashew CSV Importer:**
-  - Got a `cashew-*.csv` backup from the Cashew mobile app?
-  - Open **Settings** -> **Import Cashew CSV Export** (or **Backup & Restore** -> **Cashew CSV** tab) to migrate your accounts, categories, and transactions in seconds.
-  - FinTrack automatically repairs Cashew's broken split and repayment records on-the-fly!
-
----
-
-## 🗄️ Database Schema (Dexie.js)
-
-```
-+------------------------------------------------------------------------+
-|                          FinanceTrackerDB                              |
-+------------------------------------------------------------------------+
-| accounts             -> id, name, type, balance, creditLimit, cycleDay |
-| categories           -> id, name, type, color, icon                    |
-| subcategories        -> id, categoryId, name                           |
-| people               -> id, name, phone, upiId, netBalance             |
-| groups               -> id, name, memberIds, defaultSplitType          |
-| transactions         -> id, type, date, amount, accountId, categoryId, |
-|                         personalExpenseAmount, isShared, splits[]      |
-| recurringCommitments -> id, name, type, amount, installments, isActive |
-+------------------------------------------------------------------------+
-```
+Every commit pushed to the repository is automatically validated by our multi-stage GitHub Actions pipeline:
+1. **Code Integrity & Type Check:** Strict `tsc --noEmit`, Oxlint analysis, and secret leak scanning.
+2. **Financial Accounting & Unit Tests:** Vitest test suite and double-entry arithmetic invariant verifications.
+3. **Production Build & PWA Audit:** Production minification and PWA asset/manifest validation.
+4. **Deployment Gate:** Automatic continuous deployment via Netlify.
 
 ---
 
 ## 📄 License
-Distributed under the **MIT License**. See `LICENSE` for details.
+This project is open-source software licensed under the [MIT License](LICENSE).
 
 ---
 
 ## 👨‍💻 Author
-Built with ❤️ by [Bony Koshy](https://github.com/BonyKoshy).
+Designed and built with care by [Bony Koshy](https://github.com/BonyKoshy).
