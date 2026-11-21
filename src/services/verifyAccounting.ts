@@ -1,8 +1,14 @@
-import type { Account, Person, RecurringCommitment, Transaction } from '@/types';
+import type { Account, Person, RecurringCommitment, Transaction } from '../types';
 import {
   calculateAvailableToSpend,
   calculateTransactionDeltas,
+  applyAccountBalanceDelta,
+  revertAccountBalanceDelta,
 } from './accountingEngine';
+import {
+  allocateEqualSplit,
+  validateSplitReconciliation,
+} from '../utils/money';
 
 console.log('--- FinTrack Accounting Engine Verification (User Rule Specification) ---');
 
@@ -177,6 +183,40 @@ if (ccDeltas.accountDeltas.get('acc_hdfc_salary') !== -2488.00) {
 }
 if (ccDeltas.accountDeltas.get('acc_hdfc_credit_card') !== 2488.00) {
   throw new Error('Credit card inflow delta should be 2488.00');
+}
+
+// 5. Verify Monetary Precision & Equal Split Allocation Invariant
+console.log('\n[5] Monetary Precision & Split Remainder Allocation:');
+const equalSplitSample = allocateEqualSplit(100.00, ['user', 'friend_1', 'friend_2']);
+console.log('  ₹100 split 3 ways:', equalSplitSample.map(s => `₹${s.amount}`));
+const recon = validateSplitReconciliation(100.00, equalSplitSample);
+if (!recon.isValid || equalSplitSample[0].amount !== 33.34 || equalSplitSample[1].amount !== 33.33 || equalSplitSample[2].amount !== 33.33) {
+  throw new Error('Equal split allocation failed exact paise reconciliation');
+}
+console.log('  Sum of split shares:', equalSplitSample.reduce((a, b) => a + b.amount, 0), '(Must be 100.00)');
+
+// 6. Verify Standardized Credit Card Sign Convention & Balance Adjustments
+console.log('\n[6] Standardized Credit Card Sign Convention:');
+let initialCCLiability = 4397.61;
+// Charge ₹1505 (cashflow delta = -1505) -> increases liability
+let afterSwipeLiability = applyAccountBalanceDelta(initialCCLiability, -1505.00, 'credit_card');
+console.log('  Initial Liability:        ₹' + initialCCLiability);
+console.log('  After ₹1505 swipe:        ₹' + afterSwipeLiability);
+if (afterSwipeLiability !== 5902.61) {
+  throw new Error(`Expected CC liability after swipe to be 5902.61, got ${afterSwipeLiability}`);
+}
+
+// CC Payment ₹2488 (cashflow delta = +2488) -> decreases liability
+let afterPaymentLiability = applyAccountBalanceDelta(afterSwipeLiability, 2488.00, 'credit_card');
+console.log('  After ₹2488 bill payment: ₹' + afterPaymentLiability);
+if (afterPaymentLiability !== 3414.61) {
+  throw new Error(`Expected CC liability after payment to be 3414.61, got ${afterPaymentLiability}`);
+}
+
+// Revert payment: should go back to 5902.61
+let revertedLiability = revertAccountBalanceDelta(afterPaymentLiability, 2488.00, 'credit_card');
+if (revertedLiability !== 5902.61) {
+  throw new Error(`Expected reverted CC liability to be 5902.61, got ${revertedLiability}`);
 }
 
 console.log('\n✅ All Accounting & Settlement Engine Invariants Passed Successfully!');

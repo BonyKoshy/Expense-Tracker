@@ -1,4 +1,4 @@
-import { db } from '@/db';
+import { db, type FinanceTrackerDatabase } from '../db';
 import type {
   Account,
   Category,
@@ -7,7 +7,7 @@ import type {
   Group,
   Transaction,
   RecurringCommitment,
-} from '@/types';
+} from '../types';
 
 export interface BackupData {
   version: number;
@@ -52,7 +52,7 @@ function base64ToBuffer(base64: string): Uint8Array {
   return bytes;
 }
 
-async function deriveKey(password: string, salt: Uint8Array): Promise<CryptoKey> {
+export async function deriveKey(password: string, salt: Uint8Array): Promise<CryptoKey> {
   const enc = new TextEncoder();
   const keyMaterial = await crypto.subtle.importKey(
     'raw',
@@ -77,9 +77,57 @@ async function deriveKey(password: string, salt: Uint8Array): Promise<CryptoKey>
 }
 
 /**
+ * Validates the schema of an unencrypted BackupData object
+ * before any database operations are permitted.
+ */
+export function validateBackupSchema(data: any): { isValid: boolean; error?: string } {
+  if (!data || typeof data !== 'object') {
+    return { isValid: false, error: 'Backup root must be an object.' };
+  }
+  if (!data.data || typeof data.data !== 'object') {
+    return { isValid: false, error: 'Missing "data" envelope in backup.' };
+  }
+
+  const { accounts, categories, transactions, people, groups, recurringCommitments } = data.data;
+
+  if (!Array.isArray(accounts)) {
+    return { isValid: false, error: 'Backup missing "accounts" table.' };
+  }
+  for (const acc of accounts) {
+    if (!acc.id || !acc.name || typeof acc.balance !== 'number') {
+      return { isValid: false, error: `Invalid account record: ${JSON.stringify(acc)}` };
+    }
+  }
+
+  if (!Array.isArray(transactions)) {
+    return { isValid: false, error: 'Backup missing "transactions" table.' };
+  }
+  for (const tx of transactions) {
+    if (!tx.id || !tx.type || typeof tx.amount !== 'number' || !tx.date) {
+      return { isValid: false, error: `Invalid transaction record: ${JSON.stringify(tx)}` };
+    }
+  }
+
+  if (people && !Array.isArray(people)) {
+    return { isValid: false, error: '"people" table must be an array.' };
+  }
+  if (categories && !Array.isArray(categories)) {
+    return { isValid: false, error: '"categories" table must be an array.' };
+  }
+  if (groups && !Array.isArray(groups)) {
+    return { isValid: false, error: '"groups" table must be an array.' };
+  }
+  if (recurringCommitments && !Array.isArray(recurringCommitments)) {
+    return { isValid: false, error: '"recurringCommitments" table must be an array.' };
+  }
+
+  return { isValid: true };
+}
+
+/**
  * Extracts all data from Dexie tables into a structured backup object.
  */
-export async function generateBackupData(): Promise<BackupData> {
+export async function generateBackupData(database: FinanceTrackerDatabase = db): Promise<BackupData> {
   const [
     accounts,
     categories,
@@ -89,13 +137,13 @@ export async function generateBackupData(): Promise<BackupData> {
     transactions,
     recurringCommitments,
   ] = await Promise.all([
-    db.accounts.toArray(),
-    db.categories.toArray(),
-    db.subcategories.toArray(),
-    db.people.toArray(),
-    db.groups.toArray(),
-    db.transactions.toArray(),
-    db.recurringCommitments.toArray(),
+    database.accounts.toArray(),
+    database.categories.toArray(),
+    database.subcategories.toArray(),
+    database.people.toArray(),
+    database.groups.toArray(),
+    database.transactions.toArray(),
+    database.recurringCommitments.toArray(),
   ]);
 
   return {
@@ -116,8 +164,15 @@ export async function generateBackupData(): Promise<BackupData> {
 /**
  * Exports data as password-encrypted JSON envelope using AES-GCM-256 + PBKDF2.
  */
-export async function exportEncryptedBackup(password: string): Promise<string> {
-  const backup = await generateBackupData();
+export async function exportEncryptedBackup(
+  password: string,
+  database: FinanceTrackerDatabase = db
+): Promise<string> {
+  if (!password || password.length < 6) {
+    throw new Error('Encryption password must be at least 6 characters long.');
+  }
+
+  const backup = await generateBackupData(database);
   const plainText = JSON.stringify(backup);
 
   const enc = new TextEncoder();
@@ -146,18 +201,24 @@ export async function exportEncryptedBackup(password: string): Promise<string> {
 }
 
 /**
- * Exports unencrypted plain JSON backup for auditing.
+ * Exports unencrypted plain JSON backup for spreadsheet auditing.
  */
-export async function exportPlainBackup(): Promise<string> {
-  const backup = await generateBackupData();
+export async function exportPlainBackup(
+  database: FinanceTrackerDatabase = db
+): Promise<string> {
+  const backup = await generateBackupData(database);
   return JSON.stringify(backup, null, 2);
 }
 
 /**
  * Imports a backup file (either plain JSON or password-protected AES-GCM envelope)
- * and atomically restores it into Dexie.js.
+ * and safely restores it into Dexie.js with pre-restore schema validation and rollback protection.
  */
-export async function restoreBackup(fileContent: string, password?: string): Promise<BackupData> {
+export async function restoreBackup(
+  fileContent: string,
+  password?: string,
+  database: FinanceTrackerDatabase = db
+): Promise<BackupData> {
   let parsed: unknown;
   try {
     parsed = JSON.parse(fileContent);
@@ -174,6 +235,10 @@ export async function restoreBackup(fileContent: string, password?: string): Pro
     }
 
     const encrypted = envelope as unknown as EncryptedBackupEnvelope;
+    if (!encrypted.salt || !encrypted.iv || !encrypted.ciphertext) {
+      throw new Error('Corrupted encrypted backup envelope: missing cryptographic parameters.');
+    }
+
     const salt = base64ToBuffer(encrypted.salt);
     const iv = base64ToBuffer(encrypted.iv);
     const ciphertext = base64ToBuffer(encrypted.ciphertext);
@@ -188,52 +253,58 @@ export async function restoreBackup(fileContent: string, password?: string): Pro
         ciphertext.buffer as ArrayBuffer
       );
     } catch {
-      throw new Error('Incorrect decryption password or corrupted backup file.');
+      throw new Error('Incorrect decryption password or corrupted backup file (Authentication Tag Mismatch).');
     }
 
     const dec = new TextDecoder();
     const plainJson = dec.decode(decryptedBuffer);
-    backupData = JSON.parse(plainJson) as BackupData;
+    try {
+      backupData = JSON.parse(plainJson) as BackupData;
+    } catch {
+      throw new Error('Decrypted content is not valid JSON.');
+    }
   } else if (envelope.data && typeof envelope.data === 'object') {
     backupData = envelope as unknown as BackupData;
   } else {
     throw new Error('Unrecognized backup file structure.');
   }
 
-  // Validate critical tables
-  const { data } = backupData;
-  if (!Array.isArray(data.accounts) || !Array.isArray(data.transactions)) {
-    throw new Error('Backup data is missing required financial tables.');
+  // Pre-restore validation: verify table structures BEFORE touching any database tables
+  const validation = validateBackupSchema(backupData);
+  if (!validation.isValid) {
+    throw new Error(`Backup validation failed: ${validation.error}`);
   }
 
-  // Restore into Dexie atomically
-  await db.transaction(
+  const { data } = backupData;
+
+  // Restore into Dexie atomically inside a single 'rw' transaction
+  await database.transaction(
     'rw',
     [
-      db.accounts,
-      db.categories,
-      db.subcategories,
-      db.people,
-      db.groups,
-      db.recurringCommitments,
-      db.transactions,
+      database.accounts,
+      database.categories,
+      database.subcategories,
+      database.people,
+      database.groups,
+      database.recurringCommitments,
+      database.transactions,
     ],
     async () => {
-      await db.accounts.clear();
-      await db.categories.clear();
-      await db.subcategories.clear();
-      await db.people.clear();
-      await db.groups.clear();
-      await db.recurringCommitments.clear();
-      await db.transactions.clear();
+      await database.accounts.clear();
+      await database.categories.clear();
+      await database.subcategories.clear();
+      await database.people.clear();
+      await database.groups.clear();
+      await database.recurringCommitments.clear();
+      await database.transactions.clear();
 
-      if (data.accounts.length) await db.accounts.bulkAdd(data.accounts);
-      if (data.categories.length) await db.categories.bulkAdd(data.categories);
-      if (data.subcategories.length) await db.subcategories.bulkAdd(data.subcategories);
-      if (data.people.length) await db.people.bulkAdd(data.people);
-      if (data.groups.length) await db.groups.bulkAdd(data.groups);
-      if (data.recurringCommitments.length) await db.recurringCommitments.bulkAdd(data.recurringCommitments);
-      if (data.transactions.length) await db.transactions.bulkAdd(data.transactions);
+      if (data.accounts?.length) await database.accounts.bulkAdd(data.accounts);
+      if (data.categories?.length) await database.categories.bulkAdd(data.categories);
+      if (data.subcategories?.length) await database.subcategories.bulkAdd(data.subcategories);
+      if (data.people?.length) await database.people.bulkAdd(data.people);
+      if (data.groups?.length) await database.groups.bulkAdd(data.groups);
+      if (data.recurringCommitments?.length) await database.recurringCommitments.bulkAdd(data.recurringCommitments);
+      if (data.transactions?.length) await database.transactions.bulkAdd(data.transactions);
     }
   );
 

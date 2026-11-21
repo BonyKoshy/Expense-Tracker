@@ -7,7 +7,7 @@ import type {
   Group,
   Transaction,
   RecurringCommitment,
-} from '@/types';
+} from '../types';
 import {
   INITIAL_ACCOUNTS,
   INITIAL_CATEGORIES,
@@ -17,6 +17,7 @@ import {
   INITIAL_RECURRING_COMMITMENTS,
   INITIAL_TRANSACTIONS,
 } from './seeds';
+import { deleteTransaction } from '../services/accountingEngine';
 
 export class FinanceTrackerDatabase extends Dexie {
   accounts!: Table<Account, string>;
@@ -110,4 +111,77 @@ export async function resetDatabaseToDefaults(database: FinanceTrackerDatabase =
       await database.transactions.bulkAdd(INITIAL_TRANSACTIONS);
     }
   );
+}
+
+/**
+ * Safely deletes or archives an account while preserving financial ledger invariants.
+ *
+ * Modes:
+ * - 'archive': Recommended non-destructive approach. Hides account while preserving all historical splits and transfers.
+ * - 'cascade_revert': Force deletion. Cleanly reverses every transaction involving this account, restoring friend balances and partner accounts, then removes the account.
+ */
+export async function safeDeleteAccount(
+  database: FinanceTrackerDatabase,
+  accountId: string,
+  mode: 'archive' | 'cascade_revert' = 'archive'
+): Promise<{ transactionsReverted: number }> {
+  const acc = await database.accounts.get(accountId);
+  if (!acc) throw new Error('Account not found');
+
+  if (mode === 'archive') {
+    await database.accounts.update(accountId, {
+      isArchived: true,
+      updatedAt: new Date().toISOString(),
+    });
+    return { transactionsReverted: 0 };
+  }
+
+  // Find all transactions where this account was source or destination
+  const sourceTxs = await database.transactions.where('accountId').equals(accountId).toArray();
+  const destTxs = await database.transactions.where('toAccountId').equals(accountId).toArray();
+  const allTxs = Array.from(new Map([...sourceTxs, ...destTxs].map((t) => [t.id, t])).values());
+
+  // Cleanly revert each transaction
+  for (const tx of allTxs) {
+    await deleteTransaction(database, tx.id);
+  }
+
+  // Delete recurring commitments linked to this account
+  await database.recurringCommitments.where('accountId').equals(accountId).delete();
+
+  // Delete account record
+  await database.accounts.delete(accountId);
+
+  return { transactionsReverted: allTxs.length };
+}
+
+/**
+ * Safely deletes a person.
+ * Enforces that unsettled debt balances must be cleared first.
+ */
+export async function safeDeletePerson(
+  database: FinanceTrackerDatabase,
+  personId: string
+): Promise<void> {
+  const person = await database.people.get(personId);
+  if (!person) throw new Error('Friend not found');
+
+  if (Math.abs(person.netBalance || 0) > 0.001) {
+    throw new Error(
+      `Cannot delete ${person.name} because they have an active balance of ₹${person.netBalance.toFixed(2)}. Settle the balance first.`
+    );
+  }
+
+  // Remove person ID from any groups
+  const groups = await database.groups.toArray();
+  for (const group of groups) {
+    if (group.memberIds.includes(personId)) {
+      await database.groups.update(group.id, {
+        memberIds: group.memberIds.filter((id) => id !== personId),
+        updatedAt: new Date().toISOString(),
+      });
+    }
+  }
+
+  await database.people.delete(personId);
 }

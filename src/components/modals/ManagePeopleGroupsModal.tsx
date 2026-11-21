@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { X, Plus, Users, UserPlus, Edit2 } from 'lucide-react';
+import { X, Plus, Users, UserPlus, Edit2, Trash2 } from 'lucide-react';
 import type { Person, Group } from '@/types';
-import { db } from '@/db';
+import { db, safeDeletePerson } from '@/db';
 import { formatINR } from '@/utils/formatters';
 
 interface ManagePeopleGroupsModalProps {
@@ -148,6 +148,42 @@ export function ManagePeopleGroupsModal({
     } catch (err: unknown) {
       console.error(err);
       setError(err instanceof Error ? err.message : 'Failed to save group');
+    }
+  };
+
+  const handleDeletePerson = async (p: Person) => {
+    setError(null);
+    try {
+      if (Math.abs(p.netBalance || 0) > 0.001) {
+        setError(
+          `Cannot delete "${p.name}" because they have an active unsettled balance of ${formatINR(
+            Math.abs(p.netBalance)
+          )}. Please settle all balances before removing this friend.`
+        );
+        return;
+      }
+      if (window.confirm(`Are you sure you want to delete friend "${p.name}"?`)) {
+        await safeDeletePerson(db, p.id);
+        if (editingPersonId === p.id) resetPersonForm();
+        if (onSuccess) onSuccess(`Friend "${p.name}" removed.`);
+      }
+    } catch (err: unknown) {
+      console.error(err);
+      setError(err instanceof Error ? err.message : 'Failed to delete person');
+    }
+  };
+
+  const handleDeleteGroup = async (g: Group) => {
+    setError(null);
+    try {
+      if (window.confirm(`Are you sure you want to delete group "${g.name}"?`)) {
+        await db.groups.delete(g.id);
+        if (editingGroupId === g.id) resetGroupForm();
+        if (onSuccess) onSuccess(`Group "${g.name}" removed.`);
+      }
+    } catch (err: unknown) {
+      console.error(err);
+      setError(err instanceof Error ? err.message : 'Failed to delete group');
     }
   };
 
@@ -361,12 +397,22 @@ export function ManagePeopleGroupsModal({
                       </div>
                     </div>
 
-                    <button
-                      onClick={() => startEditPerson(p)}
-                      className="p-1.5 text-[#90929d] hover:text-[#e2e2e7] rounded-full hover:bg-[#1a1c22]"
-                    >
-                      <Edit2 className="h-4 w-4" />
-                    </button>
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => startEditPerson(p)}
+                        className="p-1.5 text-[#90929d] hover:text-[#e2e2e7] rounded-full hover:bg-[#1a1c22]"
+                        title="Edit person"
+                      >
+                        <Edit2 className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDeletePerson(p)}
+                        className="p-1.5 text-[#90929d] hover:text-[#f2b8b5] rounded-full hover:bg-[#1a1c22]"
+                        title="Delete person"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -487,12 +533,22 @@ export function ManagePeopleGroupsModal({
                       )}
                     </div>
 
-                    <button
-                      onClick={() => startEditGroup(g)}
-                      className="p-1.5 text-[#90929d] hover:text-[#e2e2e7] rounded-full hover:bg-[#1a1c22]"
-                    >
-                      <Edit2 className="h-4 w-4" />
-                    </button>
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => startEditGroup(g)}
+                        className="p-1.5 text-[#90929d] hover:text-[#e2e2e7] rounded-full hover:bg-[#1a1c22]"
+                        title="Edit group"
+                      >
+                        <Edit2 className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteGroup(g)}
+                        className="p-1.5 text-[#90929d] hover:text-[#f2b8b5] rounded-full hover:bg-[#1a1c22]"
+                        title="Delete group"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>

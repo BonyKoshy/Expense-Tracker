@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { X, Plus, CreditCard, Landmark, Wallet, Banknote, Edit2, Archive, Trash2 } from 'lucide-react';
 import type { Account, AccountType } from '@/types';
-import { db } from '@/db';
+import { db, safeDeleteAccount } from '@/db';
 import { formatINR } from '@/utils/formatters';
 
 interface ManageAccountsModalProps {
@@ -66,23 +66,42 @@ export function ManageAccountsModal({
 
   const handleDelete = async (acc: Account) => {
     try {
-      const txCount = await db.transactions.where('accountId').equals(acc.id).count();
-      const confirmMsg =
-        txCount > 0
-          ? `Account "${acc.name}" has ${txCount} transaction(s) associated with it.\n\nDeleting this account will also remove these transactions and revert their splits. Are you sure you want to delete this account?`
-          : `Are you sure you want to delete account "${acc.name}"?`;
+      const sourceCount = await db.transactions.where('accountId').equals(acc.id).count();
+      const destCount = await db.transactions.where('toAccountId').equals(acc.id).count();
+      const txCount = sourceCount + destCount;
 
-      if (window.confirm(confirmMsg)) {
-        if (txCount > 0) {
-          await db.transactions.where('accountId').equals(acc.id).delete();
-        }
-        await db.recurringCommitments.where('accountId').equals(acc.id).delete();
-        await db.accounts.delete(acc.id);
+      if (txCount > 0) {
+        const archiveChoice = window.confirm(
+          `Account "${acc.name}" has ${txCount} transaction(s) associated with it.\n\n` +
+          `Would you like to ARCHIVE this account instead?\n\n` +
+          `• Click OK to Archive (recommended: keeps transaction history and splits intact)\n` +
+          `• Click Cancel to choose permanent deletion with transaction reversal`
+        );
 
-        if (editingId === acc.id) {
-          resetForm();
+        if (archiveChoice) {
+          await safeDeleteAccount(db, acc.id, 'archive');
+          if (editingId === acc.id) resetForm();
+          if (onSuccess) onSuccess(`Account "${acc.name}" archived successfully.`);
+          return;
         }
-        if (onSuccess) onSuccess(`Account "${acc.name}" deleted.`);
+
+        const forceChoice = window.confirm(
+          `PERMANENT DELETION WARNING:\n\n` +
+          `Permanently deleting "${acc.name}" will REVERT all ${txCount} transaction(s), reversing any shared split debts with friends and linked account transfers.\n\n` +
+          `Are you sure you want to proceed with permanent deletion and reversal?`
+        );
+
+        if (forceChoice) {
+          const res = await safeDeleteAccount(db, acc.id, 'cascade_revert');
+          if (editingId === acc.id) resetForm();
+          if (onSuccess) onSuccess(`Account "${acc.name}" deleted and ${res.transactionsReverted} transaction(s) reverted.`);
+        }
+      } else {
+        if (window.confirm(`Are you sure you want to delete account "${acc.name}"?`)) {
+          await safeDeleteAccount(db, acc.id, 'cascade_revert');
+          if (editingId === acc.id) resetForm();
+          if (onSuccess) onSuccess(`Account "${acc.name}" deleted.`);
+        }
       }
     } catch (err: unknown) {
       console.error(err);
