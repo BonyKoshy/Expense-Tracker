@@ -42,6 +42,11 @@ export class FinanceTrackerDatabase extends Dexie {
       recurringCommitments:
         'id, name, type, accountId, isActive, isReservedCommitment',
     });
+
+    this.version(2).stores({
+      transactions:
+        'id, type, date, accountId, toAccountId, categoryId, groupId, isShared, paidByPersonId, [type+date], [accountId+date]',
+    });
   }
 }
 
@@ -137,8 +142,20 @@ export async function safeDeleteAccount(
   }
 
   // Find all transactions where this account was source or destination
-  const sourceTxs = await database.transactions.where('accountId').equals(accountId).toArray();
-  const destTxs = await database.transactions.where('toAccountId').equals(accountId).toArray();
+  let sourceTxs: Transaction[] = [];
+  try {
+    sourceTxs = await database.transactions.where('accountId').equals(accountId).toArray();
+  } catch {
+    sourceTxs = await database.transactions.filter((tx) => tx.accountId === accountId).toArray();
+  }
+
+  let destTxs: Transaction[] = [];
+  try {
+    destTxs = await database.transactions.where('toAccountId').equals(accountId).toArray();
+  } catch {
+    destTxs = await database.transactions.filter((tx) => tx.toAccountId === accountId).toArray();
+  }
+
   const allTxs = Array.from(new Map([...sourceTxs, ...destTxs].map((t) => [t.id, t])).values());
 
   // Cleanly revert each transaction
@@ -147,7 +164,16 @@ export async function safeDeleteAccount(
   }
 
   // Delete recurring commitments linked to this account
-  await database.recurringCommitments.where('accountId').equals(accountId).delete();
+  try {
+    await database.recurringCommitments.where('accountId').equals(accountId).delete();
+  } catch {
+    const commitments = await database.recurringCommitments
+      .filter((c) => c.accountId === accountId)
+      .toArray();
+    for (const c of commitments) {
+      await database.recurringCommitments.delete(c.id);
+    }
+  }
 
   // Delete account record
   await database.accounts.delete(accountId);

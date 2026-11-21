@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import 'fake-indexeddb/auto';
-import { FinanceTrackerDatabase } from '../db';
+import { FinanceTrackerDatabase, safeDeleteAccount } from '../db';
 import {
   recordTransaction,
   deleteTransaction,
@@ -435,5 +435,51 @@ describe('Accounting Engine Comprehensive Real-DB Scenarios (accountingScenarios
     // Reconciled balance must accurately reflect true ledger sum (50,000 - 1,000 = 49,000)
     const healed = await db.accounts.get('acc_hdfc');
     expect(healed?.balance).toBe(49000);
+  });
+
+  it('13. Safe account deletion works without index error on destination accounts (toAccountId)', async () => {
+    // Record transfer where acc_sbi is the destination (toAccountId)
+    const transferTx: Transaction = {
+      id: 'tx_transfer_to_sbi',
+      type: 'transfer',
+      title: 'Move funds to SBI',
+      date: new Date().toISOString(),
+      amount: 5000,
+      accountId: 'acc_hdfc',
+      toAccountId: 'acc_sbi',
+      personalExpenseAmount: 0,
+      isShared: false,
+      paidByPersonId: 'user',
+      splits: [],
+      createdAt: '',
+      updatedAt: '',
+    };
+    await recordTransaction(db, transferTx);
+
+    // Verify toAccountId indexed lookup works without SchemaError
+    const destTxs = await db.transactions.where('toAccountId').equals('acc_sbi').toArray();
+    expect(destTxs.length).toBe(1);
+    expect(destTxs[0].id).toBe('tx_transfer_to_sbi');
+
+    // Archive acc_sbi
+    await safeDeleteAccount(db, 'acc_sbi', 'archive');
+    const archivedAcc = await db.accounts.get('acc_sbi');
+    expect(archivedAcc?.isArchived).toBe(true);
+
+    // Permanently delete acc_amazon with cascade revert
+    const deleteRes = await safeDeleteAccount(db, 'acc_amazon', 'cascade_revert');
+    expect(deleteRes.transactionsReverted).toBe(0);
+    const deletedAcc = await db.accounts.get('acc_amazon');
+    expect(deletedAcc).toBeUndefined();
+
+    // Permanently delete acc_sbi which has linked transfer transaction
+    const cascadeRes = await safeDeleteAccount(db, 'acc_sbi', 'cascade_revert');
+    expect(cascadeRes.transactionsReverted).toBe(1);
+    const deletedSbi = await db.accounts.get('acc_sbi');
+    expect(deletedSbi).toBeUndefined();
+
+    // Verify transfer was reverted and HDFC balance restored
+    const hdfc = await db.accounts.get('acc_hdfc');
+    expect(hdfc?.balance).toBe(50000);
   });
 });

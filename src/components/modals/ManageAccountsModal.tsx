@@ -66,8 +66,20 @@ export function ManageAccountsModal({
 
   const handleDelete = async (acc: Account) => {
     try {
-      const sourceCount = await db.transactions.where('accountId').equals(acc.id).count();
-      const destCount = await db.transactions.where('toAccountId').equals(acc.id).count();
+      let sourceCount = 0;
+      try {
+        sourceCount = await db.transactions.where('accountId').equals(acc.id).count();
+      } catch {
+        sourceCount = await db.transactions.filter((tx) => tx.accountId === acc.id).count();
+      }
+
+      let destCount = 0;
+      try {
+        destCount = await db.transactions.where('toAccountId').equals(acc.id).count();
+      } catch {
+        destCount = await db.transactions.filter((tx) => tx.toAccountId === acc.id).count();
+      }
+
       const txCount = sourceCount + destCount;
 
       if (txCount > 0) {
