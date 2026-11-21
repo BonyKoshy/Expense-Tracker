@@ -16,11 +16,17 @@ export default defineConfig({
       },
       includeAssets: [
         "favicon.svg",
+        "favicon.ico",
+        "favicon-96x96.png",
+        "favicon-32x32.png",
+        "favicon-16x16.png",
         "apple-touch-icon.png",
         "mask-icon.svg",
         "pwa-192x192.png",
         "pwa-512x512.png",
         "pwa-maskable-512x512.png",
+        "icons8-google-wallet-material-rounded-70.png",
+        "icons8-google-wallet-material-rounded-96.png",
       ],
       manifest: {
         name: "FinTrack - Personal Expense Tracker",
@@ -34,6 +40,11 @@ export default defineConfig({
         start_url: "/",
         scope: "/",
         icons: [
+          {
+            src: "icons8-google-wallet-material-rounded-96.png",
+            sizes: "96x96",
+            type: "image/png",
+          },
           {
             src: "pwa-192x192.png",
             sizes: "192x192",

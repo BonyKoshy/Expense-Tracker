@@ -273,27 +273,27 @@ export function ManagePeopleGroupsModal({
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="text-xs font-medium text-[#c4c6cf] block mb-1">
+                    <label className="text-xs sm:text-sm font-medium text-[#c4c6cf] block mb-1.5">
                       Friend Name
                     </label>
                     <input
                       type="text"
                       required
-                      placeholder="e.g., Sneha, Rahul"
+                      placeholder="Name"
                       value={personName}
                       onChange={(e) => setPersonName(e.target.value)}
-                      className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e7] focus:outline-none"
+                      className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-4 py-3 text-sm text-[#e2e2e7] focus:outline-none min-h-[46px]"
                     />
                   </div>
 
                   <div>
-                    <label className="text-xs font-medium text-[#c4c6cf] block mb-1">
+                    <label className="text-xs sm:text-sm font-medium text-[#c4c6cf] block mb-1.5">
                       Avatar Emoji
                     </label>
                     <select
                       value={personAvatar}
                       onChange={(e) => setPersonAvatar(e.target.value)}
-                      className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e7] focus:outline-none"
+                      className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-4 py-3 text-sm text-[#e2e2e7] focus:outline-none min-h-[46px]"
                     >
                       <option value="👤">👤 Person</option>
                       <option value="👨‍💼">👨‍💼 Office</option>
@@ -304,41 +304,41 @@ export function ManagePeopleGroupsModal({
                   </div>
 
                   <div>
-                    <label className="text-xs font-medium text-[#c4c6cf] block mb-1">
+                    <label className="text-xs sm:text-sm font-medium text-[#c4c6cf] block mb-1.5">
                       UPI ID (for GPay settlement)
                     </label>
                     <input
                       type="text"
-                      placeholder="e.g., sneha@okaxis"
+                      placeholder="name@upi"
                       value={personUpi}
                       onChange={(e) => setPersonUpi(e.target.value)}
-                      className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e7] font-mono focus:outline-none"
+                      className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-4 py-3 text-sm text-[#e2e2e7] font-mono focus:outline-none min-h-[46px]"
                     />
                   </div>
 
                   <div>
-                    <label className="text-xs font-medium text-[#c4c6cf] block mb-1">
+                    <label className="text-xs sm:text-sm font-medium text-[#c4c6cf] block mb-1.5">
                       Phone Number
                     </label>
                     <input
                       type="text"
-                      placeholder="+91 98765 43210"
+                      placeholder="+91..."
                       value={personPhone}
                       onChange={(e) => setPersonPhone(e.target.value)}
-                      className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e7] focus:outline-none"
+                      className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-4 py-3 text-sm text-[#e2e2e7] focus:outline-none min-h-[46px]"
                     />
                   </div>
 
                   <div className="sm:col-span-2">
-                    <label className="text-xs font-medium text-[#c4c6cf] block mb-1">
+                    <label className="text-xs sm:text-sm font-medium text-[#c4c6cf] block mb-1.5">
                       Notes
                     </label>
                     <input
                       type="text"
-                      placeholder="Room 514 flatmate"
+                      placeholder="Notes"
                       value={personNotes}
                       onChange={(e) => setPersonNotes(e.target.value)}
-                      className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e7] focus:outline-none"
+                      className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-4 py-3 text-sm text-[#e2e2e7] focus:outline-none min-h-[46px]"
                     />
                   </div>
                 </div>
@@ -346,7 +346,7 @@ export function ManagePeopleGroupsModal({
                 <div className="pt-2 flex justify-end">
                   <button
                     type="submit"
-                    className="px-5 py-2 rounded-full bg-[#a8c7fa] hover:bg-[#b8d4ff] text-[#003062] text-xs font-semibold flex items-center gap-1.5 transition-colors"
+                    className="px-6 py-2.5 rounded-full bg-[#a8c7fa] hover:bg-[#b8d4ff] text-[#003062] text-xs sm:text-sm font-semibold flex items-center gap-2 transition-colors min-h-[44px]"
                   >
                     <UserPlus className="h-4 w-4" />
                     <span>{editingPersonId ? 'Update' : 'Add Friend'}</span>
@@ -443,29 +443,29 @@ export function ManagePeopleGroupsModal({
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="text-xs font-medium text-[#c4c6cf] block mb-1">
+                    <label className="text-xs sm:text-sm font-medium text-[#c4c6cf] block mb-1.5">
                       Group Name
                     </label>
                     <input
                       type="text"
                       required
-                      placeholder="e.g., 514, PG Common"
+                      placeholder="Group name"
                       value={groupName}
                       onChange={(e) => setGroupName(e.target.value)}
-                      className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e7] focus:outline-none"
+                      className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-4 py-3 text-sm text-[#e2e2e7] focus:outline-none min-h-[46px]"
                     />
                   </div>
 
                   <div>
-                    <label className="text-xs font-medium text-[#c4c6cf] block mb-1">
+                    <label className="text-xs sm:text-sm font-medium text-[#c4c6cf] block mb-1.5">
                       Description
                     </label>
                     <input
                       type="text"
-                      placeholder="PG Flatmates bill splits"
+                      placeholder="Description"
                       value={groupDesc}
                       onChange={(e) => setGroupDesc(e.target.value)}
-                      className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e7] focus:outline-none"
+                      className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-4 py-3 text-sm text-[#e2e2e7] focus:outline-none min-h-[46px]"
                     />
                   </div>
                 </div>

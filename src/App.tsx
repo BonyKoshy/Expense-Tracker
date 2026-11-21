@@ -334,9 +334,9 @@ export default function App() {
         onClick={() => setIsAddTxOpen(true)}
         title="New Transaction"
         aria-label="New Transaction"
-        className="fixed bottom-20 right-4 sm:right-6 z-30 h-14 w-14 rounded-2xl bg-[#a8c7fa] hover:bg-[#b8d4ff] text-[#0d2238] shadow-2xl flex items-center justify-center active:scale-90 transition-all border border-[#b8d4ff]/20"
+        className="fixed bottom-24 right-5 sm:right-7 z-30 h-16 w-16 rounded-[22px] bg-[#a8c7fa] hover:bg-[#b8d4ff] text-[#0d2238] shadow-2xl flex items-center justify-center active:scale-90 transition-all border border-[#b8d4ff]/20"
       >
-        <Plus className="h-6 w-6 stroke-[2.5]" />
+        <Plus className="h-7 w-7 stroke-[2.5]" />
       </button>
 
       {/* Android 17 / Material 3 Bottom Navigation Bar */}

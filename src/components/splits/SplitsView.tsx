@@ -115,12 +115,12 @@ export function SplitsView({
           <button
             type="button"
             onClick={onOpenPeople}
-            className="px-3.5 py-1.5 rounded-full bg-[#1a1c22] hover:bg-[#202228] text-xs font-medium text-[#e2e2e7] border border-[#262830] flex items-center gap-1.5 transition-colors"
+            className="px-4 py-2 rounded-full bg-[#1a1c22] hover:bg-[#202228] text-xs font-semibold text-[#e2e2e7] border border-[#262830] flex items-center gap-1.5 transition-colors active:scale-95 min-h-[38px]"
           >
-            <Users className="h-3.5 w-3.5" />
+            <Users className="h-4 w-4" />
             <span>Manage Friends</span>
           </button>
-          <span className="text-xs font-medium px-3 py-1 rounded-full bg-[#2a1f17] text-[#ffb787] border border-[#3d2c20]">
+          <span className="text-xs font-semibold px-3.5 py-2 rounded-full bg-[#2a1f17] text-[#ffb787] border border-[#3d2c20]">
             Receivables: {formatINR(totalReceivables)}
           </span>
         </div>
@@ -236,10 +236,10 @@ export function SplitsView({
                         e.stopPropagation();
                         onSimulateSettlement(p.id, p.name, p.netBalance);
                       }}
-                      className="px-3.5 py-1.5 rounded-full bg-[#15241b] hover:bg-[#1c2e22] text-[#a8dab5] text-xs font-semibold border border-[#22382a] transition-colors flex items-center gap-1.5"
+                      className="px-4 py-2 rounded-full bg-[#15241b] hover:bg-[#1c2e22] text-[#a8dab5] text-xs font-semibold border border-[#22382a] transition-colors flex items-center gap-1.5 active:scale-95 min-h-[38px]"
                       title="Settle full balance via GPay"
                     >
-                      <ArrowDownLeft className="h-3.5 w-3.5" />
+                      <ArrowDownLeft className="h-4 w-4" />
                       <span>Settle via GPay</span>
                     </button>
                   )}

@@ -258,7 +258,7 @@ export function SavingsGoalCard({
                 type="number"
                 value={targetInput}
                 onChange={(e) => setTargetInput(e.target.value)}
-                placeholder="Target ₹"
+                placeholder="Target"
                 className="w-24 bg-[#111216] border border-[#a8c7fa] rounded-full px-3 py-1 text-xs text-[#e2e2e7] focus:outline-none font-mono"
               />
               <button
@@ -539,8 +539,8 @@ export function SavingsGoalCard({
                 step="1000"
                 value={targetInput}
                 onChange={(e) => setTargetInput(e.target.value)}
-                placeholder="e.g. 50000"
-                className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-xl px-3.5 py-2 text-xs font-mono text-[#e2e2e7] focus:outline-none"
+                placeholder="Target amount"
+                className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-4 py-3 text-sm font-mono text-[#e2e2e7] focus:outline-none min-h-[46px]"
               />
             </div>
 

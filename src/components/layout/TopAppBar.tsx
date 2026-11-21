@@ -80,11 +80,11 @@ export function TopAppBar({
           <button
             type="button"
             onClick={() => onNavigate('settings')}
-            className="p-2 rounded-full bg-[#16171c] hover:bg-[#202228] text-[#c4c6cf] hover:text-[#e2e2e7] border border-[#23252c] transition-colors"
+            className="p-2.5 rounded-full bg-[#16171c] hover:bg-[#202228] text-[#c4c6cf] hover:text-[#e2e2e7] border border-[#23252c] transition-colors active:scale-95"
             title="Settings"
             aria-label="Settings"
           >
-            <Settings className="h-4 w-4" />
+            <Settings className="h-5 w-5" />
           </button>
         )}
       </div>

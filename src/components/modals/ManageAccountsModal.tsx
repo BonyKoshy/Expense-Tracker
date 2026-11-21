@@ -244,27 +244,27 @@ export function ManageAccountsModal({
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="text-xs font-medium text-[#c4c6cf] block mb-1">
+                <label className="text-xs sm:text-sm font-medium text-[#c4c6cf] block mb-1.5">
                   Account Name
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g., HDFC Salary"
+                  placeholder="Salary, Cash..."
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e7] focus:outline-none"
+                  className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-4 py-3 text-sm text-[#e2e2e7] focus:outline-none min-h-[46px]"
                 />
               </div>
 
               <div>
-                <label className="text-xs font-medium text-[#c4c6cf] block mb-1">
+                <label className="text-xs sm:text-sm font-medium text-[#c4c6cf] block mb-1.5">
                   Account Type
                 </label>
                 <select
                   value={type}
                   onChange={(e) => setType(e.target.value as AccountType)}
-                  className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e7] focus:outline-none"
+                  className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-4 py-3 text-sm text-[#e2e2e7] focus:outline-none min-h-[46px]"
                 >
                   <option value="bank">Bank Account</option>
                   <option value="credit_card">Credit Card (Liability)</option>
@@ -275,7 +275,7 @@ export function ManageAccountsModal({
               </div>
 
               <div>
-                <label className="text-xs font-medium text-[#c4c6cf] block mb-1">
+                <label className="text-xs sm:text-sm font-medium text-[#c4c6cf] block mb-1.5">
                   {type === 'credit_card' ? 'Current Liability (₹)' : 'Balance (₹)'}
                 </label>
                 <input
@@ -284,22 +284,22 @@ export function ManageAccountsModal({
                   placeholder="0.00"
                   value={balanceStr}
                   onChange={(e) => setBalanceStr(e.target.value)}
-                  className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e7] font-mono focus:outline-none"
+                  className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-4 py-3 text-sm text-[#e2e2e7] font-mono focus:outline-none min-h-[46px]"
                 />
               </div>
 
               {type === 'credit_card' && (
                 <div>
-                  <label className="text-xs font-medium text-[#c4c6cf] block mb-1">
+                  <label className="text-xs sm:text-sm font-medium text-[#c4c6cf] block mb-1.5">
                     Credit Limit (₹)
                   </label>
                   <input
                     type="number"
                     step="0.01"
-                    placeholder="100000"
+                    placeholder="50,000"
                     value={creditLimitStr}
                     onChange={(e) => setCreditLimitStr(e.target.value)}
-                    className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e7] font-mono focus:outline-none"
+                    className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-4 py-3 text-sm text-[#e2e2e7] font-mono focus:outline-none min-h-[46px]"
                   />
                 </div>
               )}
@@ -307,7 +307,7 @@ export function ManageAccountsModal({
               {type === 'credit_card' && (
                 <>
                   <div>
-                    <label className="text-xs font-medium text-[#c4c6cf] block mb-1">
+                    <label className="text-xs sm:text-sm font-medium text-[#c4c6cf] block mb-1.5">
                       Statement Day (1-31)
                     </label>
                     <input
@@ -316,11 +316,11 @@ export function ManageAccountsModal({
                       max="31"
                       value={billingCycleDay}
                       onChange={(e) => setBillingCycleDay(e.target.value)}
-                      className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e7] focus:outline-none"
+                      className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-4 py-3 text-sm text-[#e2e2e7] focus:outline-none min-h-[46px]"
                     />
                   </div>
                   <div>
-                    <label className="text-xs font-medium text-[#c4c6cf] block mb-1">
+                    <label className="text-xs sm:text-sm font-medium text-[#c4c6cf] block mb-1.5">
                       Payment Due Day (1-31)
                     </label>
                     <input
@@ -329,35 +329,35 @@ export function ManageAccountsModal({
                       max="31"
                       value={paymentDueDay}
                       onChange={(e) => setPaymentDueDay(e.target.value)}
-                      className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e7] focus:outline-none"
+                      className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-4 py-3 text-sm text-[#e2e2e7] focus:outline-none min-h-[46px]"
                     />
                   </div>
                 </>
               )}
 
               <div>
-                <label className="text-xs font-medium text-[#c4c6cf] block mb-1">
+                <label className="text-xs sm:text-sm font-medium text-[#c4c6cf] block mb-1.5">
                   Institution
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g., HDFC Bank"
+                  placeholder="HDFC, SBI..."
                   value={institution}
                   onChange={(e) => setInstitution(e.target.value)}
-                  className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e7] focus:outline-none"
+                  className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-4 py-3 text-sm text-[#e2e2e7] focus:outline-none min-h-[46px]"
                 />
               </div>
 
               <div>
-                <label className="text-xs font-medium text-[#c4c6cf] block mb-1">
-                  Masked Number
+                <label className="text-xs sm:text-sm font-medium text-[#c4c6cf] block mb-1.5">
+                  Last 4 Digits
                 </label>
                 <input
                   type="text"
-                  placeholder="••4321"
+                  placeholder="1234"
                   value={accountNumber}
                   onChange={(e) => setAccountNumber(e.target.value)}
-                  className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e7] focus:outline-none"
+                  className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-4 py-3 text-sm text-[#e2e2e7] focus:outline-none min-h-[46px]"
                 />
               </div>
             </div>

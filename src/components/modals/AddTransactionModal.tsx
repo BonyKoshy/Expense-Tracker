@@ -423,120 +423,120 @@ export function AddTransactionModal({
 
             {/* Quick Transaction Type Chips */}
             <div>
-              <div className="flex items-center justify-between mb-2">
-                <label className="text-xs font-medium text-[#c4c6cf]">
+              <div className="flex items-center justify-between mb-2.5">
+                <label className="text-xs sm:text-sm font-medium text-[#c4c6cf]">
                   Transaction Type
                 </label>
-                <span className="text-[11px] text-[#90929d]">Step 1 of 2</span>
+                <span className="text-xs text-[#90929d]">Step 1 of 2</span>
               </div>
-              <div className="flex flex-wrap gap-1.5">
+              <div className="flex flex-wrap gap-2">
                 <button
                   type="button"
                   onClick={() => setType('shared_expense')}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                  className={`flex items-center gap-2 px-4 py-2 rounded-2xl text-xs sm:text-sm font-medium transition-all ${
                     type === 'shared_expense'
                       ? 'bg-[#1a2536] text-[#d3e3fd] border border-[#263750]'
                       : 'bg-[#1a1c22] text-[#c4c6cf] hover:bg-[#262830] border border-transparent'
                   }`}
                 >
-                  <Users className="h-3.5 w-3.5" />
+                  <Users className="h-4 w-4" />
                   <span>Shared Split</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setType('expense')}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                  className={`flex items-center gap-2 px-4 py-2 rounded-2xl text-xs sm:text-sm font-medium transition-all ${
                     type === 'expense'
                       ? 'bg-[#1a2536] text-[#d3e3fd] border border-[#263750]'
                       : 'bg-[#1a1c22] text-[#c4c6cf] hover:bg-[#262830] border border-transparent'
                   }`}
                 >
-                  <ArrowUpRight className="h-3.5 w-3.5" />
+                  <ArrowUpRight className="h-4 w-4" />
                   <span>Personal Expense</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setType('settlement_received')}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                  className={`flex items-center gap-2 px-4 py-2 rounded-2xl text-xs sm:text-sm font-medium transition-all ${
                     type === 'settlement_received'
                       ? 'bg-[#15241b] text-[#a8dab5] border border-[#22382a]'
                       : 'bg-[#1a1c22] text-[#c4c6cf] hover:bg-[#262830] border border-transparent'
                   }`}
                 >
-                  <ArrowDownLeft className="h-3.5 w-3.5" />
+                  <ArrowDownLeft className="h-4 w-4" />
                   <span>Settlement</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setType('transfer')}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                  className={`flex items-center gap-2 px-4 py-2 rounded-2xl text-xs sm:text-sm font-medium transition-all ${
                     type === 'transfer'
                       ? 'bg-[#1a2536] text-[#d3e3fd] border border-[#263750]'
                       : 'bg-[#1a1c22] text-[#c4c6cf] hover:bg-[#262830] border border-transparent'
                   }`}
                 >
-                  <ArrowRightLeft className="h-3.5 w-3.5" />
+                  <ArrowRightLeft className="h-4 w-4" />
                   <span>Transfer</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setType('credit_card_payment')}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                  className={`flex items-center gap-2 px-4 py-2 rounded-2xl text-xs sm:text-sm font-medium transition-all ${
                     type === 'credit_card_payment'
                       ? 'bg-[#1a2536] text-[#d3e3fd] border border-[#263750]'
                       : 'bg-[#1a1c22] text-[#c4c6cf] hover:bg-[#262830] border border-transparent'
                   }`}
                 >
-                  <CreditCard className="h-3.5 w-3.5" />
+                  <CreditCard className="h-4 w-4" />
                   <span>CC Bill</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setType('income')}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                  className={`flex items-center gap-2 px-4 py-2 rounded-2xl text-xs sm:text-sm font-medium transition-all ${
                     type === 'income'
                       ? 'bg-[#15241b] text-[#a8dab5] border border-[#22382a]'
                       : 'bg-[#1a1c22] text-[#c4c6cf] hover:bg-[#262830] border border-transparent'
                   }`}
                 >
-                  <ArrowDownLeft className="h-3.5 w-3.5" />
+                  <ArrowDownLeft className="h-4 w-4" />
                   <span>Income</span>
                 </button>
               </div>
             </div>
 
             {/* Calculator Display Screen */}
-            <div className="bg-[#111216] border border-[#23252c] rounded-3xl p-4 sm:p-5 flex flex-col justify-between min-h-[110px] shadow-inner">
+            <div className="bg-[#111216] border border-[#23252c] rounded-3xl p-5 sm:p-6 flex flex-col justify-between min-h-[120px] shadow-inner">
               {/* Live Formula / Calculation Line */}
-              <div className="text-right text-xs sm:text-sm font-mono text-[#90929d] min-h-[1.25rem] truncate select-all">
+              <div className="text-right text-sm font-mono text-[#90929d] min-h-[1.5rem] truncate select-all">
                 {calcExpr !== '0' &&
                 (calcExpr.includes('+') ||
                   calcExpr.includes('-') ||
                   calcExpr.includes('×') ||
                   calcExpr.includes('÷')) ? (
-                  <span className="flex items-center justify-end gap-1.5">
+                  <span className="flex items-center justify-end gap-2">
                     <span>{calcExpr}</span>
-                    <span className="text-[#a8c7fa]">=</span>
+                    <span className="text-[#a8c7fa] font-bold">=</span>
                   </span>
                 ) : (
-                  <span className="text-[11px] uppercase tracking-wider text-[#90929d]/70 font-sans font-medium">
+                  <span className="text-xs uppercase tracking-wider text-[#90929d]/70 font-sans font-medium">
                     Tap numbers or calculate
                   </span>
                 )}
               </div>
 
               {/* Evaluated Total Amount Display */}
-              <div className="flex items-baseline justify-end gap-1.5 mt-1 overflow-x-auto no-scrollbar">
-                <span className="text-2xl sm:text-3xl font-bold font-mono text-[#a8c7fa] select-none">
+              <div className="flex items-baseline justify-end gap-2 mt-1 overflow-x-auto no-scrollbar">
+                <span className="text-3xl sm:text-4xl font-bold font-mono text-[#a8c7fa] select-none">
                   ₹
                 </span>
                 <span
-                  className={`text-3xl sm:text-4xl font-bold font-mono tracking-tight select-all ${
+                  className={`text-4xl sm:text-5xl font-bold font-mono tracking-tight select-all ${
                     evaluatedAmount > 0 ? 'text-[#e2e2e7]' : 'text-[#90929d]'
                   }`}
                 >
@@ -551,16 +551,16 @@ export function AddTransactionModal({
             </div>
 
             {/* Quick Presets Row */}
-            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
-              <span className="text-[10px] text-[#90929d] uppercase font-semibold shrink-0 mr-1">
-                Quick Add:
+            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
+              <span className="text-xs text-[#90929d] uppercase font-semibold shrink-0 mr-1">
+                Quick:
               </span>
               {[50, 100, 200, 500, 1000, 2000].map((preset) => (
                 <button
                   key={preset}
                   type="button"
                   onClick={() => handleKeypad(`+${preset}`)}
-                  className="shrink-0 px-2.5 py-1 rounded-full bg-[#1a1c22] hover:bg-[#262830] active:scale-95 text-[#c4c6cf] hover:text-[#e2e2e7] text-xs font-mono font-medium border border-[#23252c] transition-all"
+                  className="shrink-0 px-3.5 py-1.5 rounded-xl bg-[#1a1c22] hover:bg-[#262830] active:scale-95 text-[#c4c6cf] hover:text-[#e2e2e7] text-xs sm:text-sm font-mono font-medium border border-[#23252c] transition-all"
                 >
                   +₹{preset}
                 </button>
@@ -568,64 +568,64 @@ export function AddTransactionModal({
             </div>
 
             {/* Tactile Material 3 Keypad Grid */}
-            <div className="grid grid-cols-4 gap-2 sm:gap-2.5 select-none">
+            <div className="grid grid-cols-4 gap-2.5 sm:gap-3 select-none">
               {/* Row 1: Clear, Divide, Multiply, Backspace */}
               <button
                 type="button"
                 onClick={() => handleKeypad('C')}
-                className="h-12 sm:h-14 rounded-2xl bg-[#2b1b1d] hover:bg-[#3d2427] active:scale-95 text-[#f2b8b5] font-semibold text-base border border-[#48282b] flex items-center justify-center transition-all shadow-sm"
+                className="h-14 sm:h-16 rounded-2xl bg-[#2b1b1d] hover:bg-[#3d2427] active:scale-95 text-[#f2b8b5] font-bold text-lg sm:text-xl border border-[#48282b] flex items-center justify-center transition-all shadow-sm"
               >
                 C
               </button>
               <button
                 type="button"
                 onClick={() => handleKeypad('÷')}
-                className="h-12 sm:h-14 rounded-2xl bg-[#1a2536] hover:bg-[#22334a] active:scale-95 text-[#a8c7fa] font-semibold text-xl border border-[#263750] flex items-center justify-center transition-all shadow-sm"
+                className="h-14 sm:h-16 rounded-2xl bg-[#1a2536] hover:bg-[#22334a] active:scale-95 text-[#a8c7fa] font-bold text-2xl border border-[#263750] flex items-center justify-center transition-all shadow-sm"
               >
                 ÷
               </button>
               <button
                 type="button"
                 onClick={() => handleKeypad('×')}
-                className="h-12 sm:h-14 rounded-2xl bg-[#1a2536] hover:bg-[#22334a] active:scale-95 text-[#a8c7fa] font-semibold text-xl border border-[#263750] flex items-center justify-center transition-all shadow-sm"
+                className="h-14 sm:h-16 rounded-2xl bg-[#1a2536] hover:bg-[#22334a] active:scale-95 text-[#a8c7fa] font-bold text-2xl border border-[#263750] flex items-center justify-center transition-all shadow-sm"
               >
                 ×
               </button>
               <button
                 type="button"
                 onClick={() => handleKeypad('⌫')}
-                className="h-12 sm:h-14 rounded-2xl bg-[#1a1c22] hover:bg-[#262830] active:scale-95 text-[#c4c6cf] font-medium border border-[#23252c] flex items-center justify-center transition-all shadow-sm"
+                className="h-14 sm:h-16 rounded-2xl bg-[#1a1c22] hover:bg-[#262830] active:scale-95 text-[#c4c6cf] font-medium border border-[#23252c] flex items-center justify-center transition-all shadow-sm"
                 aria-label="Backspace"
               >
-                <Delete className="h-5 w-5" />
+                <Delete className="h-6 w-6" />
               </button>
 
               {/* Row 2: 7, 8, 9, Minus */}
               <button
                 type="button"
                 onClick={() => handleKeypad('7')}
-                className="h-12 sm:h-14 rounded-2xl bg-[#1a1c22] hover:bg-[#262830] active:scale-95 text-[#e2e2e7] font-medium text-xl border border-[#23252c] flex items-center justify-center transition-all shadow-sm"
+                className="h-14 sm:h-16 rounded-2xl bg-[#1a1c22] hover:bg-[#262830] active:scale-95 text-[#e2e2e7] font-semibold text-2xl border border-[#23252c] flex items-center justify-center transition-all shadow-sm"
               >
                 7
               </button>
               <button
                 type="button"
                 onClick={() => handleKeypad('8')}
-                className="h-12 sm:h-14 rounded-2xl bg-[#1a1c22] hover:bg-[#262830] active:scale-95 text-[#e2e2e7] font-medium text-xl border border-[#23252c] flex items-center justify-center transition-all shadow-sm"
+                className="h-14 sm:h-16 rounded-2xl bg-[#1a1c22] hover:bg-[#262830] active:scale-95 text-[#e2e2e7] font-semibold text-2xl border border-[#23252c] flex items-center justify-center transition-all shadow-sm"
               >
                 8
               </button>
               <button
                 type="button"
                 onClick={() => handleKeypad('9')}
-                className="h-12 sm:h-14 rounded-2xl bg-[#1a1c22] hover:bg-[#262830] active:scale-95 text-[#e2e2e7] font-medium text-xl border border-[#23252c] flex items-center justify-center transition-all shadow-sm"
+                className="h-14 sm:h-16 rounded-2xl bg-[#1a1c22] hover:bg-[#262830] active:scale-95 text-[#e2e2e7] font-semibold text-2xl border border-[#23252c] flex items-center justify-center transition-all shadow-sm"
               >
                 9
               </button>
               <button
                 type="button"
                 onClick={() => handleKeypad('-')}
-                className="h-12 sm:h-14 rounded-2xl bg-[#1a2536] hover:bg-[#22334a] active:scale-95 text-[#a8c7fa] font-semibold text-2xl border border-[#263750] flex items-center justify-center transition-all shadow-sm"
+                className="h-14 sm:h-16 rounded-2xl bg-[#1a2536] hover:bg-[#22334a] active:scale-95 text-[#a8c7fa] font-bold text-2xl border border-[#263750] flex items-center justify-center transition-all shadow-sm"
               >
                 −
               </button>
@@ -634,28 +634,28 @@ export function AddTransactionModal({
               <button
                 type="button"
                 onClick={() => handleKeypad('4')}
-                className="h-12 sm:h-14 rounded-2xl bg-[#1a1c22] hover:bg-[#262830] active:scale-95 text-[#e2e2e7] font-medium text-xl border border-[#23252c] flex items-center justify-center transition-all shadow-sm"
+                className="h-14 sm:h-16 rounded-2xl bg-[#1a1c22] hover:bg-[#262830] active:scale-95 text-[#e2e2e7] font-semibold text-2xl border border-[#23252c] flex items-center justify-center transition-all shadow-sm"
               >
                 4
               </button>
               <button
                 type="button"
                 onClick={() => handleKeypad('5')}
-                className="h-12 sm:h-14 rounded-2xl bg-[#1a1c22] hover:bg-[#262830] active:scale-95 text-[#e2e2e7] font-medium text-xl border border-[#23252c] flex items-center justify-center transition-all shadow-sm"
+                className="h-14 sm:h-16 rounded-2xl bg-[#1a1c22] hover:bg-[#262830] active:scale-95 text-[#e2e2e7] font-semibold text-2xl border border-[#23252c] flex items-center justify-center transition-all shadow-sm"
               >
                 5
               </button>
               <button
                 type="button"
                 onClick={() => handleKeypad('6')}
-                className="h-12 sm:h-14 rounded-2xl bg-[#1a1c22] hover:bg-[#262830] active:scale-95 text-[#e2e2e7] font-medium text-xl border border-[#23252c] flex items-center justify-center transition-all shadow-sm"
+                className="h-14 sm:h-16 rounded-2xl bg-[#1a1c22] hover:bg-[#262830] active:scale-95 text-[#e2e2e7] font-semibold text-2xl border border-[#23252c] flex items-center justify-center transition-all shadow-sm"
               >
                 6
               </button>
               <button
                 type="button"
                 onClick={() => handleKeypad('+')}
-                className="h-12 sm:h-14 rounded-2xl bg-[#1a2536] hover:bg-[#22334a] active:scale-95 text-[#a8c7fa] font-semibold text-2xl border border-[#263750] flex items-center justify-center transition-all shadow-sm"
+                className="h-14 sm:h-16 rounded-2xl bg-[#1a2536] hover:bg-[#22334a] active:scale-95 text-[#a8c7fa] font-bold text-2xl border border-[#263750] flex items-center justify-center transition-all shadow-sm"
               >
                 +
               </button>
@@ -664,28 +664,28 @@ export function AddTransactionModal({
               <button
                 type="button"
                 onClick={() => handleKeypad('1')}
-                className="h-12 sm:h-14 rounded-2xl bg-[#1a1c22] hover:bg-[#262830] active:scale-95 text-[#e2e2e7] font-medium text-xl border border-[#23252c] flex items-center justify-center transition-all shadow-sm"
+                className="h-14 sm:h-16 rounded-2xl bg-[#1a1c22] hover:bg-[#262830] active:scale-95 text-[#e2e2e7] font-semibold text-2xl border border-[#23252c] flex items-center justify-center transition-all shadow-sm"
               >
                 1
               </button>
               <button
                 type="button"
                 onClick={() => handleKeypad('2')}
-                className="h-12 sm:h-14 rounded-2xl bg-[#1a1c22] hover:bg-[#262830] active:scale-95 text-[#e2e2e7] font-medium text-xl border border-[#23252c] flex items-center justify-center transition-all shadow-sm"
+                className="h-14 sm:h-16 rounded-2xl bg-[#1a1c22] hover:bg-[#262830] active:scale-95 text-[#e2e2e7] font-semibold text-2xl border border-[#23252c] flex items-center justify-center transition-all shadow-sm"
               >
                 2
               </button>
               <button
                 type="button"
                 onClick={() => handleKeypad('3')}
-                className="h-12 sm:h-14 rounded-2xl bg-[#1a1c22] hover:bg-[#262830] active:scale-95 text-[#e2e2e7] font-medium text-xl border border-[#23252c] flex items-center justify-center transition-all shadow-sm"
+                className="h-14 sm:h-16 rounded-2xl bg-[#1a1c22] hover:bg-[#262830] active:scale-95 text-[#e2e2e7] font-semibold text-2xl border border-[#23252c] flex items-center justify-center transition-all shadow-sm"
               >
                 3
               </button>
               <button
                 type="button"
                 onClick={() => handleKeypad('.')}
-                className="h-12 sm:h-14 rounded-2xl bg-[#1a1c22] hover:bg-[#262830] active:scale-95 text-[#e2e2e7] font-bold text-2xl border border-[#23252c] flex items-center justify-center transition-all shadow-sm"
+                className="h-14 sm:h-16 rounded-2xl bg-[#1a1c22] hover:bg-[#262830] active:scale-95 text-[#e2e2e7] font-bold text-2xl border border-[#23252c] flex items-center justify-center transition-all shadow-sm"
               >
                 .
               </button>
@@ -694,33 +694,33 @@ export function AddTransactionModal({
               <button
                 type="button"
                 onClick={() => handleKeypad('00')}
-                className="h-12 sm:h-14 rounded-2xl bg-[#1a1c22] hover:bg-[#262830] active:scale-95 text-[#e2e2e7] font-medium text-lg border border-[#23252c] flex items-center justify-center transition-all shadow-sm"
+                className="h-14 sm:h-16 rounded-2xl bg-[#1a1c22] hover:bg-[#262830] active:scale-95 text-[#e2e2e7] font-semibold text-xl border border-[#23252c] flex items-center justify-center transition-all shadow-sm"
               >
                 00
               </button>
               <button
                 type="button"
                 onClick={() => handleKeypad('0')}
-                className="h-12 sm:h-14 rounded-2xl bg-[#1a1c22] hover:bg-[#262830] active:scale-95 text-[#e2e2e7] font-medium text-xl border border-[#23252c] flex items-center justify-center transition-all shadow-sm"
+                className="h-14 sm:h-16 rounded-2xl bg-[#1a1c22] hover:bg-[#262830] active:scale-95 text-[#e2e2e7] font-semibold text-2xl border border-[#23252c] flex items-center justify-center transition-all shadow-sm"
               >
                 0
               </button>
               <button
                 type="button"
                 onClick={() => handleKeypad('=')}
-                className="col-span-2 h-12 sm:h-14 rounded-2xl bg-[#a8c7fa] hover:bg-[#b8d4ff] active:scale-95 text-[#003062] font-bold text-2xl flex items-center justify-center transition-all shadow-md"
+                className="col-span-2 h-14 sm:h-16 rounded-2xl bg-[#a8c7fa] hover:bg-[#b8d4ff] active:scale-95 text-[#003062] font-bold text-2xl flex items-center justify-center transition-all shadow-md"
               >
                 =
               </button>
             </div>
 
             {/* Next Action Button */}
-            <div className="pt-1">
+            <div className="pt-1.5">
               <button
                 type="button"
                 disabled={evaluatedAmount <= 0}
                 onClick={goToDetailsStep}
-                className={`w-full py-3.5 px-5 rounded-2xl font-semibold text-sm flex items-center justify-center gap-2 shadow-lg transition-all active:scale-[0.98] ${
+                className={`w-full py-4 px-6 rounded-2xl font-bold text-base flex items-center justify-center gap-2.5 shadow-lg transition-all active:scale-[0.98] ${
                   evaluatedAmount > 0
                     ? 'bg-[#a8c7fa] hover:bg-[#b8d4ff] text-[#003062] cursor-pointer'
                     : 'bg-[#1a1c22] text-[#60636d] border border-[#23252c] cursor-not-allowed'
@@ -731,7 +731,7 @@ export function AddTransactionModal({
                     ? `Next: Add Details (${formatINR(evaluatedAmount)})`
                     : 'Enter an amount to continue'}
                 </span>
-                <ArrowRight className="h-4 w-4" />
+                <ArrowRight className="h-5 w-5" />
               </button>
             </div>
           </div>
@@ -778,98 +778,98 @@ export function AddTransactionModal({
 
             {/* Transaction Type Selector Chips */}
             <div>
-              <label className="text-xs font-medium text-[#c4c6cf] block mb-2">
+              <label className="text-xs sm:text-sm font-medium text-[#c4c6cf] block mb-2">
                 Transaction Type
               </label>
-              <div className="flex flex-wrap gap-1.5">
+              <div className="flex flex-wrap gap-2">
                 <button
                   type="button"
                   onClick={() => setType('shared_expense')}
-                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all ${
+                  className={`flex items-center gap-2 px-4 py-2 rounded-2xl text-xs sm:text-sm font-medium transition-all ${
                     type === 'shared_expense'
                       ? 'bg-[#1a2536] text-[#d3e3fd]'
                       : 'bg-[#1a1c22] text-[#c4c6cf] hover:bg-[#262830]'
                   }`}
                 >
-                  <Users className="h-3.5 w-3.5" />
+                  <Users className="h-4 w-4" />
                   <span>Shared Split</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setType('expense')}
-                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all ${
+                  className={`flex items-center gap-2 px-4 py-2 rounded-2xl text-xs sm:text-sm font-medium transition-all ${
                     type === 'expense'
                       ? 'bg-[#1a2536] text-[#d3e3fd]'
                       : 'bg-[#1a1c22] text-[#c4c6cf] hover:bg-[#262830]'
                   }`}
                 >
-                  <ArrowUpRight className="h-3.5 w-3.5" />
+                  <ArrowUpRight className="h-4 w-4" />
                   <span>Personal Expense</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setType('settlement_received')}
-                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all ${
+                  className={`flex items-center gap-2 px-4 py-2 rounded-2xl text-xs sm:text-sm font-medium transition-all ${
                     type === 'settlement_received'
                       ? 'bg-[#15241b] text-[#a8dab5]'
                       : 'bg-[#1a1c22] text-[#c4c6cf] hover:bg-[#262830]'
                   }`}
                 >
-                  <ArrowDownLeft className="h-3.5 w-3.5" />
+                  <ArrowDownLeft className="h-4 w-4" />
                   <span>Settlement Received</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setType('settlement_paid')}
-                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all ${
+                  className={`flex items-center gap-2 px-4 py-2 rounded-2xl text-xs sm:text-sm font-medium transition-all ${
                     type === 'settlement_paid'
                       ? 'bg-[#3b2d18] text-[#ffb77c]'
                       : 'bg-[#1a1c22] text-[#c4c6cf] hover:bg-[#262830]'
                   }`}
                 >
-                  <ArrowRightLeft className="h-3.5 w-3.5" />
+                  <ArrowRightLeft className="h-4 w-4" />
                   <span>Settlement Paid</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setType('transfer')}
-                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all ${
+                  className={`flex items-center gap-2 px-4 py-2 rounded-2xl text-xs sm:text-sm font-medium transition-all ${
                     type === 'transfer'
                       ? 'bg-[#1a2536] text-[#d3e3fd]'
                       : 'bg-[#1a1c22] text-[#c4c6cf] hover:bg-[#262830]'
                   }`}
                 >
-                  <ArrowRightLeft className="h-3.5 w-3.5" />
+                  <ArrowRightLeft className="h-4 w-4" />
                   <span>Transfer</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setType('credit_card_payment')}
-                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all ${
+                  className={`flex items-center gap-2 px-4 py-2 rounded-2xl text-xs sm:text-sm font-medium transition-all ${
                     type === 'credit_card_payment'
                       ? 'bg-[#1a2536] text-[#d3e3fd]'
                       : 'bg-[#1a1c22] text-[#c4c6cf] hover:bg-[#262830]'
                   }`}
                 >
-                  <CreditCard className="h-3.5 w-3.5" />
+                  <CreditCard className="h-4 w-4" />
                   <span>CC Payment</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setType('income')}
-                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all ${
+                  className={`flex items-center gap-2 px-4 py-2 rounded-2xl text-xs sm:text-sm font-medium transition-all ${
                     type === 'income'
                       ? 'bg-[#15241b] text-[#a8dab5]'
                       : 'bg-[#1a1c22] text-[#c4c6cf] hover:bg-[#262830]'
                   }`}
                 >
-                  <ArrowDownLeft className="h-3.5 w-3.5" />
+                  <ArrowDownLeft className="h-4 w-4" />
                   <span>Income</span>
                 </button>
               </div>
@@ -878,7 +878,7 @@ export function AddTransactionModal({
             {/* Description & Amount Inputs */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div className="sm:col-span-2">
-                <label className="text-xs font-medium text-[#c4c6cf] block mb-1">
+                <label className="text-xs sm:text-sm font-medium text-[#c4c6cf] block mb-1.5">
                   Description
                 </label>
                 <input
@@ -887,20 +887,22 @@ export function AddTransactionModal({
                   required
                   placeholder={
                     type === 'shared_expense'
-                      ? 'e.g., DMart PG Groceries'
-                      : type === 'settlement_received'
-                      ? 'e.g., Rahul GPay repayment'
-                      : 'e.g., Chai Point'
+                      ? 'Groceries, dinner...'
+                      : type === 'settlement_received' || type === 'settlement_paid'
+                      ? 'GPay repayment...'
+                      : type === 'transfer'
+                      ? 'Transfer...'
+                      : 'Coffee, lunch...'
                   }
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-4 py-2.5 text-sm text-[#e2e2e7] placeholder-[#90929d] focus:outline-none"
+                  className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-4 py-3 text-sm sm:text-base text-[#e2e2e7] placeholder-[#90929d] focus:outline-none min-h-[48px]"
                 />
               </div>
 
               <div>
-                <div className="flex items-center justify-between mb-1">
-                  <label className="text-xs font-medium text-[#c4c6cf]">
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="text-xs sm:text-sm font-medium text-[#c4c6cf]">
                     Amount (₹)
                   </label>
                   <button
@@ -909,9 +911,9 @@ export function AddTransactionModal({
                       setCalcExpr(amountStr || '0');
                       setStep('calculator');
                     }}
-                    className="text-[11px] text-[#a8c7fa] hover:underline flex items-center gap-1 font-medium"
+                    className="text-xs text-[#a8c7fa] hover:underline flex items-center gap-1 font-medium"
                   >
-                    <Calculator className="h-3 w-3" />
+                    <Calculator className="h-3.5 w-3.5" />
                     <span>Calc</span>
                   </button>
                 </div>
@@ -920,13 +922,13 @@ export function AddTransactionModal({
                   step="0.01"
                   min="0.01"
                   required
-                  placeholder="1505.00"
+                  placeholder="0.00"
                   value={amountStr}
                   onChange={(e) => {
                     setAmountStr(e.target.value);
                     setCalcExpr(e.target.value);
                   }}
-                  className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-4 py-2.5 text-sm text-[#e2e2e7] font-mono placeholder-[#90929d] focus:outline-none"
+                  className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-4 py-3 text-sm sm:text-base text-[#e2e2e7] font-mono placeholder-[#90929d] focus:outline-none min-h-[48px]"
                 />
               </div>
             </div>
@@ -934,7 +936,7 @@ export function AddTransactionModal({
             {/* Accounts & Category */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="text-xs font-medium text-[#c4c6cf] block mb-1">
+                <label className="text-xs sm:text-sm font-medium text-[#c4c6cf] block mb-1.5">
                   {type === 'settlement_received'
                     ? 'Deposit into'
                     : type === 'transfer' || type === 'credit_card_payment'
@@ -944,7 +946,7 @@ export function AddTransactionModal({
                 <select
                   value={accountId}
                   onChange={(e) => setAccountId(e.target.value)}
-                  className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2.5 text-xs text-[#e2e2e7] focus:outline-none"
+                  className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-4 py-3 text-sm text-[#e2e2e7] focus:outline-none min-h-[48px]"
                 >
                   {accounts.map((acc) => (
                     <option key={acc.id} value={acc.id}>
@@ -956,13 +958,13 @@ export function AddTransactionModal({
 
               {(type === 'transfer' || type === 'credit_card_payment') && (
                 <div>
-                  <label className="text-xs font-medium text-[#c4c6cf] block mb-1">
+                  <label className="text-xs sm:text-sm font-medium text-[#c4c6cf] block mb-1.5">
                     To Account
                   </label>
                   <select
                     value={toAccountId}
                     onChange={(e) => setToAccountId(e.target.value)}
-                    className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2.5 text-xs text-[#e2e2e7] focus:outline-none"
+                    className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-4 py-3 text-sm text-[#e2e2e7] focus:outline-none min-h-[48px]"
                   >
                     {accounts.map((acc) => (
                       <option key={acc.id} value={acc.id}>
@@ -975,7 +977,7 @@ export function AddTransactionModal({
 
               {(type === 'expense' || type === 'shared_expense') && (
                 <div>
-                  <label className="text-xs font-medium text-[#c4c6cf] block mb-1">
+                  <label className="text-xs sm:text-sm font-medium text-[#c4c6cf] block mb-1.5">
                     Category
                   </label>
                   <select
@@ -984,7 +986,7 @@ export function AddTransactionModal({
                       setCategoryId(e.target.value);
                       setSubcategoryId('');
                     }}
-                    className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2.5 text-xs text-[#e2e2e7] focus:outline-none"
+                    className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-4 py-3 text-sm text-[#e2e2e7] focus:outline-none min-h-[48px]"
                   >
                     {categories.map((c) => (
                       <option key={c.id} value={c.id}>
@@ -998,13 +1000,13 @@ export function AddTransactionModal({
               {(type === 'expense' || type === 'shared_expense') &&
                 availableSubcategories.length > 0 && (
                   <div>
-                    <label className="text-xs font-medium text-[#c4c6cf] block mb-1">
+                    <label className="text-xs sm:text-sm font-medium text-[#c4c6cf] block mb-1.5">
                       Subcategory
                     </label>
                     <select
                       value={subcategoryId}
                       onChange={(e) => setSubcategoryId(e.target.value)}
-                      className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2.5 text-xs text-[#e2e2e7] focus:outline-none"
+                      className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-4 py-3 text-sm text-[#e2e2e7] focus:outline-none min-h-[48px]"
                     >
                       <option value="">-- General --</option>
                       {availableSubcategories.map((s) => (
@@ -1018,7 +1020,7 @@ export function AddTransactionModal({
 
               {(type === 'settlement_received' || type === 'settlement_paid') && (
                 <div>
-                  <label className="text-xs font-medium text-[#c4c6cf] block mb-1">
+                  <label className="text-xs sm:text-sm font-medium text-[#c4c6cf] block mb-1.5">
                     {type === 'settlement_received'
                       ? 'Friend Repaying'
                       : 'Friend You Are Repaying'}
@@ -1026,7 +1028,7 @@ export function AddTransactionModal({
                   <select
                     value={settlementPersonId}
                     onChange={(e) => setSettlementPersonId(e.target.value)}
-                    className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2.5 text-xs text-[#e2e2e7] focus:outline-none"
+                    className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-4 py-3 text-sm text-[#e2e2e7] focus:outline-none min-h-[48px]"
                   >
                     {people.map((p) => (
                       <option key={p.id} value={p.id}>
@@ -1044,7 +1046,7 @@ export function AddTransactionModal({
               )}
 
               <div>
-                <label className="text-xs font-medium text-[#c4c6cf] block mb-1">
+                <label className="text-xs sm:text-sm font-medium text-[#c4c6cf] block mb-1.5">
                   Date
                 </label>
                 <input
@@ -1052,7 +1054,7 @@ export function AddTransactionModal({
                   required
                   value={date}
                   onChange={(e) => setDate(e.target.value)}
-                  className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2.5 text-xs text-[#e2e2e7] focus:outline-none"
+                  className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-4 py-3 text-sm text-[#e2e2e7] focus:outline-none min-h-[48px]"
                 />
               </div>
             </div>
@@ -1229,65 +1231,65 @@ export function AddTransactionModal({
             {/* Notes & Tags */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="text-xs font-medium text-[#c4c6cf] block mb-1">
+                <label className="text-xs sm:text-sm font-medium text-[#c4c6cf] block mb-1.5">
                   Notes
                 </label>
                 <input
                   type="text"
-                  placeholder="Optional notes"
+                  placeholder="Notes (optional)"
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e7] placeholder-[#90929d] focus:outline-none"
+                  className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-4 py-3 text-sm text-[#e2e2e7] placeholder-[#90929d] focus:outline-none min-h-[46px]"
                 />
               </div>
 
               <div>
-                <label className="text-xs font-medium text-[#c4c6cf] block mb-1">
-                  Tags (comma separated)
+                <label className="text-xs sm:text-sm font-medium text-[#c4c6cf] block mb-1.5">
+                  Tags
                 </label>
                 <input
                   type="text"
-                  placeholder="pg, groceries, gpay"
+                  placeholder="food, travel"
                   value={tagsStr}
                   onChange={(e) => setTagsStr(e.target.value)}
-                  className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e7] placeholder-[#90929d] focus:outline-none"
+                  className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-4 py-3 text-sm text-[#e2e2e7] placeholder-[#90929d] focus:outline-none min-h-[46px]"
                 />
               </div>
             </div>
 
             {/* Modal Actions */}
-            <div className="pt-3 border-t border-[#23252c] flex items-center justify-between gap-2.5">
+            <div className="pt-3.5 border-t border-[#23252c] flex items-center justify-between gap-3">
               <button
                 type="button"
                 onClick={() => {
                   setCalcExpr(amountStr || '0');
                   setStep('calculator');
                 }}
-                className="px-4 py-2.5 rounded-full text-xs font-medium text-[#c4c6cf] hover:bg-[#1a1c22] flex items-center gap-1.5 transition-colors"
+                className="px-4 py-2.5 rounded-full text-xs sm:text-sm font-medium text-[#c4c6cf] hover:bg-[#1a1c22] flex items-center gap-2 transition-colors min-h-[44px]"
               >
-                <ArrowLeft className="h-3.5 w-3.5" />
+                <ArrowLeft className="h-4 w-4" />
                 <span>Back to Calculator</span>
               </button>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2.5">
                 <button
                   type="button"
                   onClick={handleClose}
                   disabled={isSubmitting}
-                  className="px-4 py-2 rounded-full text-xs font-medium text-[#c4c6cf] hover:bg-[#1a1c22] transition-colors"
+                  className="px-5 py-2.5 rounded-full text-xs sm:text-sm font-medium text-[#c4c6cf] hover:bg-[#1a1c22] transition-colors min-h-[44px]"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-6 py-2.5 rounded-full bg-[#a8c7fa] hover:bg-[#b8d4ff] active:scale-95 text-[#003062] text-xs font-semibold shadow-md transition-all flex items-center gap-1.5"
+                  className="px-7 py-3 rounded-full bg-[#a8c7fa] hover:bg-[#b8d4ff] active:scale-95 text-[#003062] text-xs sm:text-sm font-semibold shadow-md transition-all flex items-center gap-2 min-h-[44px]"
                 >
                   {isSubmitting ? (
                     <span>Saving...</span>
                   ) : (
                     <>
-                      <CheckCircle className="h-3.5 w-3.5" />
+                      <CheckCircle className="h-4 w-4" />
                       <span>Record Transaction</span>
                     </>
                   )}
@@ -1325,22 +1327,22 @@ function ParticipantRow({
 
   return (
     <div
-      className={`p-2.5 rounded-2xl border flex items-center justify-between gap-3 transition-colors ${
+      className={`p-3 rounded-2xl border flex items-center justify-between gap-3 min-h-[52px] transition-colors ${
         isSelected
           ? 'bg-[#16171c] border-[#262830] text-[#e2e2e7]'
           : 'bg-[#111216] border-transparent text-[#90929d]'
       }`}
     >
-      <div className="flex items-center gap-2.5 cursor-pointer" onClick={onToggle}>
+      <div className="flex items-center gap-3 cursor-pointer" onClick={onToggle}>
         <input
           type="checkbox"
           id={inputId}
           checked={isSelected}
           onChange={onToggle}
-          className="rounded border-[#23252c] text-[#a8c7fa] bg-[#111216] h-4 w-4"
+          className="rounded-lg border-[#23252c] text-[#a8c7fa] bg-[#111216] h-5 w-5 cursor-pointer"
         />
-        <span className="text-base select-none">{avatar}</span>
-        <label htmlFor={inputId} className="text-xs font-medium select-none cursor-pointer">
+        <span className="text-lg select-none">{avatar}</span>
+        <label htmlFor={inputId} className="text-sm font-medium select-none cursor-pointer">
           {name}
         </label>
       </div>
@@ -1354,10 +1356,10 @@ function ParticipantRow({
               placeholder="0.00"
               value={shareAmount || ''}
               onChange={(e) => onCustomAmountChange(e.target.value)}
-              className="w-24 bg-[#111216] border border-[#23252c] rounded-xl px-2.5 py-1 text-xs text-right text-[#e2e2e7] font-mono focus:outline-none focus:border-[#a8c7fa]"
+              className="w-28 bg-[#111216] border border-[#23252c] rounded-xl px-3 py-1.5 text-sm text-right text-[#e2e2e7] font-mono focus:outline-none focus:border-[#a8c7fa]"
             />
           ) : (
-            <span className="text-xs font-semibold text-[#ffb77c] font-mono">
+            <span className="text-sm font-bold text-[#ffb77c] font-mono">
               {formatINR(shareAmount)}
             </span>
           )

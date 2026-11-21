@@ -157,27 +157,27 @@ export function ManageRecurringModal({
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="text-xs font-medium text-[#c4c6cf] block mb-1">
+                <label className="text-xs sm:text-sm font-medium text-[#c4c6cf] block mb-1.5">
                   Name
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g., Phone EMI (6M)"
+                  placeholder="Name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e7] focus:outline-none"
+                  className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-4 py-3 text-sm text-[#e2e2e7] focus:outline-none min-h-[46px]"
                 />
               </div>
 
               <div>
-                <label className="text-xs font-medium text-[#c4c6cf] block mb-1">
+                <label className="text-xs sm:text-sm font-medium text-[#c4c6cf] block mb-1.5">
                   Type
                 </label>
                 <select
                   value={type}
                   onChange={(e) => setType(e.target.value as RecurringCommitmentType)}
-                  className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e7] focus:outline-none"
+                  className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-4 py-3 text-sm text-[#e2e2e7] focus:outline-none min-h-[46px]"
                 >
                   <option value="emi">EMI (Duration-bound)</option>
                   <option value="recurring_investment">Recurring Deposit (RD)</option>
@@ -186,28 +186,28 @@ export function ManageRecurringModal({
               </div>
 
               <div>
-                <label className="text-xs font-medium text-[#c4c6cf] block mb-1">
+                <label className="text-xs sm:text-sm font-medium text-[#c4c6cf] block mb-1.5">
                   Monthly Amount (₹)
                 </label>
                 <input
                   type="number"
                   step="0.01"
                   required
-                  placeholder="2499.00"
+                  placeholder="0.00"
                   value={amountStr}
                   onChange={(e) => setAmountStr(e.target.value)}
-                  className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e7] font-mono focus:outline-none"
+                  className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-4 py-3 text-sm text-[#e2e2e7] font-mono focus:outline-none min-h-[46px]"
                 />
               </div>
 
               <div>
-                <label className="text-xs font-medium text-[#c4c6cf] block mb-1">
+                <label className="text-xs sm:text-sm font-medium text-[#c4c6cf] block mb-1.5">
                   Category
                 </label>
                 <select
                   value={categoryId}
                   onChange={(e) => setCategoryId(e.target.value)}
-                  className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e7] focus:outline-none"
+                  className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-4 py-3 text-sm text-[#e2e2e7] focus:outline-none min-h-[46px]"
                 >
                   {categories.map((c) => (
                     <option key={c.id} value={c.id}>
@@ -218,13 +218,13 @@ export function ManageRecurringModal({
               </div>
 
               <div>
-                <label className="text-xs font-medium text-[#c4c6cf] block mb-1">
+                <label className="text-xs sm:text-sm font-medium text-[#c4c6cf] block mb-1.5">
                   Deducted From Account
                 </label>
                 <select
                   value={accountId}
                   onChange={(e) => setAccountId(e.target.value)}
-                  className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e7] focus:outline-none"
+                  className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-4 py-3 text-sm text-[#e2e2e7] focus:outline-none min-h-[46px]"
                 >
                   {accounts.map((a) => (
                     <option key={a.id} value={a.id}>
@@ -235,7 +235,7 @@ export function ManageRecurringModal({
               </div>
 
               <div>
-                <label className="text-xs font-medium text-[#c4c6cf] block mb-1">
+                <label className="text-xs sm:text-sm font-medium text-[#c4c6cf] block mb-1.5">
                   Due Day of Month (1-31)
                 </label>
                 <input
@@ -244,39 +244,39 @@ export function ManageRecurringModal({
                   max="31"
                   value={dayOfMonth}
                   onChange={(e) => setDayOfMonth(e.target.value)}
-                  className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e7] focus:outline-none"
+                  className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-4 py-3 text-sm text-[#e2e2e7] focus:outline-none min-h-[46px]"
                 />
               </div>
 
               <div>
-                <label className="text-xs font-medium text-[#c4c6cf] block mb-1">
+                <label className="text-xs sm:text-sm font-medium text-[#c4c6cf] block mb-1.5">
                   Start Date
                 </label>
                 <input
                   type="date"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
-                  className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e7] focus:outline-none"
+                  className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-4 py-3 text-sm text-[#e2e2e7] focus:outline-none min-h-[46px]"
                 />
               </div>
 
               {type !== 'recurring_expense' && (
                 <>
                   <div>
-                    <label className="text-xs font-medium text-[#c4c6cf] block mb-1">
+                    <label className="text-xs sm:text-sm font-medium text-[#c4c6cf] block mb-1.5">
                       Total Installments
                     </label>
                     <input
                       type="number"
-                      placeholder="6"
+                      placeholder="Total"
                       value={totalInstallmentsStr}
                       onChange={(e) => setTotalInstallmentsStr(e.target.value)}
-                      className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e7] focus:outline-none"
+                      className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-4 py-3 text-sm text-[#e2e2e7] focus:outline-none min-h-[46px]"
                     />
                   </div>
 
                   <div>
-                    <label className="text-xs font-medium text-[#c4c6cf] block mb-1">
+                    <label className="text-xs sm:text-sm font-medium text-[#c4c6cf] block mb-1.5">
                       Paid Installments
                     </label>
                     <input
@@ -284,22 +284,22 @@ export function ManageRecurringModal({
                       placeholder="0"
                       value={paidInstallmentsStr}
                       onChange={(e) => setPaidInstallmentsStr(e.target.value)}
-                      className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e7] focus:outline-none"
+                      className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-4 py-3 text-sm text-[#e2e2e7] focus:outline-none min-h-[46px]"
                     />
                   </div>
                 </>
               )}
 
               <div className="sm:col-span-2">
-                <label className="text-xs font-medium text-[#c4c6cf] block mb-1">
+                <label className="text-xs sm:text-sm font-medium text-[#c4c6cf] block mb-1.5">
                   Notes
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g., OnePlus 12 EMI"
+                  placeholder="Notes (optional)"
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e7] placeholder-[#90929d] focus:outline-none"
+                  className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-4 py-3 text-sm text-[#e2e2e7] placeholder-[#90929d] focus:outline-none min-h-[46px]"
                 />
               </div>
             </div>

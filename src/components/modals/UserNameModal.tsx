@@ -38,7 +38,7 @@ export function UserNameModal({
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-[11px] font-medium text-[#c4c6cf] mb-1.5">
+            <label className="block text-xs font-medium text-[#c4c6cf] mb-1.5">
               Your Name
             </label>
             <input
@@ -46,24 +46,24 @@ export function UserNameModal({
               autoFocus
               value={nameInput}
               onChange={(e) => setNameInput(e.target.value)}
-              placeholder="e.g. Bony"
-              className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2.5 text-sm text-[#e2e2e7] placeholder-[#90929d] focus:outline-none"
+              placeholder="Your name"
+              className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-4 py-3 text-base text-[#e2e2e7] placeholder-[#90929d] focus:outline-none min-h-[48px]"
             />
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2.5">
             {hasStoredName && (
               <button
                 type="button"
                 onClick={onClose}
-                className="flex-1 py-2.5 rounded-full bg-[#1a1c22] hover:bg-[#202228] text-[#e2e2e7] font-medium text-xs border border-[#262830] transition-colors"
+                className="flex-1 py-3 rounded-full bg-[#1a1c22] hover:bg-[#202228] text-[#e2e2e7] font-medium text-sm border border-[#262830] transition-colors min-h-[46px] active:scale-95"
               >
                 Cancel
               </button>
             )}
             <button
               type="submit"
-              className="flex-1 py-2.5 rounded-full bg-[#a8c7fa] hover:bg-[#b8d4ff] text-[#0d2238] font-semibold text-xs transition-colors shadow-sm"
+              className="flex-1 py-3 rounded-full bg-[#a8c7fa] hover:bg-[#b8d4ff] text-[#0d2238] font-semibold text-sm transition-colors shadow-sm min-h-[46px] active:scale-95"
             >
               Continue
             </button>

@@ -236,7 +236,7 @@ export function BackupRestoreModal({
             <button
               type="button"
               onClick={() => setActiveTab('backup')}
-              className={`flex-1 py-1.5 px-3 rounded-full text-xs font-semibold transition-all ${
+              className={`flex-1 py-2 px-3 rounded-full text-xs font-semibold transition-all ${
                 activeTab === 'backup'
                   ? 'bg-[#a8c7fa] text-[#003062] shadow-sm'
                   : 'text-[#90929d] hover:text-[#e2e2e7]'
@@ -247,7 +247,7 @@ export function BackupRestoreModal({
             <button
               type="button"
               onClick={() => setActiveTab('restore')}
-              className={`flex-1 py-1.5 px-3 rounded-full text-xs font-semibold transition-all ${
+              className={`flex-1 py-2 px-3 rounded-full text-xs font-semibold transition-all ${
                 activeTab === 'restore'
                   ? 'bg-[#a8c7fa] text-[#003062] shadow-sm'
                   : 'text-[#90929d] hover:text-[#e2e2e7]'
@@ -258,13 +258,13 @@ export function BackupRestoreModal({
             <button
               type="button"
               onClick={() => setActiveTab('cashew')}
-              className={`flex-1 py-1.5 px-3 rounded-full text-xs font-semibold transition-all flex items-center justify-center gap-1.5 ${
+              className={`flex-1 py-2 px-3 rounded-full text-xs font-semibold transition-all flex items-center justify-center gap-1.5 ${
                 activeTab === 'cashew'
                   ? 'bg-[#a8dab5] text-[#00391c] shadow-sm'
                   : 'text-[#90929d] hover:text-[#a8dab5]'
               }`}
             >
-              <FileSpreadsheet className="h-3.5 w-3.5" />
+              <FileSpreadsheet className="h-4 w-4" />
               <span>Cashew CSV</span>
             </button>
           </div>
@@ -300,19 +300,19 @@ export function BackupRestoreModal({
                   PBKDF2 + AES-GCM 256-bit envelope. Protects accounts, personal expenses, and friend split debts.
                 </p>
 
-                <div className="flex flex-col sm:flex-row gap-2 pt-1">
+                <div className="flex flex-col sm:flex-row gap-2.5 pt-1">
                   <input
                     type="password"
-                    placeholder="Password (minimum 6 chars)"
+                    placeholder="Password"
                     value={encryptPassword}
                     onChange={(e) => setEncryptPassword(e.target.value)}
-                    className="flex-1 bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e7] placeholder-[#90929d] focus:outline-none"
+                    className="flex-1 bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-4 py-3 text-sm text-[#e2e2e7] placeholder-[#90929d] focus:outline-none min-h-[46px]"
                   />
                   <button
                     type="button"
                     onClick={handleExportEncrypted}
                     disabled={isProcessing}
-                    className="px-5 py-2 rounded-full bg-[#a8c7fa] hover:bg-[#b8d4ff] text-[#003062] text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
+                    className="px-6 py-3 rounded-full bg-[#a8c7fa] hover:bg-[#b8d4ff] text-[#003062] text-sm font-semibold flex items-center justify-center gap-2 transition-colors min-h-[46px] active:scale-95"
                   >
                     <Download className="h-4 w-4" />
                     <span>Export</span>
@@ -333,7 +333,7 @@ export function BackupRestoreModal({
                     type="button"
                     onClick={handleExportPlain}
                     disabled={isProcessing}
-                    className="px-4 py-1.5 rounded-full bg-[#1a1c22] hover:bg-[#262830] text-[#e2e2e7] text-xs font-medium border border-[#262830] flex items-center gap-1.5 transition-colors"
+                    className="px-4 py-2 rounded-full bg-[#1a1c22] hover:bg-[#262830] text-[#e2e2e7] text-xs font-medium border border-[#262830] flex items-center gap-1.5 transition-colors active:scale-95"
                   >
                     <Download className="h-3.5 w-3.5" />
                     <span>Download</span>
@@ -357,13 +357,13 @@ export function BackupRestoreModal({
                   </span>
                 </div>
 
-                <div className="space-y-2 pt-1">
+                <div className="space-y-3 pt-1">
                   <input
                     type="password"
-                    placeholder="Enter password (if backup was encrypted)"
+                    placeholder="Password"
                     value={decryptPassword}
                     onChange={(e) => setDecryptPassword(e.target.value)}
-                    className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e7] placeholder-[#90929d] focus:outline-none"
+                    className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-4 py-3 text-sm text-[#e2e2e7] placeholder-[#90929d] focus:outline-none min-h-[46px]"
                   />
 
                   <input

@@ -211,7 +211,7 @@ export function TransactionsView({
               type="button"
               onClick={handlePrevMonth}
               disabled={currentMonthIndex <= 0}
-              className="h-8 w-8 rounded-full bg-[#111216] hover:bg-[#1a1c22] disabled:opacity-30 disabled:pointer-events-none text-[#c4c6cf] hover:text-[#e2e2e7] flex items-center justify-center border border-[#23252c] transition-colors shrink-0"
+              className="h-9 w-9 rounded-full bg-[#111216] hover:bg-[#1a1c22] disabled:opacity-30 disabled:pointer-events-none text-[#c4c6cf] hover:text-[#e2e2e7] flex items-center justify-center border border-[#23252c] transition-colors shrink-0"
               title="Previous Month"
             >
               <ChevronLeft className="h-4 w-4" />
@@ -219,10 +219,10 @@ export function TransactionsView({
 
             {/* Calendar icon with month selector */}
             <div className="relative flex items-center">
-              <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#1a2536] text-[#d3e3fd] text-xs font-semibold border border-[#2e405b] hover:bg-[#223147] transition-colors cursor-pointer">
+              <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-[#1a2536] text-[#d3e3fd] text-xs font-semibold border border-[#2e405b] hover:bg-[#223147] transition-colors cursor-pointer min-h-[38px]">
                 <Calendar className="h-4 w-4 text-[#a8c7fa]" />
                 <span>{monthGroups[currentMonthIndex]?.label || 'Select Month'}</span>
-                <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-[#0a3560] text-[#a8c7fa]">
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#0a3560] text-[#a8c7fa]">
                   {monthGroups[currentMonthIndex]?.transactions.length || 0}
                 </span>
               </div>
@@ -246,7 +246,7 @@ export function TransactionsView({
               type="button"
               onClick={handleNextMonth}
               disabled={currentMonthIndex < 0 || currentMonthIndex >= monthGroups.length - 1}
-              className="h-8 w-8 rounded-full bg-[#111216] hover:bg-[#1a1c22] disabled:opacity-30 disabled:pointer-events-none text-[#c4c6cf] hover:text-[#e2e2e7] flex items-center justify-center border border-[#23252c] transition-colors shrink-0"
+              className="h-9 w-9 rounded-full bg-[#111216] hover:bg-[#1a1c22] disabled:opacity-30 disabled:pointer-events-none text-[#c4c6cf] hover:text-[#e2e2e7] flex items-center justify-center border border-[#23252c] transition-colors shrink-0"
               title="Next Month"
             >
               <ChevronRight className="h-4 w-4" />
@@ -273,24 +273,24 @@ export function TransactionsView({
           </div>
 
           {/* Quick Search */}
-          <div className="relative flex-1 sm:w-52">
-            <Search className="h-3.5 w-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#90929d]" />
+          <div className="relative flex-1 sm:w-56">
+            <Search className="h-4 w-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#90929d]" />
             <input
               type="text"
-              placeholder="Search..."
+              placeholder="Search transactions"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-full pl-8 pr-3 py-1.5 text-xs text-[#e2e2e7] placeholder-[#90929d] focus:outline-none"
+              className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-full pl-9 pr-4 py-2 text-xs sm:text-sm text-[#e2e2e7] placeholder-[#90929d] focus:outline-none min-h-[40px]"
             />
           </div>
         </div>
 
         {/* Type Filter Pills: All smaller as just All */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 scrollbar-none pt-0.5">
+        <div className="flex items-center gap-2 overflow-x-auto pb-0.5 scrollbar-none pt-0.5">
           <button
             type="button"
             onClick={() => setSelectedType('all')}
-            className={`shrink-0 px-2 py-0.5 rounded-full text-[10px] font-semibold transition-all ${
+            className={`shrink-0 px-3 py-1 rounded-full text-xs font-semibold transition-all ${
               selectedType === 'all'
                 ? 'bg-[#1a2536] text-[#d3e3fd] border border-[#2e405b]'
                 : 'bg-[#111216] text-[#90929d] hover:text-[#e2e2e7] border border-[#23252c]'
@@ -308,7 +308,7 @@ export function TransactionsView({
               key={tab.id}
               type="button"
               onClick={() => setSelectedType(tab.id)}
-              className={`shrink-0 px-2.5 py-0.5 rounded-full text-[11px] font-medium transition-all ${
+              className={`shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-all ${
                 selectedType === tab.id
                   ? 'bg-[#1a2536] text-[#d3e3fd] border border-[#2e405b]'
                   : 'bg-[#111216] text-[#90929d] hover:text-[#e2e2e7] border border-[#23252c]'

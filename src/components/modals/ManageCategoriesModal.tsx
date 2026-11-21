@@ -134,27 +134,27 @@ export function ManageCategoriesModal({
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
-                <label className="text-xs font-medium text-[#c4c6cf] block mb-1">
+                <label className="text-xs font-medium text-[#c4c6cf] block mb-1.5">
                   Name
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g., Electronics"
+                  placeholder="Category name"
                   value={catName}
                   onChange={(e) => setCatName(e.target.value)}
-                  className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e7] focus:outline-none"
+                  className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-4 py-3 text-sm text-[#e2e2e7] focus:outline-none min-h-[46px]"
                 />
               </div>
 
               <div>
-                <label className="text-xs font-medium text-[#c4c6cf] block mb-1">
+                <label className="text-xs font-medium text-[#c4c6cf] block mb-1.5">
                   Type
                 </label>
                 <select
                   value={catType}
                   onChange={(e) => setCatType(e.target.value as CategoryType)}
-                  className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e7] focus:outline-none"
+                  className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-4 py-3 text-sm text-[#e2e2e7] focus:outline-none min-h-[46px]"
                 >
                   <option value="expense">Expense</option>
                   <option value="income">Income</option>
@@ -163,25 +163,25 @@ export function ManageCategoriesModal({
               </div>
 
               <div>
-                <label className="text-xs font-medium text-[#c4c6cf] block mb-1">
+                <label className="text-xs font-medium text-[#c4c6cf] block mb-1.5">
                   Color
                 </label>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-3 h-[46px]">
                   <input
                     type="color"
                     value={catColor}
                     onChange={(e) => setCatColor(e.target.value)}
-                    className="h-8 w-12 rounded border-0 bg-transparent cursor-pointer"
+                    className="h-10 w-14 rounded-xl border border-[#23252c] bg-transparent cursor-pointer"
                   />
                   <span className="text-xs font-mono text-[#90929d]">{catColor}</span>
                 </div>
               </div>
             </div>
 
-            <div className="pt-1 flex justify-end">
+            <div className="pt-2 flex justify-end">
               <button
                 type="submit"
-                className="px-5 py-2 rounded-full bg-[#a8c7fa] hover:bg-[#b8d4ff] text-[#003062] text-xs font-semibold flex items-center gap-1.5 transition-colors"
+                className="px-5 py-2.5 rounded-full bg-[#a8c7fa] hover:bg-[#b8d4ff] text-[#003062] text-sm font-semibold flex items-center gap-2 transition-colors active:scale-95"
               >
                 <FolderPlus className="h-4 w-4" />
                 <span>Save Category</span>
@@ -200,13 +200,13 @@ export function ManageCategoriesModal({
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="text-xs font-medium text-[#c4c6cf] block mb-1">
+                <label className="text-xs font-medium text-[#c4c6cf] block mb-1.5">
                   Parent Category
                 </label>
                 <select
                   value={selectedParentCatId}
                   onChange={(e) => setSelectedParentCatId(e.target.value)}
-                  className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e7] focus:outline-none"
+                  className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-4 py-3 text-sm text-[#e2e2e7] focus:outline-none min-h-[46px]"
                 >
                   {categories.map((c) => (
                     <option key={c.id} value={c.id}>
@@ -217,24 +217,24 @@ export function ManageCategoriesModal({
               </div>
 
               <div>
-                <label className="text-xs font-medium text-[#c4c6cf] block mb-1">
+                <label className="text-xs font-medium text-[#c4c6cf] block mb-1.5">
                   Subcategory Name
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g., Tea & Chai, Samosas"
+                  placeholder="Subcategory name"
                   value={subName}
                   onChange={(e) => setSubName(e.target.value)}
-                  className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-3.5 py-2 text-xs text-[#e2e2e7] focus:outline-none"
+                  className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-4 py-3 text-sm text-[#e2e2e7] focus:outline-none min-h-[46px]"
                 />
               </div>
             </div>
 
-            <div className="pt-1 flex justify-end">
+            <div className="pt-2 flex justify-end">
               <button
                 type="submit"
-                className="px-5 py-2 rounded-full bg-[#a8c7fa] hover:bg-[#b8d4ff] text-[#003062] text-xs font-semibold flex items-center gap-1.5 transition-colors"
+                className="px-5 py-2.5 rounded-full bg-[#a8c7fa] hover:bg-[#b8d4ff] text-[#003062] text-sm font-semibold flex items-center gap-2 transition-colors active:scale-95"
               >
                 <Tag className="h-4 w-4" />
                 <span>Save Subcategory</span>
