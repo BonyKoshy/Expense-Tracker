@@ -96,9 +96,15 @@ export function TransactionsView({
       let settlementsReceived = 0;
 
       for (const tx of txs) {
-        if (tx.type === 'expense' || tx.type === 'shared_expense') {
-          personalSpend += tx.personalExpenseAmount || 0;
+        if (tx.type === 'expense') {
+          personalSpend += tx.personalExpenseAmount || tx.amount || 0;
           totalSwiped += tx.amount || 0;
+        } else if (tx.type === 'shared_expense') {
+          personalSpend += tx.personalExpenseAmount || 0;
+          // Only count under total swiped if the user actually paid/swiped the bill
+          if (!tx.paidByPersonId || tx.paidByPersonId === 'user') {
+            totalSwiped += tx.amount || 0;
+          }
         } else if (tx.type === 'income') {
           totalIncome += tx.amount || 0;
         } else if (tx.type === 'settlement_received') {
@@ -484,9 +490,15 @@ export function TransactionsView({
                             <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-[#90929d]">
                               <span>{formatDate(tx.date)}</span>
                               <span>•</span>
-                              <span className="text-[#c4c6cf]">
-                                {account?.name || 'Account'}
-                              </span>
+                              {isShared && tx.paidByPersonId && tx.paidByPersonId !== 'user' ? (
+                                <span className="text-[#ffb787] font-medium">
+                                  Paid by {people.find((p) => p.id === tx.paidByPersonId)?.name || 'Friend'}
+                                </span>
+                              ) : (
+                                <span className="text-[#c4c6cf]">
+                                  {account?.name || 'Account'}
+                                </span>
+                              )}
                               {friend && isSettlement && (
                                 <>
                                   <span>•</span>

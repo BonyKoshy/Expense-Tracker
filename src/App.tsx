@@ -288,6 +288,7 @@ export default function App() {
           <SplitsView
             groups={finance.groups}
             people={finance.people}
+            transactions={finance.transactions}
             totalReceivables={finance.breakdown.totalReceivables}
             onOpenPeople={() => setIsPeopleOpen(true)}
             onSimulateSettlement={handleSimulateSettlement}

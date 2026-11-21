@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X, Plus, Repeat } from 'lucide-react';
+import { X, Plus, Repeat, Trash2 } from 'lucide-react';
 import type {
   RecurringCommitment,
   RecurringCommitmentType,
@@ -38,8 +38,20 @@ export function ManageRecurringModal({
   const [isReservedCommitment, setIsReservedCommitment] = useState(true);
   const [notes, setNotes] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   if (!isOpen) return null;
+
+  const handleDelete = async (comm: RecurringCommitment) => {
+    try {
+      await db.recurringCommitments.delete(comm.id);
+      if (onSuccess) onSuccess(`Recurring commitment "${comm.name}" deleted.`);
+      setDeletingId(null);
+    } catch (err: unknown) {
+      console.error(err);
+      setError(err instanceof Error ? err.message : 'Failed to delete commitment');
+    }
+  };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -334,20 +346,52 @@ export function ManageRecurringModal({
                   </div>
                 </div>
 
-                <button
-                  onClick={async () => {
-                    await db.recurringCommitments.update(comm.id, {
-                      isActive: !comm.isActive,
-                    });
-                  }}
-                  className={`px-3 py-1 rounded-full text-xs font-medium ${
-                    comm.isActive
-                      ? 'bg-[#15241b] text-[#a8dab5] border border-[#22382a]'
-                      : 'bg-[#1a1c22] text-[#90929d]'
-                  }`}
-                >
-                  {comm.isActive ? 'Active' : 'Paused'}
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      await db.recurringCommitments.update(comm.id, {
+                        isActive: !comm.isActive,
+                      });
+                    }}
+                    className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                      comm.isActive
+                        ? 'bg-[#15241b] text-[#a8dab5] border border-[#22382a]'
+                        : 'bg-[#1a1c22] text-[#90929d]'
+                    }`}
+                  >
+                    {comm.isActive ? 'Active' : 'Paused'}
+                  </button>
+
+                  {deletingId === comm.id ? (
+                    <div className="flex items-center gap-1.5 animate-in fade-in duration-150">
+                      <button
+                        type="button"
+                        onClick={() => handleDelete(comm)}
+                        className="px-2.5 py-1 rounded-full bg-[#3d1a1d] text-[#f2b8b5] border border-[#5c2429] hover:bg-[#522026] text-xs font-semibold transition-colors"
+                      >
+                        Confirm
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setDeletingId(null)}
+                        className="px-2 py-1 rounded-full bg-[#1a1c22] text-[#c4c6cf] hover:bg-[#23252c] text-xs transition-colors"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setDeletingId(comm.id)}
+                      className="p-1.5 rounded-xl text-[#90929d] hover:text-[#f2b8b5] hover:bg-[#2b1b1d] transition-colors"
+                      title="Delete commitment"
+                      aria-label={`Delete ${comm.name}`}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
               </div>
             ))}
           </div>
