@@ -10,11 +10,14 @@ import {
   Plus,
   Calendar,
   AlertTriangle,
+  Coffee,
+  Sparkles,
 } from 'lucide-react';
 import type {
   Account,
   RecurringCommitment,
   Category,
+  Subcategory,
   Transaction,
 } from '@/types';
 import { formatINR } from '@/utils/formatters';
@@ -23,6 +26,7 @@ interface BudgetViewProps {
   accounts: Account[];
   recurringCommitments: RecurringCommitment[];
   categories: Category[];
+  subcategories?: Subcategory[];
   transactions: Transaction[];
   overallMonthlyBudget?: number;
   onOpenAccounts: () => void;
@@ -34,19 +38,30 @@ export function BudgetView({
   accounts,
   recurringCommitments,
   categories,
+  subcategories = [],
   transactions,
   overallMonthlyBudget = 25000,
   onOpenAccounts,
   onOpenRecurring,
   onOpenSettings,
 }: BudgetViewProps) {
-  // Current month personal spending by category
+  // Discover registered Tea subcategory
+  const teaSubcategory = useMemo(() => {
+    return subcategories.find(
+      (s) => s.id === 'sub_tea' || s.name.toLowerCase().includes('tea')
+    );
+  }, [subcategories]);
+
+  // Current month personal spending by category & subcategory
   const currentMonthSpending = useMemo(() => {
     const now = new Date();
     const currentMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
     const map = new Map<string, number>();
+    const subMap = new Map<string, number>();
 
     let totalMonthSpend = 0;
+    let teaSpend = 0;
+    let teaCount = 0;
 
     for (const tx of transactions) {
       if (
@@ -65,12 +80,63 @@ export function BudgetView({
               (map.get(tx.categoryId) || 0) + tx.personalExpenseAmount
             );
           }
+          if (tx.subcategoryId) {
+            subMap.set(
+              tx.subcategoryId,
+              (subMap.get(tx.subcategoryId) || 0) + tx.personalExpenseAmount
+            );
+          }
+
+          // Check for Tea subcategory (sub_tea, title/notes/tags containing tea or chai)
+          const titleLower = tx.title.toLowerCase();
+          const notesLower = (tx.notes || '').toLowerCase();
+          const isTea =
+            (teaSubcategory && tx.subcategoryId === teaSubcategory.id) ||
+            tx.subcategoryId === 'sub_tea' ||
+            titleLower.includes('tea') ||
+            titleLower.includes('chai') ||
+            notesLower.includes('tea') ||
+            notesLower.includes('chai');
+
+          if (isTea) {
+            teaSpend += tx.personalExpenseAmount;
+            teaCount += 1;
+          }
         }
       }
     }
 
-    return { map, totalMonthSpend };
-  }, [transactions]);
+    return { map, subMap, totalMonthSpend, teaSpend, teaCount };
+  }, [transactions, teaSubcategory]);
+
+  // Days left in month & Daily possible spend allowance
+  const monthPace = useMemo(() => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth();
+    const monthName = now.toLocaleDateString('en-US', { month: 'long' });
+    const totalDays = new Date(year, month + 1, 0).getDate();
+    const currentDay = now.getDate();
+    // Days remaining in the month including today:
+    const daysLeft = Math.max(1, totalDays - currentDay + 1);
+    const daysPassed = Math.max(1, currentDay);
+
+    const totalSpent = currentMonthSpending.totalMonthSpend;
+    const remaining = overallMonthlyBudget - totalSpent;
+    const dailyAllowance = remaining > 0 ? remaining / daysLeft : 0;
+    const burnRate = totalSpent / daysPassed;
+
+    return {
+      monthName,
+      totalDays,
+      currentDay,
+      daysLeft,
+      daysPassed,
+      remaining,
+      dailyAllowance,
+      burnRate,
+    };
+  }, [currentMonthSpending.totalMonthSpend, overallMonthlyBudget]);
 
   // Account grouping
   const liquidAccounts = accounts.filter(
@@ -143,8 +209,30 @@ export function BudgetView({
           </div>
         </div>
 
-        {/* 4 Metric Summary Cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+        {/* 5 Metric Summary Cards Featuring Daily Possible Spend */}
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
+          {/* Daily Spend Allowance (Rest of budget split by days remaining) */}
+          <div className="bg-[#1a2536] border border-[#2e405b] rounded-2xl p-3.5 flex flex-col justify-between col-span-2 sm:col-span-1 shadow-sm">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-semibold text-[#a8c7fa] flex items-center gap-1">
+                <Sparkles className="h-3 w-3 text-[#a8c7fa]" />
+                Daily Allowance
+              </span>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#111216] text-[#d3e3fd] font-mono border border-[#283a54]">
+                {monthPace.daysLeft}d left
+              </span>
+            </div>
+            <div className="text-xl sm:text-2xl font-bold font-mono text-[#d3e3fd] mt-1">
+              {formatINR(monthPace.dailyAllowance)}
+              <span className="text-xs font-normal text-[#90929d]"> /day</span>
+            </div>
+            <div className="text-[10px] text-[#90929d] mt-1 truncate">
+              {monthPace.remaining > 0
+                ? `${formatINR(monthPace.remaining)} for ${monthPace.daysLeft} days`
+                : 'Budget ceiling reached'}
+            </div>
+          </div>
+
           <div className="bg-[#111216] border border-[#1e2026] rounded-2xl p-3.5">
             <div className="text-[11px] text-[#90929d]">Personal Spend This Month</div>
             <div className="text-lg font-semibold text-[#e2e2e7] font-mono mt-0.5">
@@ -175,7 +263,7 @@ export function BudgetView({
             </div>
           </div>
 
-          <div className="bg-[#111216] border border-[#1e2026] rounded-2xl p-3.5">
+          <div className="bg-[#111216] border border-[#1e2026] rounded-2xl p-3.5 col-span-2 sm:col-span-1">
             <div className="text-[11px] text-[#90929d]">Active Investments</div>
             <div className="text-lg font-semibold text-[#d0bcff] font-mono mt-0.5">
               {formatINR(totalInvestments)}
@@ -187,9 +275,9 @@ export function BudgetView({
         </div>
 
         {/* Overall Monthly Spend Budget Meter */}
-        <div className="bg-[#111216] border border-[#1e2026] rounded-2xl p-3.5 space-y-2">
+        <div className="bg-[#111216] border border-[#1e2026] rounded-2xl p-4 space-y-2.5">
           <div className="flex items-center justify-between text-xs">
-            <span className="font-medium text-[#c4c6cf]">Overall Monthly Budget</span>
+            <span className="font-semibold text-[#e2e2e7]">Overall Monthly Budget</span>
             <div className="flex items-center gap-2">
               <span className="font-mono font-semibold text-[#e2e2e7]">
                 {formatINR(currentMonthSpending.totalMonthSpend)} / {formatINR(overallMonthlyBudget)}
@@ -205,7 +293,8 @@ export function BudgetView({
               </span>
             </div>
           </div>
-          <div className="w-full bg-[#16171c] h-2 rounded-full overflow-hidden border border-[#23252c]">
+
+          <div className="w-full bg-[#16171c] h-2.5 rounded-full overflow-hidden border border-[#23252c]">
             <div
               className={`h-full rounded-full transition-all duration-300 ${
                 currentMonthSpending.totalMonthSpend > overallMonthlyBudget ? 'bg-[#f2b8b5]' : 'bg-[#a8dab5]'
@@ -215,21 +304,37 @@ export function BudgetView({
               }}
             />
           </div>
-          <div className="flex items-center justify-between text-[11px] text-[#90929d]">
-            <span>
-              {currentMonthSpending.totalMonthSpend > overallMonthlyBudget
-                ? `Exceeded monthly ceiling by ${formatINR(currentMonthSpending.totalMonthSpend - overallMonthlyBudget)}`
-                : `${formatINR(overallMonthlyBudget - currentMonthSpending.totalMonthSpend)} remaining this month`}
-            </span>
-            {onOpenSettings && (
-              <button
-                type="button"
-                onClick={onOpenSettings}
-                className="text-[#a8c7fa] hover:text-[#b8d4ff] transition-colors font-medium underline underline-offset-2"
-              >
-                Change in Settings
-              </button>
-            )}
+
+          {/* Daily Pace & Remaining Budget Split */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 pt-1 border-t border-[#1e2026] text-xs">
+            <div className="flex items-center gap-1.5">
+              <span className="text-[#a8c7fa] font-bold font-mono text-sm">
+                {formatINR(monthPace.dailyAllowance)} / day
+              </span>
+              <span className="text-[#90929d]">
+                possible to spend across remaining <strong className="text-[#e2e2e7]">{monthPace.daysLeft} days</strong>
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2 text-[11px] text-[#90929d]">
+              <span>
+                {currentMonthSpending.totalMonthSpend > overallMonthlyBudget
+                  ? `Over ceiling by ${formatINR(currentMonthSpending.totalMonthSpend - overallMonthlyBudget)}`
+                  : `${formatINR(monthPace.remaining)} remaining this month`}
+              </span>
+              {onOpenSettings && (
+                <>
+                  <span>•</span>
+                  <button
+                    type="button"
+                    onClick={onOpenSettings}
+                    className="text-[#a8c7fa] hover:text-[#b8d4ff] transition-colors font-medium underline underline-offset-2"
+                  >
+                    Settings
+                  </button>
+                </>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -357,6 +462,47 @@ export function BudgetView({
           )}
         </div>
 
+        {/* Featured Tea & Daily Micro-Habits Subcategory Card */}
+        <div className="bg-[#16171c] border border-[#2e221b] rounded-2xl p-4 bg-gradient-to-r from-[#221813] via-[#1a1c22] to-[#16171c] flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 shadow-md">
+          <div className="flex items-center gap-3">
+            <div className="h-11 w-11 rounded-2xl bg-[#2e1d14] text-[#ffb787] border border-[#482d1e] flex items-center justify-center shrink-0">
+              <Coffee className="h-6 w-6" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-semibold text-[#e2e2e7]">
+                  Tea &amp; Chai
+                </span>
+                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#111216] text-[#ffb787] border border-[#3d2c20]">
+                  Subcategory
+                </span>
+                <span className="text-[10px] text-[#90929d]">under Food &amp; Dining</span>
+              </div>
+              <p className="text-xs text-[#90929d] mt-0.5">
+                {currentMonthSpending.teaCount > 0
+                  ? `${currentMonthSpending.teaCount} tea breaks recorded this month • ~${formatINR(currentMonthSpending.teaSpend / monthPace.daysPassed)}/day avg pace`
+                  : 'Track your daily tea, chai, and coffee micro-expenses'}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-4 sm:text-right self-start sm:self-center">
+            <div>
+              <div className="text-[10px] text-[#90929d]">Monthly Tea Spend</div>
+              <div className="text-lg sm:text-xl font-bold font-mono text-[#ffb787]">
+                {formatINR(currentMonthSpending.teaSpend)}
+              </div>
+            </div>
+            <div className="border-l border-[#262830] pl-4">
+              <div className="text-[10px] text-[#90929d]">Estimated Daily Pace</div>
+              <div className="text-xs sm:text-sm font-semibold font-mono text-[#e2e2e7]">
+                {formatINR(currentMonthSpending.teaSpend / monthPace.daysPassed)}
+                <span className="text-[10px] font-normal text-[#90929d]"> /day</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
           {categories
             .filter((c) => c.type === 'expense')
@@ -366,6 +512,8 @@ export function BudgetView({
               const hasLimit = limit > 0;
               const pct = hasLimit ? Math.min(100, Math.round((spent / limit) * 100)) : 0;
               const isOver = hasLimit && spent > limit;
+              const remainingCat = Math.max(0, limit - spent);
+              const catDailyAllowance = hasLimit && remainingCat > 0 ? remainingCat / monthPace.daysLeft : 0;
 
               return (
                 <div
@@ -412,8 +560,11 @@ export function BudgetView({
                             Over by {formatINR(spent - limit)}
                           </span>
                         ) : (
-                          <span className="text-[#a8dab5]">
-                            {formatINR(limit - spent)} remaining
+                          <span className="text-[#a8dab5] flex items-center gap-1">
+                            <span>{formatINR(remainingCat)} left</span>
+                            <span className="text-[#90929d] font-mono">
+                              (~{formatINR(catDailyAllowance)}/d)
+                            </span>
                           </span>
                         )}
                       </div>
@@ -430,6 +581,19 @@ export function BudgetView({
                           Set limit
                         </button>
                       )}
+                    </div>
+                  )}
+
+                  {/* If Food & Dining, show Tea subcategory breakdown inside */}
+                  {(cat.id === 'cat_food' || cat.name.toLowerCase().includes('food')) && currentMonthSpending.teaSpend > 0 && (
+                    <div className="pt-2 border-t border-[#1e2026] flex items-center justify-between text-xs">
+                      <span className="text-[#90929d] flex items-center gap-1.5">
+                        <Coffee className="h-3.5 w-3.5 text-[#ffb787]" />
+                        <span>Tea subcategory:</span>
+                      </span>
+                      <span className="font-mono font-semibold text-[#ffb787]">
+                        {formatINR(currentMonthSpending.teaSpend)}
+                      </span>
                     </div>
                   )}
                 </div>

@@ -263,6 +263,7 @@ export default function App() {
             accounts={finance.accounts}
             recurringCommitments={finance.recurringCommitments}
             categories={finance.categories}
+            subcategories={finance.subcategories}
             transactions={finance.transactions}
             overallMonthlyBudget={overallMonthlyBudget}
             onOpenAccounts={() => setIsAccountsOpen(true)}
