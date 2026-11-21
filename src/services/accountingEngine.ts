@@ -18,14 +18,23 @@ export function calculateAvailableToSpend(
   recurringCommitments: RecurringCommitment[],
   people: Person[]
 ): AvailableToSpendBreakdown {
-  // 1. Identify key individual accounts
+  // 1. Identify key individual accounts (HDFC or user's default/primary bank)
   const hdfcAcc = accounts.find(
     (acc) =>
       !acc.isArchived &&
       acc.type === 'bank' &&
       acc.name.toLowerCase().includes('hdfc')
   );
-  const hdfcBalance = hdfcAcc?.balance || 0;
+  const defaultBank = accounts.find(
+    (acc) => !acc.isArchived && acc.isDefault && (acc.type === 'bank' || acc.type === 'wallet')
+  );
+  const firstBank = accounts.find(
+    (acc) => !acc.isArchived && acc.type === 'bank'
+  );
+
+  const primaryBankAcc = hdfcAcc || defaultBank || firstBank || accounts.find((a) => !a.isArchived) || accounts[0];
+  const primaryBankName = primaryBankAcc ? primaryBankAcc.name : 'Primary Bank';
+  const hdfcBalance = primaryBankAcc ? (primaryBankAcc.balance || 0) : 0;
 
   const canaraAcc = accounts.find(
     (acc) =>
@@ -48,8 +57,14 @@ export function calculateAvailableToSpend(
   );
   const cashBalance = cashAcc?.balance || 0;
 
-  // 2. Net Money Owned: Entire balance of HDFC + Amazon Wallet + Cash
-  const netMoneyOwned = Math.round((hdfcBalance + amazonWalletBalance + cashBalance) * 100) / 100;
+  // 2. Net Money Owned: Entire balance of Primary Bank + Wallets + Cash
+  const netMoneyOwned = hdfcAcc
+    ? Math.round((hdfcBalance + amazonWalletBalance + cashBalance) * 100) / 100
+    : Math.round(
+        accounts
+          .filter((acc) => !acc.isArchived && (acc.type === 'bank' || acc.type === 'cash' || acc.type === 'wallet'))
+          .reduce((sum, acc) => sum + (acc.balance || 0), 0) * 100
+      ) / 100;
 
   // 3. Total Liquid Balances: All bank accounts + Cash + Wallets
   const totalLiquidBalances = accounts
@@ -68,7 +83,7 @@ export function calculateAvailableToSpend(
   // 5. Total Accumulated Savings: Canara Bank + RD investments
   const savingsBalance = Math.round((canaraBalance + totalInvestments) * 100) / 100;
 
-  // 6. Reserved Commitments (HDFC vs Total)
+  // 6. Reserved Commitments (Primary Bank vs Total)
   const totalReservedCommitments = recurringCommitments
     .filter((comm) => comm.isActive && comm.isReservedCommitment)
     .reduce((sum, comm) => sum + (comm.amount || 0), 0);
@@ -78,9 +93,9 @@ export function calculateAvailableToSpend(
       (comm) =>
         comm.isActive &&
         comm.isReservedCommitment &&
-        (comm.accountId === hdfcAcc?.id ||
+        (comm.accountId === primaryBankAcc?.id ||
           !comm.accountId ||
-          comm.accountId.includes('hdfc'))
+          (hdfcAcc && comm.accountId.includes('hdfc')))
     )
     .reduce((sum, comm) => sum + (comm.amount || 0), 0);
 
@@ -137,6 +152,7 @@ export function calculateAvailableToSpend(
     lent,
     savingsBalance,
     hdfcBalance,
+    primaryBankName,
     canaraBalance,
     amazonWalletBalance,
     cashBalance,

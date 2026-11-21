@@ -167,6 +167,7 @@ export interface AvailableToSpendBreakdown {
   lent: number; // Entire amount user needs to receive from friends
   savingsBalance: number; // Total accumulated savings (Canara Bank + RD investments)
   hdfcBalance: number;
+  primaryBankName?: string;
   canaraBalance: number;
   amazonWalletBalance: number;
   cashBalance: number;

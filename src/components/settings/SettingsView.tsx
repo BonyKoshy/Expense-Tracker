@@ -18,6 +18,11 @@ import {
   Download,
   CheckCircle2,
   Save,
+  Bell,
+  BellRing,
+  Clock,
+  AlertCircle,
+  Check,
 } from 'lucide-react';
 import type {
   Account,
@@ -28,6 +33,15 @@ import type {
   RecurringCommitment,
 } from '@/types';
 import { formatINR } from '@/utils/formatters';
+import {
+  getReminderSettings,
+  saveReminderSettings,
+  requestNotificationPermission,
+  sendTestNotification,
+  getNotificationPermission,
+  isNotificationSupported,
+  type NotificationPermissionState,
+} from '@/utils/notifications';
 
 interface SettingsViewProps {
   userName?: string;
@@ -111,6 +125,86 @@ export function SettingsView({
     setTimeout(() => setSavedCategoryId(null), 2000);
   };
 
+  // Push Notification Reminder state
+  const [reminderSettings, setReminderSettings] = useState(() => getReminderSettings());
+  const [permissionState, setPermissionState] = useState<NotificationPermissionState>(() => getNotificationPermission());
+  const [testNotificationStatus, setTestNotificationStatus] = useState<{
+    type: 'success' | 'error' | 'loading' | null;
+    message: string;
+  }>({ type: null, message: '' });
+  const [timeSavedNotice, setTimeSavedNotice] = useState(false);
+
+  const handleToggleReminder = async () => {
+    if (!isNotificationSupported()) {
+      setTestNotificationStatus({
+        type: 'error',
+        message: 'Push notifications are not supported in this browser.',
+      });
+      return;
+    }
+
+    if (!reminderSettings.enabled) {
+      let perm = getNotificationPermission();
+      if (perm !== 'granted') {
+        perm = await requestNotificationPermission();
+        setPermissionState(perm);
+      }
+
+      if (perm === 'granted') {
+        const updated = saveReminderSettings({ enabled: true });
+        setReminderSettings(updated);
+        setTestNotificationStatus({
+          type: 'success',
+          message: `Daily reminder enabled for ${updated.time}!`,
+        });
+        setTimeout(() => setTestNotificationStatus({ type: null, message: '' }), 4000);
+      } else if (perm === 'denied') {
+        setTestNotificationStatus({
+          type: 'error',
+          message: 'Notifications are blocked in your browser or phone settings.',
+        });
+      }
+    } else {
+      const updated = saveReminderSettings({ enabled: false });
+      setReminderSettings(updated);
+      setTestNotificationStatus({
+        type: 'success',
+        message: 'Daily reminder turned off.',
+      });
+      setTimeout(() => setTestNotificationStatus({ type: null, message: '' }), 3000);
+    }
+  };
+
+  const handleTimeChange = (newTime: string) => {
+    if (!newTime) return;
+    const updated = saveReminderSettings({ time: newTime });
+    setReminderSettings(updated);
+    setTimeSavedNotice(true);
+    setTimeout(() => setTimeSavedNotice(false), 2000);
+  };
+
+  const handleSendTestNotification = async () => {
+    setTestNotificationStatus({ type: 'loading', message: 'Sending test notification...' });
+    const res = await sendTestNotification();
+    const currentPerm = getNotificationPermission();
+    setPermissionState(currentPerm);
+
+    if (res.success) {
+      setTestNotificationStatus({
+        type: 'success',
+        message: 'Test notification sent! Check your notification shade.',
+      });
+    } else {
+      setTestNotificationStatus({
+        type: 'error',
+        message: res.message,
+      });
+    }
+    setTimeout(() => {
+      setTestNotificationStatus((prev) => (prev.type === 'loading' ? { type: null, message: '' } : prev));
+    }, 6000);
+  };
+
   // Calculate sum of category budgets
   const sumOfCategoryBudgets = categories
     .filter((c) => c.type === 'expense')
@@ -188,7 +282,169 @@ export function SettingsView({
         </div>
       </div>
 
-      {/* 3. Monthly Budgets & Category Limits Configuration */}
+      {/* 3. Daily Expense Reminder (Push Notifications) */}
+      <div className="bg-[#16171c] border border-[#23252c] rounded-[28px] p-5 space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#23252c]">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-2xl bg-[#261f36] text-[#d0bcff] flex items-center justify-center shrink-0 border border-[#392c4b]">
+              <Bell className="h-5 w-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-semibold text-[#e2e2e7] m-0">
+                  Daily Expense Reminder
+                </h3>
+                {reminderSettings.enabled && permissionState === 'granted' ? (
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-[#15241b] text-[#a8dab5] border border-[#223a2b]">
+                    Active at {reminderSettings.time}
+                  </span>
+                ) : permissionState === 'denied' ? (
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-[#2b1b1d] text-[#f2b8b5] border border-[#48282b]">
+                    Blocked
+                  </span>
+                ) : (
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-[#111216] text-[#90929d] border border-[#1e2026]">
+                    Off
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-[#90929d] mt-0.5">
+                On-device daily notification reminding you to record today&apos;s spending &amp; PG splits
+              </p>
+            </div>
+          </div>
+
+          {/* Toggle Switch */}
+          <button
+            type="button"
+            role="switch"
+            aria-checked={reminderSettings.enabled}
+            onClick={handleToggleReminder}
+            className={`relative inline-flex h-7 w-12 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+              reminderSettings.enabled && permissionState === 'granted'
+                ? 'bg-[#a8c7fa]'
+                : 'bg-[#23252c]'
+            }`}
+          >
+            <span
+              className={`pointer-events-none inline-block h-6 w-6 transform rounded-full shadow-lg ring-0 transition duration-200 ease-in-out ${
+                reminderSettings.enabled && permissionState === 'granted'
+                  ? 'translate-x-5 bg-[#062e6f]'
+                  : 'translate-x-0 bg-[#90929d]'
+              }`}
+            />
+          </button>
+        </div>
+
+        {/* Time Selector & Controls */}
+        <div className="space-y-3">
+          <div className="bg-[#111216] border border-[#1e2026] rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <div className="flex items-center gap-2">
+                <Clock className="h-4 w-4 text-[#a8c7fa]" />
+                <span className="text-xs font-semibold text-[#e2e2e7]">
+                  Reminder Time
+                </span>
+                {timeSavedNotice && (
+                  <span className="text-[10px] text-[#a8dab5] font-medium flex items-center gap-1 animate-pulse">
+                    <Check className="h-3 w-3" /> Saved
+                  </span>
+                )}
+              </div>
+              <div className="text-[11px] text-[#90929d] mt-0.5">
+                Choose the best time each evening to log your expenses
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <input
+                type="time"
+                value={reminderSettings.time}
+                onChange={(e) => handleTimeChange(e.target.value)}
+                className="bg-[#16171c] border border-[#23252c] focus:border-[#a8c7fa] rounded-full px-3 py-1.5 text-xs font-mono text-[#e2e2e7] focus:outline-none"
+              />
+            </div>
+          </div>
+
+          {/* Quick Preset Buttons */}
+          <div className="flex flex-wrap items-center gap-1.5 pt-1">
+            <span className="text-[11px] text-[#90929d] mr-1">Quick Presets:</span>
+            {[
+              { label: '8:00 PM', value: '20:00' },
+              { label: '9:00 PM (Default)', value: '21:00' },
+              { label: '10:00 PM', value: '22:00' },
+              { label: '11:00 PM', value: '23:00' },
+            ].map((preset) => {
+              const isSelected = reminderSettings.time === preset.value;
+              return (
+                <button
+                  key={preset.value}
+                  type="button"
+                  onClick={() => handleTimeChange(preset.value)}
+                  className={`px-2.5 py-1 rounded-full text-[11px] font-mono border transition-all ${
+                    isSelected
+                      ? 'bg-[#1a2536] text-[#a8c7fa] border-[#2e405b]'
+                      : 'bg-[#111216] text-[#90929d] border-[#1e2026] hover:text-[#e2e2e7] hover:border-[#262830]'
+                  }`}
+                >
+                  {preset.label}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Notification Actions & Status Banner */}
+          <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleSendTestNotification}
+                className="px-4 py-2 rounded-full bg-[#1a2536] hover:bg-[#223147] text-[#d3e3fd] text-xs font-semibold border border-[#2e405b] flex items-center gap-2 transition-all active:scale-95"
+              >
+                <BellRing className="h-4 w-4 text-[#a8c7fa]" />
+                <span>Send Test Notification</span>
+              </button>
+            </div>
+
+            {testNotificationStatus.type && (
+              <div
+                className={`text-xs px-3 py-1.5 rounded-full flex items-center gap-1.5 border ${
+                  testNotificationStatus.type === 'success'
+                    ? 'bg-[#15241b] text-[#a8dab5] border-[#223a2b]'
+                    : testNotificationStatus.type === 'error'
+                    ? 'bg-[#2b1b1d] text-[#f2b8b5] border-[#48282b]'
+                    : 'bg-[#1a1c22] text-[#d3e3fd] border-[#262830]'
+                }`}
+              >
+                {testNotificationStatus.type === 'success' && <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />}
+                {testNotificationStatus.type === 'error' && <AlertCircle className="h-3.5 w-3.5 shrink-0" />}
+                <span>{testNotificationStatus.message}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Permission Blocked Warning */}
+          {permissionState === 'denied' && (
+            <div className="bg-[#2b1b1d] border border-[#48282b] rounded-2xl p-3 flex items-start gap-2.5 text-xs text-[#f2b8b5]">
+              <AlertCircle className="h-4 w-4 shrink-0 mt-0.5 text-[#f2b8b5]" />
+              <div className="space-y-1">
+                <div className="font-semibold">Notifications are blocked</div>
+                <div className="text-[11px] text-[#f2b8b5]/80">
+                  Your browser or phone is blocking notifications for FinTrack. To enable reminders: tap the lock or site settings icon in the Chrome URL bar (or open Android Settings &gt; Apps &gt; FinTrack &gt; Notifications) and set to <strong>Allow</strong>.
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Privacy Note */}
+          <div className="text-[11px] text-[#90929d] flex items-center gap-1.5 pt-1">
+            <ShieldCheck className="h-3.5 w-3.5 text-[#a8dab5] shrink-0" />
+            <span>100% On-Device: No external servers or telemetry are used. Scheduled locally on your device.</span>
+          </div>
+        </div>
+      </div>
+
+      {/* 4. Monthly Budgets & Category Limits Configuration */}
       <div className="bg-[#16171c] border border-[#23252c] rounded-[28px] p-5 space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#23252c]">
           <div className="flex items-center gap-3">

@@ -37,6 +37,7 @@ import { SettingsView } from './components/settings/SettingsView';
 import { BudgetView } from './components/budget/BudgetView';
 import { TransactionsView } from './components/transactions/TransactionsView';
 import { SavingsGoalCard } from './components/savings/SavingsGoalCard';
+import { checkAndTriggerDailyReminder } from './utils/notifications';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<
@@ -186,6 +187,34 @@ export default function App() {
     ensureSeeded().catch((err) =>
       console.error('Failed to seed IndexedDB:', err)
     );
+  }, []);
+
+  // Daily Push Notification Scheduler
+  useEffect(() => {
+    checkAndTriggerDailyReminder().catch((err) =>
+      console.warn('FinTrack: Daily reminder startup check failed:', err)
+    );
+
+    const interval = setInterval(() => {
+      checkAndTriggerDailyReminder().catch((err) =>
+        console.warn('FinTrack: Daily reminder interval check failed:', err)
+      );
+    }, 30000);
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        checkAndTriggerDailyReminder().catch((err) =>
+          console.warn('FinTrack: Daily reminder visibility check failed:', err)
+        );
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, []);
 
   // Live queries from Dexie.js (Reactive updates)
@@ -450,7 +479,7 @@ export default function App() {
                   </span>
                 </div>
                 <p className="text-xs text-[#90929d] mt-1.5">
-                  HDFC Salary: <span className="font-mono text-[#c4c6cf]">{formatINR(breakdown.hdfcBalance)}</span> • CC Liability: <span className="font-mono text-[#f2b8b5]">-{formatINR(breakdown.unbilledCCLiability)}</span> • Reserved Commitments: <span className="font-mono text-[#f2b8b5]">-{formatINR(breakdown.hdfcReservedCommitments)}</span>
+                  {breakdown.primaryBankName || 'Primary Bank'}: <span className="font-mono text-[#c4c6cf]">{formatINR(breakdown.hdfcBalance)}</span> • CC Liability: <span className="font-mono text-[#f2b8b5]">-{formatINR(breakdown.unbilledCCLiability)}</span> • Reserved Commitments: <span className="font-mono text-[#f2b8b5]">-{formatINR(breakdown.hdfcReservedCommitments)}</span>
                 </p>
               </div>
 
@@ -480,7 +509,7 @@ export default function App() {
                   -{formatINR(breakdown.unbilledCCLiability)}
                 </div>
                 <div className="text-[10px] text-[#6c6e79] mt-0.5">
-                  HDFC Credit Card
+                  Credit Card Dues
                 </div>
               </div>
 
@@ -490,7 +519,7 @@ export default function App() {
                   {formatINR(breakdown.netMoneyOwned)}
                 </div>
                 <div className="text-[10px] text-[#6c6e79] mt-0.5">
-                  HDFC + Wallet + Cash
+                  {breakdown.primaryBankName ? `${breakdown.primaryBankName} + Cash` : 'Liquid Balances'}
                 </div>
               </div>
 
@@ -728,8 +757,11 @@ export default function App() {
               )}
             </div>
 
-            {/* Savings Goal & Emergency Buffer (Canara Bank + RD) */}
+            {/* Savings Goal & Emergency Buffer */}
             <SavingsGoalCard
+              accounts={accounts}
+              categories={categories}
+              transactions={transactions}
               savingsBalance={breakdown.savingsBalance}
               canaraBalance={breakdown.canaraBalance}
               totalInvestments={breakdown.totalInvestments}

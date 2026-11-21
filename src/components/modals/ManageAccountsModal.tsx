@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X, Plus, CreditCard, Landmark, Wallet, Banknote, Edit2, Archive } from 'lucide-react';
+import { X, Plus, CreditCard, Landmark, Wallet, Banknote, Edit2, Archive, Trash2 } from 'lucide-react';
 import type { Account, AccountType } from '@/types';
 import { db } from '@/db';
 import { formatINR } from '@/utils/formatters';
@@ -62,6 +62,32 @@ export function ManageAccountsModal({
     setIsArchived(false);
     setIsDefault(false);
     setError(null);
+  };
+
+  const handleDelete = async (acc: Account) => {
+    try {
+      const txCount = await db.transactions.where('accountId').equals(acc.id).count();
+      const confirmMsg =
+        txCount > 0
+          ? `Account "${acc.name}" has ${txCount} transaction(s) associated with it.\n\nDeleting this account will also remove these transactions and revert their splits. Are you sure you want to delete this account?`
+          : `Are you sure you want to delete account "${acc.name}"?`;
+
+      if (window.confirm(confirmMsg)) {
+        if (txCount > 0) {
+          await db.transactions.where('accountId').equals(acc.id).delete();
+        }
+        await db.recurringCommitments.where('accountId').equals(acc.id).delete();
+        await db.accounts.delete(acc.id);
+
+        if (editingId === acc.id) {
+          resetForm();
+        }
+        if (onSuccess) onSuccess(`Account "${acc.name}" deleted.`);
+      }
+    } catch (err: unknown) {
+      console.error(err);
+      setError(err instanceof Error ? err.message : 'Failed to delete account');
+    }
   };
 
   const handleSave = async (e: React.FormEvent) => {
@@ -168,13 +194,26 @@ export function ManageAccountsModal({
                 {editingId ? 'Edit Account' : 'Add New Account'}
               </span>
               {editingId && (
-                <button
-                  type="button"
-                  onClick={resetForm}
-                  className="text-xs text-[#90929d] hover:text-[#e2e2e7]"
-                >
-                  Cancel Edit
-                </button>
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const acc = accounts.find((a) => a.id === editingId);
+                      if (acc) handleDelete(acc);
+                    }}
+                    className="text-xs text-[#f2b8b5] hover:text-[#ffb4ab] flex items-center gap-1 transition-colors"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                    <span>Delete</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={resetForm}
+                    className="text-xs text-[#90929d] hover:text-[#e2e2e7]"
+                  >
+                    Cancel
+                  </button>
+                </div>
               )}
             </div>
 
@@ -371,20 +410,32 @@ export function ManageAccountsModal({
 
                 <div className="flex items-center gap-1">
                   <button
+                    type="button"
                     onClick={() => startEdit(acc)}
-                    className="p-1.5 text-[#90929d] hover:text-[#e2e2e7] rounded-full hover:bg-[#1a1c22]"
+                    className="p-1.5 text-[#90929d] hover:text-[#e2e2e7] rounded-full hover:bg-[#1a1c22] transition-colors"
+                    title="Edit account"
                   >
                     <Edit2 className="h-4 w-4" />
                   </button>
                   <button
+                    type="button"
                     onClick={async () => {
                       await db.accounts.update(acc.id, {
                         isArchived: !acc.isArchived,
                       });
                     }}
-                    className="p-1.5 text-[#90929d] hover:text-[#e2e2e7] rounded-full hover:bg-[#1a1c22]"
+                    className="p-1.5 text-[#90929d] hover:text-[#e2e2e7] rounded-full hover:bg-[#1a1c22] transition-colors"
+                    title={acc.isArchived ? 'Unarchive' : 'Archive'}
                   >
                     <Archive className="h-4 w-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDelete(acc)}
+                    className="p-1.5 text-[#90929d] hover:text-[#f2b8b5] rounded-full hover:bg-[#1a1c22] transition-colors"
+                    title="Delete account"
+                  >
+                    <Trash2 className="h-4 w-4" />
                   </button>
                 </div>
               </div>
