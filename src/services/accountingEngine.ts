@@ -22,7 +22,8 @@ import { addMoney, subMoney, roundMoney } from '../utils/money';
 export function calculateAvailableToSpend(
   accounts: Account[],
   recurringCommitments: RecurringCommitment[],
-  people: Person[]
+  people: Person[],
+  transactions?: Transaction[]
 ): AvailableToSpendBreakdown {
   // 1. Identify key individual accounts
   const hdfcAcc = accounts.find(
@@ -109,9 +110,22 @@ export function calculateAvailableToSpend(
   const savingsBalance = addMoney(canaraBalance, totalInvestments);
 
   // 6. Reserved Commitments (Primary Bank vs Total)
+  // CRITICAL ANTI-DOUBLE-DEDUCTION INVARIANT:
+  // If a recurring commitment has already been paid or charged this month, its cash
+  // has already been deducted from the paying account (or added to CC liability).
+  // Deducting it again in reserved commitments would double-penalize Available to Spend.
+  // Therefore, only PENDING (unpaid) commitments for the current cycle are reserved.
+  const currentMonthKey = new Date().toISOString().slice(0, 7);
+  const isAlreadyPaidThisMonth = (commId: string) => {
+    if (!transactions || transactions.length === 0) return false;
+    return transactions.some(
+      (tx) => tx.recurringCommitmentId === commId && tx.date.slice(0, 7) === currentMonthKey
+    );
+  };
+
   const totalReservedCommitments = roundMoney(
     recurringCommitments
-      .filter((comm) => comm.isActive && comm.isReservedCommitment)
+      .filter((comm) => comm.isActive && comm.isReservedCommitment && !isAlreadyPaidThisMonth(comm.id))
       .reduce((sum, comm) => addMoney(sum, comm.amount || 0), 0)
   );
 
@@ -121,9 +135,10 @@ export function calculateAvailableToSpend(
         (comm) =>
           comm.isActive &&
           comm.isReservedCommitment &&
+          !isAlreadyPaidThisMonth(comm.id) &&
           (comm.accountId === primaryBankAcc?.id ||
-            !comm.accountId ||
-            (hdfcAcc && comm.accountId.includes('hdfc')))
+            (!comm.accountId && !primaryBankAcc?.id?.includes('credit')) ||
+            (hdfcAcc && comm.accountId?.includes('hdfc')))
       )
       .reduce((sum, comm) => addMoney(sum, comm.amount || 0), 0)
   );
@@ -552,7 +567,8 @@ export async function reconcileAllBalances(
         if (expectedAccountDeltas.has(acc.id)) {
           // Account activity was recorded
           const delta = expectedAccountDeltas.get(acc.id) || 0;
-          const expected = applyAccountBalanceDelta(0, delta, acc.type);
+          const startBal = acc.initialBalance || 0;
+          const expected = applyAccountBalanceDelta(startBal, delta, acc.type);
           const current = roundMoney(acc.balance || 0);
 
           // Only auto-correct if discrepancy is found and transactions are known

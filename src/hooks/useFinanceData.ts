@@ -37,8 +37,8 @@ export function useFinanceData() {
     useLiveQuery(() => db.recurringCommitments.toArray(), []) ?? EMPTY_RECURRING;
 
   const breakdown = useMemo(() => {
-    return calculateAvailableToSpend(accounts, recurringCommitments, people);
-  }, [accounts, recurringCommitments, people]);
+    return calculateAvailableToSpend(accounts, recurringCommitments, people, transactions);
+  }, [accounts, recurringCommitments, people, transactions]);
 
   const todayStr = useMemo(() => new Date().toISOString().slice(0, 10), []);
 

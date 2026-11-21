@@ -28,8 +28,8 @@ export class FinanceTrackerDatabase extends Dexie {
   transactions!: Table<Transaction, string>;
   recurringCommitments!: Table<RecurringCommitment, string>;
 
-  constructor() {
-    super('FinanceTrackerDB');
+  constructor(databaseName = 'FinanceTrackerDB') {
+    super(databaseName);
 
     this.version(1).stores({
       accounts: 'id, name, type, isArchived',

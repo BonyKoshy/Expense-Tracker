@@ -1,4 +1,9 @@
 import { db, type FinanceTrackerDatabase } from '../db';
+import {
+  reconcileAllBalances,
+  calculateTransactionDeltas,
+  applyAccountBalanceDelta,
+} from './accountingEngine';
 import type {
   Account,
   Category,
@@ -8,7 +13,7 @@ import type {
   TransactionSplit,
   AccountType,
 } from '../types';
-import { roundMoney } from '../utils/money';
+import { roundMoney, addMoney } from '../utils/money';
 
 export interface CashewPreviewSummary {
   totalRows: number;
@@ -510,6 +515,37 @@ export async function importCashewCSV(
         return person;
       };
 
+      // Helper to add transaction and synchronously update running balances
+      const recordCashewTx = async (tx: Transaction) => {
+        await database.transactions.add(tx);
+        existingTxs.push(tx);
+        transactionsAdded++;
+
+        const { accountDeltas, peopleDeltas } = calculateTransactionDeltas(tx);
+        for (const [accId, delta] of accountDeltas.entries()) {
+          const acc = accountMap.get(accId) || (await database.accounts.get(accId));
+          if (acc) {
+            const newBal = applyAccountBalanceDelta(acc.balance || 0, delta, acc.type);
+            acc.balance = newBal;
+            await database.accounts.update(acc.id, {
+              balance: newBal,
+              updatedAt: new Date().toISOString(),
+            });
+          }
+        }
+        for (const [pId, delta] of peopleDeltas.entries()) {
+          const person = personMap.get(pId) || (await database.people.get(pId));
+          if (person) {
+            const newNet = addMoney(person.netBalance || 0, delta);
+            person.netBalance = newNet;
+            await database.people.update(person.id, {
+              netBalance: newNet,
+              updatedAt: new Date().toISOString(),
+            });
+          }
+        }
+      };
+
       // 5. Build Transactions
       for (let i = 0; i < dataRows.length; i++) {
         const r = dataRows[i];
@@ -598,9 +634,7 @@ export async function importCashewCSV(
               createdAt: isoDate,
               updatedAt: isoDate,
             };
-            await database.transactions.add(tx);
-            existingTxs.push(tx);
-            transactionsAdded++;
+            await recordCashewTx(tx);
           }
           continue;
         }
@@ -643,9 +677,7 @@ export async function importCashewCSV(
             createdAt: isoDate,
             updatedAt: isoDate,
           };
-          await database.transactions.add(tx);
-          existingTxs.push(tx);
-          transactionsAdded++;
+          await recordCashewTx(tx);
           continue;
         }
 
@@ -673,9 +705,7 @@ export async function importCashewCSV(
             createdAt: isoDate,
             updatedAt: isoDate,
           };
-          await database.transactions.add(tx);
-          existingTxs.push(tx);
-          transactionsAdded++;
+          await recordCashewTx(tx);
           continue;
         }
 
@@ -713,9 +743,7 @@ export async function importCashewCSV(
             createdAt: isoDate,
             updatedAt: isoDate,
           };
-          await database.transactions.add(tx);
-          existingTxs.push(tx);
-          transactionsAdded++;
+          await recordCashewTx(tx);
           continue;
         }
 
@@ -737,12 +765,13 @@ export async function importCashewCSV(
           createdAt: isoDate,
           updatedAt: isoDate,
         };
-        await database.transactions.add(tx);
-        existingTxs.push(tx);
-        transactionsAdded++;
+        await recordCashewTx(tx);
       }
     }
   );
+
+  // Automatically recalculate and sync account balances and friend net balances from newly imported transactions
+  await reconcileAllBalances(database);
 
   return {
     accountsAdded,

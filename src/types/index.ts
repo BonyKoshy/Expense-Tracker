@@ -11,6 +11,7 @@ export interface Account {
   name: string;
   type: AccountType;
   balance: number; // Liquid balance for bank/cash/wallet; Current unbilled liability for credit_card
+  initialBalance?: number; // Starting balance when account was created (for ledger reconciliation)
   creditLimit?: number; // Only for credit_card
   billingCycleDay?: number; // Day of month (1-31) when statement is generated
   paymentDueDay?: number; // Day of month (1-31) when CC payment is due

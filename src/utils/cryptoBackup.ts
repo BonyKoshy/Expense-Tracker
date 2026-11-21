@@ -88,7 +88,15 @@ export function validateBackupSchema(data: any): { isValid: boolean; error?: str
     return { isValid: false, error: 'Missing "data" envelope in backup.' };
   }
 
-  const { accounts, categories, transactions, people, groups, recurringCommitments } = data.data;
+  const {
+    accounts,
+    categories,
+    subcategories,
+    transactions,
+    people,
+    groups,
+    recurringCommitments,
+  } = data.data;
 
   if (!Array.isArray(accounts)) {
     return { isValid: false, error: 'Backup missing "accounts" table.' };
@@ -108,11 +116,30 @@ export function validateBackupSchema(data: any): { isValid: boolean; error?: str
     }
   }
 
-  if (people && !Array.isArray(people)) {
-    return { isValid: false, error: '"people" table must be an array.' };
-  }
   if (categories && !Array.isArray(categories)) {
     return { isValid: false, error: '"categories" table must be an array.' };
+  }
+  if (Array.isArray(categories)) {
+    for (const cat of categories) {
+      if (!cat.id || !cat.name) {
+        return { isValid: false, error: `Invalid category record: ${JSON.stringify(cat)}` };
+      }
+    }
+  }
+
+  if (subcategories && !Array.isArray(subcategories)) {
+    return { isValid: false, error: '"subcategories" table must be an array.' };
+  }
+  if (Array.isArray(subcategories)) {
+    for (const sub of subcategories) {
+      if (!sub.id || !sub.name || !sub.categoryId) {
+        return { isValid: false, error: `Invalid subcategory record: ${JSON.stringify(sub)}` };
+      }
+    }
+  }
+
+  if (people && !Array.isArray(people)) {
+    return { isValid: false, error: '"people" table must be an array.' };
   }
   if (groups && !Array.isArray(groups)) {
     return { isValid: false, error: '"groups" table must be an array.' };
