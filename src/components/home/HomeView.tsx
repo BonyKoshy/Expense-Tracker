@@ -11,17 +11,17 @@ import {
   ArrowDownLeft,
   ArrowUpRight,
   CheckCircle2,
-} from 'lucide-react';
+} from "lucide-react";
 import type {
   Account,
   Category,
   Transaction,
   RecurringCommitment,
   AvailableToSpendBreakdown,
-} from '../../types';
-import { formatINR, formatDate } from '../../utils/formatters';
-import { SavingsGoalCard } from '../savings/SavingsGoalCard';
-import { AnalyticsView } from '../analytics/AnalyticsView';
+} from "../../types";
+import { formatINR, formatDate } from "../../utils/formatters";
+import { SavingsGoalCard } from "../savings/SavingsGoalCard";
+import { AnalyticsView } from "../analytics/AnalyticsView";
 
 interface HomeViewProps {
   breakdown: AvailableToSpendBreakdown;
@@ -66,23 +66,25 @@ export function HomeView({
               <span
                 className={`text-xs px-2.5 py-0.5 rounded-full font-medium ${
                   breakdown.availableToSpend > 0
-                    ? 'bg-[#15241b] text-[#a8dab5] border border-[#22382a]'
-                    : 'bg-[#2a1f17] text-[#ffb787] border border-[#3d2c20]'
+                    ? "bg-[#15241b] text-[#a8dab5] border border-[#22382a]"
+                    : "bg-[#2a1f17] text-[#ffb787] border border-[#3d2c20]"
                 }`}
               >
-                {breakdown.availableToSpend > 0 ? 'Safe Margin' : 'Low Safety Buffer'}
+                {breakdown.availableToSpend > 0
+                  ? "Safe Margin"
+                  : "Low Safety Buffer"}
               </span>
             </div>
             <p className="text-xs text-[#90929d] mt-1.5">
-              {breakdown.primaryBankName || 'Primary Bank'}:{' '}
+              {breakdown.primaryBankName || "Primary Bank"}:{" "}
               <span className="font-mono text-[#c4c6cf]">
                 {formatINR(breakdown.hdfcBalance)}
-              </span>{' '}
-              • CC Liability:{' '}
+              </span>{" "}
+              • CC Liability:{" "}
               <span className="font-mono text-[#f2b8b5]">
                 -{formatINR(breakdown.unbilledCCLiability)}
-              </span>{' '}
-              • Reserved Commitments:{' '}
+              </span>{" "}
+              • Reserved Commitments:{" "}
               <span className="font-mono text-[#f2b8b5]">
                 -{formatINR(breakdown.hdfcReservedCommitments)}
               </span>
@@ -116,7 +118,9 @@ export function HomeView({
             <div className="text-sm font-semibold text-[#f2b8b5] mt-0.5 font-mono">
               -{formatINR(breakdown.unbilledCCLiability)}
             </div>
-            <div className="text-[10px] text-[#6c6e79] mt-0.5">Credit Card Dues</div>
+            <div className="text-[10px] text-[#6c6e79] mt-0.5">
+              Credit Card Dues
+            </div>
           </div>
 
           <div className="bg-[#111216] rounded-2xl p-3 border border-[#1e2026]">
@@ -127,7 +131,7 @@ export function HomeView({
             <div className="text-[10px] text-[#6c6e79] mt-0.5">
               {breakdown.primaryBankName
                 ? `${breakdown.primaryBankName} + Cash`
-                : 'Liquid Balances'}
+                : "Liquid Balances"}
             </div>
           </div>
 
@@ -136,7 +140,9 @@ export function HomeView({
             <div className="text-sm font-semibold text-[#ffb787] mt-0.5 font-mono">
               +{formatINR(breakdown.lent)}
             </div>
-            <div className="text-[10px] text-[#6c6e79] mt-0.5">Owed by Friends</div>
+            <div className="text-[10px] text-[#6c6e79] mt-0.5">
+              Owed by Friends
+            </div>
           </div>
 
           <div className="bg-[#111216] rounded-2xl p-3 border border-[#1e2026]">
@@ -172,11 +178,12 @@ export function HomeView({
                 The Cashew Killer Architecture
               </h3>
               <p className="mt-1 leading-relaxed text-[#c4c6cf]">
-                When you pay a bulk bill (e.g. ₹1,505 on credit card at DMart) for 5 people:
-                your personal expense increases <strong>only by ₹282.25</strong>. The rest is
-                booked as <strong>receivables</strong>. When a friend repays via GPay,{' '}
-                <strong>₹0</strong> is counted as income — liquid cash increases and friend debt
-                clears.
+                When you pay a bulk bill (e.g. ₹1,505 on credit card at DMart)
+                for 5 people: your personal expense increases{" "}
+                <strong>only by ₹282.25</strong>. The rest is booked as{" "}
+                <strong>receivables</strong>. When a friend repays via GPay,{" "}
+                <strong>₹0</strong> is counted as income — liquid cash increases
+                and friend debt clears.
               </p>
             </div>
           </div>
@@ -196,7 +203,8 @@ export function HomeView({
                   Due Recurring Commitments ({dueCommitments.length})
                 </h3>
                 <p className="text-[11px] text-[#90929d] mt-0.5">
-                  Current monthly cycle • Confirm payment to record &amp; update tenure
+                  Current monthly cycle • Confirm payment to record &amp; update
+                  tenure
                 </p>
               </div>
             </div>
@@ -212,10 +220,13 @@ export function HomeView({
                 className="p-3 rounded-2xl bg-[#111216] border border-[#1e2026] flex items-center justify-between gap-3"
               >
                 <div>
-                  <div className="text-xs font-medium text-[#e2e2e7]">{comm.name}</div>
+                  <div className="text-xs font-medium text-[#e2e2e7]">
+                    {comm.name}
+                  </div>
                   <div className="text-[10px] text-[#90929d] mt-0.5">
-                    {comm.paidInstallments} of {comm.totalInstallments || '∞'} paid
-                    {comm.dayOfMonth ? ` • Due on day ${comm.dayOfMonth}` : ''}
+                    {comm.paidInstallments} of {comm.totalInstallments || "∞"}{" "}
+                    paid
+                    {comm.dayOfMonth ? ` • Due on day ${comm.dayOfMonth}` : ""}
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
@@ -249,11 +260,11 @@ export function HomeView({
                 Today&apos;s Activity ({todaysTransactions.length})
               </h3>
               <p className="text-xs text-[#90929d] mt-0.5">
-                {new Date().toLocaleDateString('en-US', {
-                  weekday: 'long',
-                  month: 'short',
-                  day: 'numeric',
-                  year: 'numeric',
+                {new Date().toLocaleDateString("en-US", {
+                  weekday: "long",
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric",
                 })}
               </p>
             </div>
@@ -273,8 +284,8 @@ export function HomeView({
           <div className="divide-y divide-[#1c1d22]">
             {todaysTransactions.map((tx) => {
               const account = accounts.find((a) => a.id === tx.accountId);
-              const isShared = tx.type === 'shared_expense';
-              const isSettlement = tx.type === 'settlement_received';
+              const isShared = tx.type === "shared_expense";
+              const isSettlement = tx.type === "settlement_received";
 
               return (
                 <div
@@ -285,10 +296,10 @@ export function HomeView({
                     <div
                       className={`p-2 rounded-xl shrink-0 border ${
                         isShared
-                          ? 'bg-[#2a1f17] text-[#ffb787] border-[#3d2c20]'
+                          ? "bg-[#2a1f17] text-[#ffb787] border-[#3d2c20]"
                           : isSettlement
-                          ? 'bg-[#15241b] text-[#a8dab5] border-[#22382a]'
-                          : 'bg-[#1a2536] text-[#a8c7fa] border-[#283a54]'
+                            ? "bg-[#15241b] text-[#a8dab5] border-[#22382a]"
+                            : "bg-[#1a2536] text-[#a8c7fa] border-[#283a54]"
                       }`}
                     >
                       {isShared ? (
@@ -304,7 +315,7 @@ export function HomeView({
                         {tx.title}
                       </div>
                       <div className="text-[11px] text-[#90929d]">
-                        {account?.name || 'Account'} • {formatDate(tx.date)}
+                        {account?.name || "Account"} • {formatDate(tx.date)}
                       </div>
                     </div>
                   </div>
@@ -313,13 +324,13 @@ export function HomeView({
                     <div
                       className={`font-mono text-xs sm:text-sm font-semibold ${
                         isSettlement
-                          ? 'text-[#a8dab5]'
+                          ? "text-[#a8dab5]"
                           : isShared
-                          ? 'text-[#ffb787]'
-                          : 'text-[#e2e2e7]'
+                            ? "text-[#ffb787]"
+                            : "text-[#e2e2e7]"
                       }`}
                     >
-                      {isSettlement ? '+' : '-'}
+                      {isSettlement ? "+" : "-"}
                       {formatINR(tx.amount)}
                     </div>
                     {isShared && (
@@ -336,7 +347,10 @@ export function HomeView({
           <div className="p-4 rounded-2xl bg-[#111216] border border-[#1e2026] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
             <div className="flex items-center gap-2.5 text-[#c4c6cf]">
               <CheckCircle2 className="h-4 w-4 text-[#a8dab5] shrink-0" />
-              <span>No transactions recorded today. Your daily spending margin is intact.</span>
+              <span>
+                No transactions recorded today. Your daily spending margin is
+                intact.
+              </span>
             </div>
             <div className="flex items-center gap-2">
               <button

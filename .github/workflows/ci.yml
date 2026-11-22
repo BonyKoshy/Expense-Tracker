@@ -29,7 +29,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: 'npm'
+          cache: "npm"
 
       - name: Install Dependencies (Strict)
         run: npm ci
@@ -64,7 +64,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: 'npm'
+          cache: "npm"
 
       - name: Install Dependencies
         run: npm ci
@@ -90,7 +90,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: 'npm'
+          cache: "npm"
 
       - name: Install Dependencies
         run: npm ci
@@ -181,24 +181,7 @@ jobs:
     needs: [build-and-audit]
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: Download Built Distribution
-        uses: actions/download-artifact@v4
-        with:
-          name: fintrack-production-dist
-          path: dist/
-
-      - name: Deploy to Netlify (Live or Preview)
-        env:
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+      - name: Verify Deployment Readiness
         run: |
-          if [ -n "$NETLIFY_AUTH_TOKEN" ] && [ -n "$NETLIFY_SITE_ID" ]; then
-            echo "Netlify credentials detected! Deploying production release..."
-            npx netlify-cli deploy --dir=dist --prod --site=$NETLIFY_SITE_ID --auth=$NETLIFY_AUTH_TOKEN
-          else
-            echo "Notice: NETLIFY_AUTH_TOKEN or NETLIFY_SITE_ID not set in GitHub repository secrets."
-            echo "Netlify Git-Integration / Webhook will automatically build and deploy dist/ upon push to main."
-          fi
+          echo "All pipeline quality gates, security scans, unit tests, and PWA build audits passed."
+          echo "Netlify Git-Integration / Webhook will automatically build and deploy dist/ upon push to main."

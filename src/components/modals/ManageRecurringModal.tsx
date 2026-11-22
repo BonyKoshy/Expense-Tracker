@@ -1,13 +1,13 @@
-import { useState } from 'react';
-import { X, Plus, Repeat, Trash2 } from 'lucide-react';
+import { useState } from "react";
+import { X, Plus, Repeat, Trash2 } from "lucide-react";
 import type {
   RecurringCommitment,
   RecurringCommitmentType,
   Account,
   Category,
-} from '@/types';
-import { db } from '@/db';
-import { formatINR } from '@/utils/formatters';
+} from "@/types";
+import { db } from "@/db";
+import { formatINR } from "@/utils/formatters";
 
 interface ManageRecurringModalProps {
   isOpen: boolean;
@@ -26,17 +26,19 @@ export function ManageRecurringModal({
   recurringCommitments,
   onSuccess,
 }: ManageRecurringModalProps) {
-  const [name, setName] = useState('');
-  const [type, setType] = useState<RecurringCommitmentType>('emi');
-  const [amountStr, setAmountStr] = useState('');
-  const [accountId, setAccountId] = useState(accounts[0]?.id || '');
-  const [categoryId, setCategoryId] = useState(categories[0]?.id || '');
-  const [dayOfMonth, setDayOfMonth] = useState('5');
-  const [startDate, setStartDate] = useState(() => new Date().toISOString().slice(0, 10));
-  const [totalInstallmentsStr, setTotalInstallmentsStr] = useState('');
-  const [paidInstallmentsStr, setPaidInstallmentsStr] = useState('0');
+  const [name, setName] = useState("");
+  const [type, setType] = useState<RecurringCommitmentType>("emi");
+  const [amountStr, setAmountStr] = useState("");
+  const [accountId, setAccountId] = useState(accounts[0]?.id || "");
+  const [categoryId, setCategoryId] = useState(categories[0]?.id || "");
+  const [dayOfMonth, setDayOfMonth] = useState("5");
+  const [startDate, setStartDate] = useState(() =>
+    new Date().toISOString().slice(0, 10),
+  );
+  const [totalInstallmentsStr, setTotalInstallmentsStr] = useState("");
+  const [paidInstallmentsStr, setPaidInstallmentsStr] = useState("0");
   const [isReservedCommitment, setIsReservedCommitment] = useState(true);
-  const [notes, setNotes] = useState('');
+  const [notes, setNotes] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
@@ -49,7 +51,9 @@ export function ManageRecurringModal({
       setDeletingId(null);
     } catch (err: unknown) {
       console.error(err);
-      setError(err instanceof Error ? err.message : 'Failed to delete commitment');
+      setError(
+        err instanceof Error ? err.message : "Failed to delete commitment",
+      );
     }
   };
 
@@ -59,11 +63,11 @@ export function ManageRecurringModal({
 
     const amount = parseFloat(amountStr) || 0;
     if (amount <= 0) {
-      setError('Please enter a valid commitment amount.');
+      setError("Please enter a valid commitment amount.");
       return;
     }
     if (!name.trim()) {
-      setError('Commitment name is required.');
+      setError("Commitment name is required.");
       return;
     }
 
@@ -85,7 +89,7 @@ export function ManageRecurringModal({
         amount,
         accountId,
         categoryId,
-        frequency: 'monthly',
+        frequency: "monthly",
         dayOfMonth: parseInt(dayOfMonth) || 1,
         startDate,
         totalInstallments,
@@ -99,15 +103,18 @@ export function ManageRecurringModal({
       };
 
       await db.recurringCommitments.add(newCommitment);
-      if (onSuccess) onSuccess(`Recurring commitment "${newCommitment.name}" added.`);
-      setName('');
-      setAmountStr('');
-      setTotalInstallmentsStr('');
-      setPaidInstallmentsStr('0');
-      setNotes('');
+      if (onSuccess)
+        onSuccess(`Recurring commitment "${newCommitment.name}" added.`);
+      setName("");
+      setAmountStr("");
+      setTotalInstallmentsStr("");
+      setPaidInstallmentsStr("0");
+      setNotes("");
     } catch (err: unknown) {
       console.error(err);
-      setError(err instanceof Error ? err.message : 'Failed to save commitment');
+      setError(
+        err instanceof Error ? err.message : "Failed to save commitment",
+      );
     }
   };
 
@@ -176,12 +183,18 @@ export function ManageRecurringModal({
                 </label>
                 <select
                   value={type}
-                  onChange={(e) => setType(e.target.value as RecurringCommitmentType)}
+                  onChange={(e) =>
+                    setType(e.target.value as RecurringCommitmentType)
+                  }
                   className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-4 py-3 text-sm text-[#e2e2e7] focus:outline-none min-h-[46px]"
                 >
                   <option value="emi">EMI (Duration-bound)</option>
-                  <option value="recurring_investment">Recurring Deposit (RD)</option>
-                  <option value="recurring_expense">Ongoing Expense (Rent, Internet)</option>
+                  <option value="recurring_investment">
+                    Recurring Deposit (RD)
+                  </option>
+                  <option value="recurring_expense">
+                    Ongoing Expense (Rent, Internet)
+                  </option>
                 </select>
               </div>
 
@@ -260,7 +273,7 @@ export function ManageRecurringModal({
                 />
               </div>
 
-              {type !== 'recurring_expense' && (
+              {type !== "recurring_expense" && (
                 <>
                   <div>
                     <label className="text-xs sm:text-sm font-medium text-[#c4c6cf] block mb-1.5">
@@ -334,9 +347,11 @@ export function ManageRecurringModal({
               >
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-semibold text-[#e2e2e7]">{comm.name}</span>
+                    <span className="text-sm font-semibold text-[#e2e2e7]">
+                      {comm.name}
+                    </span>
                     <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded-full bg-[#1a2536] text-[#d3e3fd]">
-                      {comm.type.replace('_', ' ')}
+                      {comm.type.replace("_", " ")}
                     </span>
                   </div>
                   <div className="text-xs text-[#90929d] mt-0.5">
@@ -356,11 +371,11 @@ export function ManageRecurringModal({
                     }}
                     className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
                       comm.isActive
-                        ? 'bg-[#15241b] text-[#a8dab5] border border-[#22382a]'
-                        : 'bg-[#1a1c22] text-[#90929d]'
+                        ? "bg-[#15241b] text-[#a8dab5] border border-[#22382a]"
+                        : "bg-[#1a1c22] text-[#90929d]"
                     }`}
                   >
-                    {comm.isActive ? 'Active' : 'Paused'}
+                    {comm.isActive ? "Active" : "Paused"}
                   </button>
 
                   {deletingId === comm.id ? (

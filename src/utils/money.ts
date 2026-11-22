@@ -1,9 +1,9 @@
 /**
  * Monetary Precision Utilities for FinTrack
- * 
+ *
  * In financial systems, IEEE 754 double-precision floating point arithmetic
  * (e.g. 0.1 + 0.2 = 0.30000000000000004) can introduce compounding rounding errors.
- * 
+ *
  * FinTrack adopts an exact integer-paise calculation strategy:
  * 1 INR = 100 paise.
  * All monetary allocations, splits, and deltas are reconciled at the paise level,
@@ -68,11 +68,14 @@ export interface SplitAllocation {
  */
 export function allocateEqualSplit(
   totalRupees: number,
-  participantIds: string[]
+  participantIds: string[],
 ): SplitAllocation[] {
   const count = participantIds.length;
   if (count === 0) return [];
-  if (count === 1) return [{ participantId: participantIds[0], amount: roundMoney(totalRupees) }];
+  if (count === 1)
+    return [
+      { participantId: participantIds[0], amount: roundMoney(totalRupees) },
+    ];
 
   const totalPaise = toPaise(totalRupees);
   const baseSharePaise = Math.floor(totalPaise / count);
@@ -99,7 +102,7 @@ export function allocateEqualSplit(
  */
 export function validateSplitReconciliation(
   totalRupees: number,
-  splits: { amount: number }[]
+  splits: { amount: number }[],
 ): { isValid: boolean; difference: number } {
   const totalPaise = toPaise(totalRupees);
   const splitsPaise = splits.reduce((sum, s) => sum + toPaise(s.amount), 0);

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState } from "react";
 
 interface UserNameModalProps {
   isOpen: boolean;
@@ -19,11 +19,11 @@ export function UserNameModal({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const cleanName = nameInput.trim() || 'Bony';
+    const cleanName = nameInput.trim() || "Bony";
     onSave(cleanName);
   };
 
-  const hasStoredName = Boolean(localStorage.getItem('fintrack_user_name'));
+  const hasStoredName = Boolean(localStorage.getItem("fintrack_user_name"));
 
   return (
     <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
@@ -32,7 +32,9 @@ export function UserNameModal({
           <div className="h-12 w-12 rounded-2xl bg-[#1a2536] text-[#a8c7fa] flex items-center justify-center mx-auto text-xl font-bold border border-[#283a54]">
             👋
           </div>
-          <h2 className="text-lg font-semibold text-[#e2e2e7]">Welcome to FinTrack</h2>
+          <h2 className="text-lg font-semibold text-[#e2e2e7]">
+            Welcome to FinTrack
+          </h2>
           <p className="text-xs text-[#90929d]">What should we call you?</p>
         </div>
 

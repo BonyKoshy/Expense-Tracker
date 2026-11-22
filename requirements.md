@@ -7,14 +7,16 @@ A high-performance, local-first Progressive Web App built with React, Vite, Type
 ## 🎯 Architecture Pillars & Core Rules
 
 ### 1. Extensibility & Dynamic Management
+
 - **Accounts:** Dynamic creation, editing, and archiving. Supports Bank accounts, Credit Cards, Digital Wallets, Physical Cash, and Investments.
 - **Categories & Subcategories:** Multi-tier taxonomy (e.g., `Food & Dining` -> `Tea & Coffee`, `Snacks`, `Dining Out`, `Groceries`). Fully customizable by the user.
 - **People & Groups:** First-class relationship tracking. Friends can belong to multiple groups (e.g., `514`, `PG`, `Goa Trip`). Real-time calculated receivable (they owe me) and payable (I owe them) balances.
 
 ### 2. The Core Shared-Expense & Settlement Engine (The "Cashew Killer")
+
 - **Bulk Split Math:**
   - When paying a bulk bill (e.g., ₹1,505 on HDFC Credit Card at DMart) split among $N$ people:
-    - **Personal Expense:** Increases *only* by user's personal share (e.g., ₹282.25).
+    - **Personal Expense:** Increases _only_ by user's personal share (e.g., ₹282.25).
     - **Receivables:** Friend shares are booked as receivables (`netBalance` increases for each friend).
     - **Source Account / Liability:** The source account is charged the full bill amount (₹1,505). If paid via Credit Card, credit liability increases by ₹1,505.
 - **Asynchronous Settlements & Repayments:**
@@ -23,20 +25,24 @@ A high-performance, local-first Progressive Web App built with React, Vite, Type
   - **CRUCIAL ACCOUNTING RULE:** Friend settlements and debt repayments are **never** recorded as Income or Expenses. They are pure balance/receivable transfers.
 
 ### 3. "Available to Spend" Financial Metric
+
 Traditional apps show simple bank balances, giving a false sense of liquidity. FinTrack calculates:
 $$\text{Available to Spend} = \text{Total Liquid Balances} - (\text{Reserved Commitments} + \text{Unbilled CC Liability} + \text{Net Money Owed to Others})$$
 
 Where:
+
 - $\text{Total Liquid Balances} = \text{Bank Accounts} + \text{Cash} + \text{Wallets}$
 - $\text{Reserved Commitments} = \sum \text{Active recurring commitments for current period (Rent, RD, EMIs)}$
 - $\text{Unbilled CC Liability} = \text{Total outstanding credit card balance}$
 - $\text{Net Money Owed to Others} = \max(0, \sum \text{Payables} - \sum \text{Receivables})$
 
 ### 4. Duration-Aware Recurring Commitments Engine
+
 - Supports fixed duration commitments (e.g., Phone EMI: 6 months, Recurring Deposit: 24 months, PG Rent: ongoing monthly).
 - Tracks paid vs. remaining installments, automatically expiring or updating remaining liability.
 
 ### 5. Local-First & Encrypted Security
+
 - Dexie.js (IndexedDB) for zero-latency offline operation.
 - Password-protected encrypted JSON/CSV backup & restore using Web Crypto API (AES-GCM 256-bit + PBKDF2).
 

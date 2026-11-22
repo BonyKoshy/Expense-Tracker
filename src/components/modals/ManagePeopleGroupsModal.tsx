@@ -1,8 +1,8 @@
-import { useState } from 'react';
-import { X, Plus, Users, UserPlus, Edit2, Trash2 } from 'lucide-react';
-import type { Person, Group } from '@/types';
-import { db, safeDeletePerson } from '@/db';
-import { formatINR } from '@/utils/formatters';
+import { useState } from "react";
+import { X, Plus, Users, UserPlus, Edit2, Trash2 } from "lucide-react";
+import type { Person, Group } from "@/types";
+import { db, safeDeletePerson } from "@/db";
+import { formatINR } from "@/utils/formatters";
 
 interface ManagePeopleGroupsModalProps {
   isOpen: boolean;
@@ -19,20 +19,22 @@ export function ManagePeopleGroupsModal({
   groups,
   onSuccess,
 }: ManagePeopleGroupsModalProps) {
-  const [activeSubTab, setActiveSubTab] = useState<'people' | 'groups'>('people');
+  const [activeSubTab, setActiveSubTab] = useState<"people" | "groups">(
+    "people",
+  );
 
   // Person form state
   const [editingPersonId, setEditingPersonId] = useState<string | null>(null);
-  const [personName, setPersonName] = useState('');
-  const [personPhone, setPersonPhone] = useState('');
-  const [personUpi, setPersonUpi] = useState('');
-  const [personAvatar, setPersonAvatar] = useState('👤');
-  const [personNotes, setPersonNotes] = useState('');
+  const [personName, setPersonName] = useState("");
+  const [personPhone, setPersonPhone] = useState("");
+  const [personUpi, setPersonUpi] = useState("");
+  const [personAvatar, setPersonAvatar] = useState("👤");
+  const [personNotes, setPersonNotes] = useState("");
 
   // Group form state
   const [editingGroupId, setEditingGroupId] = useState<string | null>(null);
-  const [groupName, setGroupName] = useState('');
-  const [groupDesc, setGroupDesc] = useState('');
+  const [groupName, setGroupName] = useState("");
+  const [groupDesc, setGroupDesc] = useState("");
   const [groupMemberIds, setGroupMemberIds] = useState<string[]>([]);
 
   const [error, setError] = useState<string | null>(null);
@@ -42,33 +44,33 @@ export function ManagePeopleGroupsModal({
   const startEditPerson = (p: Person) => {
     setEditingPersonId(p.id);
     setPersonName(p.name);
-    setPersonPhone(p.phone || '');
-    setPersonUpi(p.upiId || '');
-    setPersonAvatar(p.avatar || '👤');
-    setPersonNotes(p.notes || '');
+    setPersonPhone(p.phone || "");
+    setPersonUpi(p.upiId || "");
+    setPersonAvatar(p.avatar || "👤");
+    setPersonNotes(p.notes || "");
   };
 
   const resetPersonForm = () => {
     setEditingPersonId(null);
-    setPersonName('');
-    setPersonPhone('');
-    setPersonUpi('');
-    setPersonAvatar('👤');
-    setPersonNotes('');
+    setPersonName("");
+    setPersonPhone("");
+    setPersonUpi("");
+    setPersonAvatar("👤");
+    setPersonNotes("");
     setError(null);
   };
 
   const startEditGroup = (g: Group) => {
     setEditingGroupId(g.id);
     setGroupName(g.name);
-    setGroupDesc(g.description || '');
+    setGroupDesc(g.description || "");
     setGroupMemberIds(g.memberIds || []);
   };
 
   const resetGroupForm = () => {
     setEditingGroupId(null);
-    setGroupName('');
-    setGroupDesc('');
+    setGroupName("");
+    setGroupDesc("");
     setGroupMemberIds([]);
     setError(null);
   };
@@ -77,7 +79,7 @@ export function ManagePeopleGroupsModal({
     e.preventDefault();
     setError(null);
     if (!personName.trim()) {
-      setError('Friend name is required.');
+      setError("Friend name is required.");
       return;
     }
 
@@ -110,7 +112,7 @@ export function ManagePeopleGroupsModal({
       resetPersonForm();
     } catch (err: unknown) {
       console.error(err);
-      setError(err instanceof Error ? err.message : 'Failed to save person');
+      setError(err instanceof Error ? err.message : "Failed to save person");
     }
   };
 
@@ -118,7 +120,7 @@ export function ManagePeopleGroupsModal({
     e.preventDefault();
     setError(null);
     if (!groupName.trim()) {
-      setError('Group name is required.');
+      setError("Group name is required.");
       return;
     }
 
@@ -137,7 +139,7 @@ export function ManagePeopleGroupsModal({
           name: groupName.trim(),
           description: groupDesc.trim() || undefined,
           memberIds: groupMemberIds,
-          defaultSplitType: 'equal',
+          defaultSplitType: "equal",
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         };
@@ -147,7 +149,7 @@ export function ManagePeopleGroupsModal({
       resetGroupForm();
     } catch (err: unknown) {
       console.error(err);
-      setError(err instanceof Error ? err.message : 'Failed to save group');
+      setError(err instanceof Error ? err.message : "Failed to save group");
     }
   };
 
@@ -157,33 +159,37 @@ export function ManagePeopleGroupsModal({
       if (Math.abs(p.netBalance || 0) > 0.001) {
         setError(
           `Cannot delete "${p.name}" because they have an active unsettled balance of ${formatINR(
-            Math.abs(p.netBalance)
-          )}. Please settle all balances before removing this friend.`
+            Math.abs(p.netBalance),
+          )}. Please settle all balances before removing this friend.`,
         );
         return;
       }
-      if (window.confirm(`Are you sure you want to delete friend "${p.name}"?`)) {
+      if (
+        window.confirm(`Are you sure you want to delete friend "${p.name}"?`)
+      ) {
         await safeDeletePerson(db, p.id);
         if (editingPersonId === p.id) resetPersonForm();
         if (onSuccess) onSuccess(`Friend "${p.name}" removed.`);
       }
     } catch (err: unknown) {
       console.error(err);
-      setError(err instanceof Error ? err.message : 'Failed to delete person');
+      setError(err instanceof Error ? err.message : "Failed to delete person");
     }
   };
 
   const handleDeleteGroup = async (g: Group) => {
     setError(null);
     try {
-      if (window.confirm(`Are you sure you want to delete group "${g.name}"?`)) {
+      if (
+        window.confirm(`Are you sure you want to delete group "${g.name}"?`)
+      ) {
         await db.groups.delete(g.id);
         if (editingGroupId === g.id) resetGroupForm();
         if (onSuccess) onSuccess(`Group "${g.name}" removed.`);
       }
     } catch (err: unknown) {
       console.error(err);
-      setError(err instanceof Error ? err.message : 'Failed to delete group');
+      setError(err instanceof Error ? err.message : "Failed to delete group");
     }
   };
 
@@ -219,22 +225,22 @@ export function ManagePeopleGroupsModal({
         <div className="px-5 pt-3 pb-2 border-b border-[#23252c] flex gap-2 shrink-0">
           <button
             type="button"
-            onClick={() => setActiveSubTab('people')}
+            onClick={() => setActiveSubTab("people")}
             className={`px-4 py-1.5 text-xs font-medium rounded-full transition-all ${
-              activeSubTab === 'people'
-                ? 'bg-[#1a2536] text-[#d3e3fd]'
-                : 'bg-[#1a1c22] text-[#90929d] hover:text-[#e2e2e7]'
+              activeSubTab === "people"
+                ? "bg-[#1a2536] text-[#d3e3fd]"
+                : "bg-[#1a1c22] text-[#90929d] hover:text-[#e2e2e7]"
             }`}
           >
             Friends ({people.length})
           </button>
           <button
             type="button"
-            onClick={() => setActiveSubTab('groups')}
+            onClick={() => setActiveSubTab("groups")}
             className={`px-4 py-1.5 text-xs font-medium rounded-full transition-all ${
-              activeSubTab === 'groups'
-                ? 'bg-[#1a2536] text-[#d3e3fd]'
-                : 'bg-[#1a1c22] text-[#90929d] hover:text-[#e2e2e7]'
+              activeSubTab === "groups"
+                ? "bg-[#1a2536] text-[#d3e3fd]"
+                : "bg-[#1a1c22] text-[#90929d] hover:text-[#e2e2e7]"
             }`}
           >
             Groups ({groups.length})
@@ -249,7 +255,7 @@ export function ManagePeopleGroupsModal({
             </div>
           )}
 
-          {activeSubTab === 'people' && (
+          {activeSubTab === "people" && (
             <>
               {/* Add / Edit Person Form */}
               <form
@@ -258,7 +264,7 @@ export function ManagePeopleGroupsModal({
               >
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-semibold text-[#a8c7fa]">
-                    {editingPersonId ? 'Edit Friend' : 'Add New Friend'}
+                    {editingPersonId ? "Edit Friend" : "Add New Friend"}
                   </span>
                   {editingPersonId && (
                     <button
@@ -349,7 +355,7 @@ export function ManagePeopleGroupsModal({
                     className="px-6 py-2.5 rounded-full bg-[#a8c7fa] hover:bg-[#b8d4ff] text-[#003062] text-xs sm:text-sm font-semibold flex items-center gap-2 transition-colors min-h-[44px]"
                   >
                     <UserPlus className="h-4 w-4" />
-                    <span>{editingPersonId ? 'Update' : 'Add Friend'}</span>
+                    <span>{editingPersonId ? "Update" : "Add Friend"}</span>
                   </button>
                 </div>
               </form>
@@ -363,7 +369,7 @@ export function ManagePeopleGroupsModal({
                   >
                     <div className="flex items-center gap-3">
                       <div className="h-9 w-9 rounded-full bg-[#1a1c22] flex items-center justify-center text-lg">
-                        {p.avatar || '👤'}
+                        {p.avatar || "👤"}
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
@@ -377,21 +383,21 @@ export function ManagePeopleGroupsModal({
                           )}
                         </div>
                         <div className="text-[11px] text-[#90929d]">
-                          Balance:{' '}
+                          Balance:{" "}
                           <span
                             className={
                               p.netBalance > 0
-                                ? 'text-[#ffb77c] font-semibold'
+                                ? "text-[#ffb77c] font-semibold"
                                 : p.netBalance < 0
-                                ? 'text-[#f2b8b5] font-semibold'
-                                : 'text-[#90929d]'
+                                  ? "text-[#f2b8b5] font-semibold"
+                                  : "text-[#90929d]"
                             }
                           >
                             {p.netBalance > 0
                               ? `Owes you ${formatINR(p.netBalance)}`
                               : p.netBalance < 0
-                              ? `You owe ${formatINR(Math.abs(p.netBalance))}`
-                              : 'Settled (₹0)'}
+                                ? `You owe ${formatINR(Math.abs(p.netBalance))}`
+                                : "Settled (₹0)"}
                           </span>
                         </div>
                       </div>
@@ -419,7 +425,7 @@ export function ManagePeopleGroupsModal({
             </>
           )}
 
-          {activeSubTab === 'groups' && (
+          {activeSubTab === "groups" && (
             <>
               {/* Add / Edit Group Form */}
               <form
@@ -428,7 +434,7 @@ export function ManagePeopleGroupsModal({
               >
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-semibold text-[#a8c7fa]">
-                    {editingGroupId ? 'Edit Group' : 'Create GPay Group'}
+                    {editingGroupId ? "Edit Group" : "Create GPay Group"}
                   </span>
                   {editingGroupId && (
                     <button
@@ -484,18 +490,20 @@ export function ManagePeopleGroupsModal({
                           type="button"
                           onClick={() => {
                             if (isIncluded) {
-                              setGroupMemberIds(groupMemberIds.filter((id) => id !== p.id));
+                              setGroupMemberIds(
+                                groupMemberIds.filter((id) => id !== p.id),
+                              );
                             } else {
                               setGroupMemberIds([...groupMemberIds, p.id]);
                             }
                           }}
                           className={`px-3 py-1 rounded-full text-xs font-medium transition-colors flex items-center gap-1.5 ${
                             isIncluded
-                              ? 'bg-[#1a2536] text-[#d3e3fd]'
-                              : 'bg-[#1a1c22] text-[#90929d] hover:text-[#e2e2e7]'
+                              ? "bg-[#1a2536] text-[#d3e3fd]"
+                              : "bg-[#1a1c22] text-[#90929d] hover:text-[#e2e2e7]"
                           }`}
                         >
-                          <span>{p.avatar || '👤'}</span>
+                          <span>{p.avatar || "👤"}</span>
                           <span>{p.name}</span>
                         </button>
                       );
@@ -509,7 +517,7 @@ export function ManagePeopleGroupsModal({
                     className="px-5 py-2 rounded-full bg-[#a8c7fa] hover:bg-[#b8d4ff] text-[#003062] text-xs font-semibold flex items-center gap-1.5 transition-colors"
                   >
                     <Plus className="h-4 w-4" />
-                    <span>{editingGroupId ? 'Update' : 'Save'}</span>
+                    <span>{editingGroupId ? "Update" : "Save"}</span>
                   </button>
                 </div>
               </form>
@@ -523,13 +531,17 @@ export function ManagePeopleGroupsModal({
                   >
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="text-sm font-semibold text-[#e2e2e7]">{g.name}</span>
+                        <span className="text-sm font-semibold text-[#e2e2e7]">
+                          {g.name}
+                        </span>
                         <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#1a1c22] text-[#90929d]">
                           {g.memberIds.length} members
                         </span>
                       </div>
                       {g.description && (
-                        <p className="text-xs text-[#90929d] mt-0.5">{g.description}</p>
+                        <p className="text-xs text-[#90929d] mt-0.5">
+                          {g.description}
+                        </p>
                       )}
                     </div>
 

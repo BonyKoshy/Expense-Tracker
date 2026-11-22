@@ -1,4 +1,4 @@
-import { useState, useEffect, useId, useCallback } from 'react';
+import { useState, useEffect, useId, useCallback } from "react";
 import {
   X,
   CreditCard,
@@ -12,7 +12,7 @@ import {
   ArrowRight,
   ArrowLeft,
   Delete,
-} from 'lucide-react';
+} from "lucide-react";
 import type {
   Account,
   Category,
@@ -23,11 +23,11 @@ import type {
   TransactionType,
   SplitMode,
   TransactionSplit,
-} from '@/types';
-import { recordTransaction } from '@/services/accountingEngine';
-import { db } from '@/db';
-import { formatINR } from '@/utils/formatters';
-import { evaluateExpression, handleKeypadInput } from '@/utils/calculator';
+} from "@/types";
+import { recordTransaction } from "@/services/accountingEngine";
+import { db } from "@/db";
+import { formatINR } from "@/utils/formatters";
+import { evaluateExpression, handleKeypadInput } from "@/utils/calculator";
 
 interface AddTransactionModalProps {
   isOpen: boolean;
@@ -51,32 +51,32 @@ export function AddTransactionModal({
   onSuccess,
 }: AddTransactionModalProps) {
   // Two-step flow: 1. Calculator / Amount Entry -> 2. Transaction Details
-  const [step, setStep] = useState<'calculator' | 'details'>('calculator');
-  const [calcExpr, setCalcExpr] = useState('0');
+  const [step, setStep] = useState<"calculator" | "details">("calculator");
+  const [calcExpr, setCalcExpr] = useState("0");
 
   // Transaction Configuration State
-  const [type, setType] = useState<TransactionType>('shared_expense');
-  const [title, setTitle] = useState('');
-  const [amountStr, setAmountStr] = useState('');
-  const [accountId, setAccountId] = useState(accounts[0]?.id || '');
-  const [toAccountId, setToAccountId] = useState(accounts[1]?.id || '');
-  const [categoryId, setCategoryId] = useState(categories[0]?.id || '');
-  const [subcategoryId, setSubcategoryId] = useState('');
+  const [type, setType] = useState<TransactionType>("shared_expense");
+  const [title, setTitle] = useState("");
+  const [amountStr, setAmountStr] = useState("");
+  const [accountId, setAccountId] = useState(accounts[0]?.id || "");
+  const [toAccountId, setToAccountId] = useState(accounts[1]?.id || "");
+  const [categoryId, setCategoryId] = useState(categories[0]?.id || "");
+  const [subcategoryId, setSubcategoryId] = useState("");
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
-  const [notes, setNotes] = useState('');
-  const [tagsStr, setTagsStr] = useState('');
+  const [notes, setNotes] = useState("");
+  const [tagsStr, setTagsStr] = useState("");
 
   // Shared Expense Specific State
-  const [selectedGroupId, setSelectedGroupId] = useState<string>('');
-  const [paidByPersonId, setPaidByPersonId] = useState<string>('user');
-  const [splitMode, setSplitMode] = useState<SplitMode>('equal');
+  const [selectedGroupId, setSelectedGroupId] = useState<string>("");
+  const [paidByPersonId, setPaidByPersonId] = useState<string>("user");
+  const [splitMode, setSplitMode] = useState<SplitMode>("equal");
   const [selectedParticipants, setSelectedParticipants] = useState<string[]>([
-    'user',
+    "user",
     ...people.slice(0, 3).map((p) => p.id),
   ]);
   const [customSplits, setCustomSplits] = useState<Record<string, string>>({});
   const [settlementPersonId, setSettlementPersonId] = useState<string>(
-    people[0]?.id || ''
+    people[0]?.id || "",
   );
 
   const [error, setError] = useState<string | null>(null);
@@ -89,19 +89,19 @@ export function AddTransactionModal({
   // Whenever modal opens, reset to calculator step
   useEffect(() => {
     if (isOpen) {
-      setStep('calculator');
-      setCalcExpr(amountStr && parseFloat(amountStr) > 0 ? amountStr : '0');
+      setStep("calculator");
+      setCalcExpr(amountStr && parseFloat(amountStr) > 0 ? amountStr : "0");
       setError(null);
     }
   }, [isOpen, amountStr]);
 
   const handleClose = useCallback(() => {
-    setStep('calculator');
-    setCalcExpr('0');
-    setTitle('');
-    setAmountStr('');
-    setNotes('');
-    setTagsStr('');
+    setStep("calculator");
+    setCalcExpr("0");
+    setTitle("");
+    setAmountStr("");
+    setNotes("");
+    setTagsStr("");
     setError(null);
     onClose();
   }, [onClose]);
@@ -114,94 +114,94 @@ export function AddTransactionModal({
   const goToDetailsStep = useCallback(() => {
     const finalVal = evaluateExpression(calcExpr);
     if (finalVal <= 0) {
-      setError('Please enter a valid amount greater than ₹0.');
+      setError("Please enter a valid amount greater than ₹0.");
       return;
     }
     setAmountStr(finalVal.toString());
-    setStep('details');
+    setStep("details");
     setError(null);
   }, [calcExpr]);
 
   // Keyboard support for desktop / hardware typing when in calculator mode
   useEffect(() => {
-    if (!isOpen || step !== 'calculator') return;
+    if (!isOpen || step !== "calculator") return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
       // Don't intercept if an actual input is focused
       if (
-        document.activeElement?.tagName === 'INPUT' ||
-        document.activeElement?.tagName === 'TEXTAREA' ||
-        document.activeElement?.tagName === 'SELECT'
+        document.activeElement?.tagName === "INPUT" ||
+        document.activeElement?.tagName === "TEXTAREA" ||
+        document.activeElement?.tagName === "SELECT"
       ) {
         return;
       }
 
-      if (e.key === 'Escape') {
+      if (e.key === "Escape") {
         handleClose();
         return;
       }
 
-      if (e.key === 'Enter') {
+      if (e.key === "Enter") {
         e.preventDefault();
         goToDetailsStep();
         return;
       }
 
-      if (e.key === 'Backspace') {
+      if (e.key === "Backspace") {
         e.preventDefault();
-        handleKeypad('⌫');
+        handleKeypad("⌫");
         return;
       }
 
-      if (e.key === 'c' || e.key === 'C') {
+      if (e.key === "c" || e.key === "C") {
         e.preventDefault();
-        handleKeypad('C');
+        handleKeypad("C");
         return;
       }
 
-      if (e.key === '=') {
+      if (e.key === "=") {
         e.preventDefault();
-        handleKeypad('=');
+        handleKeypad("=");
         return;
       }
 
       if (
         /^[0-9]$/.test(e.key) ||
-        e.key === '.' ||
-        e.key === '+' ||
-        e.key === '-' ||
-        e.key === '*' ||
-        e.key === '/'
+        e.key === "." ||
+        e.key === "+" ||
+        e.key === "-" ||
+        e.key === "*" ||
+        e.key === "/"
       ) {
         e.preventDefault();
         handleKeypad(e.key);
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, step, handleClose, goToDetailsStep, handleKeypad]);
 
   const availableSubcategories = subcategories.filter(
-    (s) => s.categoryId === categoryId
+    (s) => s.categoryId === categoryId,
   );
 
   const handleGroupChange = (grpId: string) => {
     setSelectedGroupId(grpId);
     if (!grpId) {
-      setSelectedParticipants(['user', ...people.map((p) => p.id)]);
+      setSelectedParticipants(["user", ...people.map((p) => p.id)]);
       return;
     }
     const grp = groups.find((g) => g.id === grpId);
     if (grp) {
-      setSelectedParticipants(['user', ...grp.memberIds]);
+      setSelectedParticipants(["user", ...grp.memberIds]);
     }
   };
 
   const toggleParticipant = (id: string) => {
     if (selectedParticipants.includes(id)) {
       if (selectedParticipants.length <= 1) {
-        setError('At least one participant must be selected.');
+        setError("At least one participant must be selected.");
         return;
       }
       setSelectedParticipants(selectedParticipants.filter((p) => p !== id));
@@ -211,10 +211,13 @@ export function AddTransactionModal({
     setError(null);
   };
 
-  const computeSplits = (): { splits: TransactionSplit[]; userShare: number } => {
+  const computeSplits = (): {
+    splits: TransactionSplit[];
+    userShare: number;
+  } => {
     const splits: TransactionSplit[] = [];
 
-    if (splitMode === 'equal') {
+    if (splitMode === "equal") {
       const count = selectedParticipants.length;
       if (count === 0 || totalAmount <= 0) return { splits: [], userShare: 0 };
 
@@ -235,7 +238,7 @@ export function AddTransactionModal({
       }
     } else {
       for (const id of selectedParticipants) {
-        const val = parseFloat(customSplits[id] || '0') || 0;
+        const val = parseFloat(customSplits[id] || "0") || 0;
         splits.push({
           personId: id,
           amount: val,
@@ -244,7 +247,7 @@ export function AddTransactionModal({
       }
     }
 
-    const userSplit = splits.find((s) => s.personId === 'user');
+    const userSplit = splits.find((s) => s.personId === "user");
     const userShare = userSplit ? userSplit.amount : 0;
     return { splits, userShare };
   };
@@ -259,25 +262,27 @@ export function AddTransactionModal({
     setError(null);
 
     if (totalAmount <= 0) {
-      setError('Please enter a valid amount greater than 0.');
+      setError("Please enter a valid amount greater than 0.");
       return;
     }
     if (!title.trim()) {
-      setError('Please provide a title or description.');
+      setError("Please provide a title or description.");
       return;
     }
 
-    if (type === 'shared_expense') {
-      if (splitMode !== 'equal' && Math.abs(splitDifference) > 0.01) {
+    if (type === "shared_expense") {
+      if (splitMode !== "equal" && Math.abs(splitDifference) > 0.01) {
         setError(
-          `The sum of split amounts (${formatINR(splitsSum)}) must equal the total bill (${formatINR(totalAmount)}). Difference: ${formatINR(splitDifference)}`
+          `The sum of split amounts (${formatINR(splitsSum)}) must equal the total bill (${formatINR(totalAmount)}). Difference: ${formatINR(splitDifference)}`,
         );
         return;
       }
     }
 
-    if (type === 'transfer' && accountId === toAccountId) {
-      setError('Source and destination accounts must be different for transfers.');
+    if (type === "transfer" && accountId === toAccountId) {
+      setError(
+        "Source and destination accounts must be different for transfers.",
+      );
       return;
     }
 
@@ -285,23 +290,29 @@ export function AddTransactionModal({
 
     try {
       const tags = tagsStr
-        .split(',')
+        .split(",")
         .map((t) => t.trim())
         .filter(Boolean);
 
       let finalPersonalExpense = 0;
       let finalSplits: TransactionSplit[] = [];
 
-      if (type === 'shared_expense') {
+      if (type === "shared_expense") {
         finalPersonalExpense = calculatedUserShare;
         finalSplits = calculatedSplits;
-      } else if (type === 'expense') {
+      } else if (type === "expense") {
         finalPersonalExpense = totalAmount;
-        finalSplits = [{ personId: 'user', amount: totalAmount, isSettled: true }];
-      } else if (type === 'settlement_received' || type === 'settlement_paid') {
+        finalSplits = [
+          { personId: "user", amount: totalAmount, isSettled: true },
+        ];
+      } else if (type === "settlement_received" || type === "settlement_paid") {
         finalPersonalExpense = 0; // Pure debt clearance: zero income or expense
         finalSplits = [
-          { personId: settlementPersonId, amount: totalAmount, isSettled: true },
+          {
+            personId: settlementPersonId,
+            amount: totalAmount,
+            isSettled: true,
+          },
         ];
       }
 
@@ -313,27 +324,29 @@ export function AddTransactionModal({
         amount: totalAmount,
         accountId: accountId,
         toAccountId:
-          type === 'transfer' || type === 'credit_card_payment'
+          type === "transfer" || type === "credit_card_payment"
             ? toAccountId
             : undefined,
         categoryId:
-          type === 'expense' || type === 'shared_expense' ? categoryId : undefined,
+          type === "expense" || type === "shared_expense"
+            ? categoryId
+            : undefined,
         subcategoryId:
-          type === 'expense' || type === 'shared_expense'
+          type === "expense" || type === "shared_expense"
             ? subcategoryId || undefined
             : undefined,
         personalExpenseAmount: finalPersonalExpense,
-        isShared: type === 'shared_expense',
+        isShared: type === "shared_expense",
         groupId:
-          type === 'shared_expense' && selectedGroupId
+          type === "shared_expense" && selectedGroupId
             ? selectedGroupId
             : undefined,
         paidByPersonId:
-          type === 'shared_expense'
+          type === "shared_expense"
             ? paidByPersonId
-            : type === 'settlement_received'
-            ? settlementPersonId
-            : 'user',
+            : type === "settlement_received"
+              ? settlementPersonId
+              : "user",
         splits: finalSplits,
         notes: notes.trim() || undefined,
         tags: tags.length ? tags : undefined,
@@ -345,18 +358,20 @@ export function AddTransactionModal({
 
       if (onSuccess) {
         onSuccess(
-          type === 'shared_expense'
+          type === "shared_expense"
             ? `Shared expense logged: ₹${totalAmount.toFixed(2)} total, personal share ₹${finalPersonalExpense.toFixed(2)}.`
-            : type === 'settlement_received'
-            ? `Settlement recorded: ₹${totalAmount.toFixed(2)} received without impacting income.`
-            : `Transaction "${tx.title}" recorded successfully.`
+            : type === "settlement_received"
+              ? `Settlement recorded: ₹${totalAmount.toFixed(2)} received without impacting income.`
+              : `Transaction "${tx.title}" recorded successfully.`,
         );
       }
 
       handleClose();
     } catch (err: unknown) {
       console.error(err);
-      setError(err instanceof Error ? err.message : 'Failed to record transaction');
+      setError(
+        err instanceof Error ? err.message : "Failed to record transaction",
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -373,12 +388,12 @@ export function AddTransactionModal({
         {/* Modal Header */}
         <div className="px-5 py-3.5 border-b border-[#23252c] flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2.5">
-            {step === 'details' ? (
+            {step === "details" ? (
               <button
                 type="button"
                 onClick={() => {
-                  setCalcExpr(amountStr || '0');
-                  setStep('calculator');
+                  setCalcExpr(amountStr || "0");
+                  setStep("calculator");
                 }}
                 className="p-2 rounded-2xl bg-[#1a1c22] hover:bg-[#262830] text-[#a8c7fa] border border-[#262830] transition-colors"
                 title="Back to Calculator"
@@ -393,12 +408,12 @@ export function AddTransactionModal({
             )}
             <div>
               <h2 className="text-base font-semibold text-[#e2e2e7] m-0">
-                {step === 'calculator' ? 'Enter Amount' : 'Transaction Details'}
+                {step === "calculator" ? "Enter Amount" : "Transaction Details"}
               </h2>
               <p className="text-xs text-[#90929d] mt-0.5">
-                {step === 'calculator'
-                  ? 'Calculate amount directly or enter total'
-                  : 'Categorize, split, and record'}
+                {step === "calculator"
+                  ? "Calculate amount directly or enter total"
+                  : "Categorize, split, and record"}
               </p>
             </div>
           </div>
@@ -412,7 +427,7 @@ export function AddTransactionModal({
         </div>
 
         {/* STEP 1: CALCULATOR VIEW */}
-        {step === 'calculator' && (
+        {step === "calculator" && (
           <div className="p-5 flex flex-col gap-4 overflow-y-auto">
             {error && (
               <div className="p-3 rounded-2xl bg-[#2b1b1d] border border-[#48282b] text-[#f2b8b5] text-xs flex items-center gap-2">
@@ -432,11 +447,11 @@ export function AddTransactionModal({
               <div className="flex flex-wrap gap-2">
                 <button
                   type="button"
-                  onClick={() => setType('shared_expense')}
+                  onClick={() => setType("shared_expense")}
                   className={`flex items-center gap-2 px-4 py-2 rounded-2xl text-xs sm:text-sm font-medium transition-all ${
-                    type === 'shared_expense'
-                      ? 'bg-[#1a2536] text-[#d3e3fd] border border-[#263750]'
-                      : 'bg-[#1a1c22] text-[#c4c6cf] hover:bg-[#262830] border border-transparent'
+                    type === "shared_expense"
+                      ? "bg-[#1a2536] text-[#d3e3fd] border border-[#263750]"
+                      : "bg-[#1a1c22] text-[#c4c6cf] hover:bg-[#262830] border border-transparent"
                   }`}
                 >
                   <Users className="h-4 w-4" />
@@ -445,11 +460,11 @@ export function AddTransactionModal({
 
                 <button
                   type="button"
-                  onClick={() => setType('expense')}
+                  onClick={() => setType("expense")}
                   className={`flex items-center gap-2 px-4 py-2 rounded-2xl text-xs sm:text-sm font-medium transition-all ${
-                    type === 'expense'
-                      ? 'bg-[#1a2536] text-[#d3e3fd] border border-[#263750]'
-                      : 'bg-[#1a1c22] text-[#c4c6cf] hover:bg-[#262830] border border-transparent'
+                    type === "expense"
+                      ? "bg-[#1a2536] text-[#d3e3fd] border border-[#263750]"
+                      : "bg-[#1a1c22] text-[#c4c6cf] hover:bg-[#262830] border border-transparent"
                   }`}
                 >
                   <ArrowUpRight className="h-4 w-4" />
@@ -458,11 +473,11 @@ export function AddTransactionModal({
 
                 <button
                   type="button"
-                  onClick={() => setType('settlement_received')}
+                  onClick={() => setType("settlement_received")}
                   className={`flex items-center gap-2 px-4 py-2 rounded-2xl text-xs sm:text-sm font-medium transition-all ${
-                    type === 'settlement_received'
-                      ? 'bg-[#15241b] text-[#a8dab5] border border-[#22382a]'
-                      : 'bg-[#1a1c22] text-[#c4c6cf] hover:bg-[#262830] border border-transparent'
+                    type === "settlement_received"
+                      ? "bg-[#15241b] text-[#a8dab5] border border-[#22382a]"
+                      : "bg-[#1a1c22] text-[#c4c6cf] hover:bg-[#262830] border border-transparent"
                   }`}
                 >
                   <ArrowDownLeft className="h-4 w-4" />
@@ -471,11 +486,11 @@ export function AddTransactionModal({
 
                 <button
                   type="button"
-                  onClick={() => setType('transfer')}
+                  onClick={() => setType("transfer")}
                   className={`flex items-center gap-2 px-4 py-2 rounded-2xl text-xs sm:text-sm font-medium transition-all ${
-                    type === 'transfer'
-                      ? 'bg-[#1a2536] text-[#d3e3fd] border border-[#263750]'
-                      : 'bg-[#1a1c22] text-[#c4c6cf] hover:bg-[#262830] border border-transparent'
+                    type === "transfer"
+                      ? "bg-[#1a2536] text-[#d3e3fd] border border-[#263750]"
+                      : "bg-[#1a1c22] text-[#c4c6cf] hover:bg-[#262830] border border-transparent"
                   }`}
                 >
                   <ArrowRightLeft className="h-4 w-4" />
@@ -484,11 +499,11 @@ export function AddTransactionModal({
 
                 <button
                   type="button"
-                  onClick={() => setType('credit_card_payment')}
+                  onClick={() => setType("credit_card_payment")}
                   className={`flex items-center gap-2 px-4 py-2 rounded-2xl text-xs sm:text-sm font-medium transition-all ${
-                    type === 'credit_card_payment'
-                      ? 'bg-[#1a2536] text-[#d3e3fd] border border-[#263750]'
-                      : 'bg-[#1a1c22] text-[#c4c6cf] hover:bg-[#262830] border border-transparent'
+                    type === "credit_card_payment"
+                      ? "bg-[#1a2536] text-[#d3e3fd] border border-[#263750]"
+                      : "bg-[#1a1c22] text-[#c4c6cf] hover:bg-[#262830] border border-transparent"
                   }`}
                 >
                   <CreditCard className="h-4 w-4" />
@@ -497,11 +512,11 @@ export function AddTransactionModal({
 
                 <button
                   type="button"
-                  onClick={() => setType('income')}
+                  onClick={() => setType("income")}
                   className={`flex items-center gap-2 px-4 py-2 rounded-2xl text-xs sm:text-sm font-medium transition-all ${
-                    type === 'income'
-                      ? 'bg-[#15241b] text-[#a8dab5] border border-[#22382a]'
-                      : 'bg-[#1a1c22] text-[#c4c6cf] hover:bg-[#262830] border border-transparent'
+                    type === "income"
+                      ? "bg-[#15241b] text-[#a8dab5] border border-[#22382a]"
+                      : "bg-[#1a1c22] text-[#c4c6cf] hover:bg-[#262830] border border-transparent"
                   }`}
                 >
                   <ArrowDownLeft className="h-4 w-4" />
@@ -514,11 +529,11 @@ export function AddTransactionModal({
             <div className="bg-[#111216] border border-[#23252c] rounded-3xl p-5 sm:p-6 flex flex-col justify-between min-h-[120px] shadow-inner">
               {/* Live Formula / Calculation Line */}
               <div className="text-right text-sm font-mono text-[#90929d] min-h-[1.5rem] truncate select-all">
-                {calcExpr !== '0' &&
-                (calcExpr.includes('+') ||
-                  calcExpr.includes('-') ||
-                  calcExpr.includes('×') ||
-                  calcExpr.includes('÷')) ? (
+                {calcExpr !== "0" &&
+                (calcExpr.includes("+") ||
+                  calcExpr.includes("-") ||
+                  calcExpr.includes("×") ||
+                  calcExpr.includes("÷")) ? (
                   <span className="flex items-center justify-end gap-2">
                     <span>{calcExpr}</span>
                     <span className="text-[#a8c7fa] font-bold">=</span>
@@ -537,15 +552,15 @@ export function AddTransactionModal({
                 </span>
                 <span
                   className={`text-4xl sm:text-5xl font-bold font-mono tracking-tight select-all ${
-                    evaluatedAmount > 0 ? 'text-[#e2e2e7]' : 'text-[#90929d]'
+                    evaluatedAmount > 0 ? "text-[#e2e2e7]" : "text-[#90929d]"
                   }`}
                 >
                   {evaluatedAmount > 0
-                    ? evaluatedAmount.toLocaleString('en-IN', {
-                        minimumFractionDigits: calcExpr.includes('.') ? 2 : 0,
+                    ? evaluatedAmount.toLocaleString("en-IN", {
+                        minimumFractionDigits: calcExpr.includes(".") ? 2 : 0,
                         maximumFractionDigits: 2,
                       })
-                    : '0'}
+                    : "0"}
                 </span>
               </div>
             </div>
@@ -555,28 +570,28 @@ export function AddTransactionModal({
               {/* Row 1: Clear, Divide, Multiply, Backspace */}
               <button
                 type="button"
-                onClick={() => handleKeypad('C')}
+                onClick={() => handleKeypad("C")}
                 className="h-14 sm:h-16 rounded-2xl bg-[#2b1b1d] hover:bg-[#3d2427] active:scale-95 text-[#f2b8b5] font-bold text-lg sm:text-xl border border-[#48282b] flex items-center justify-center transition-all shadow-sm"
               >
                 C
               </button>
               <button
                 type="button"
-                onClick={() => handleKeypad('÷')}
+                onClick={() => handleKeypad("÷")}
                 className="h-14 sm:h-16 rounded-2xl bg-[#1a2536] hover:bg-[#22334a] active:scale-95 text-[#a8c7fa] font-bold text-2xl border border-[#263750] flex items-center justify-center transition-all shadow-sm"
               >
                 ÷
               </button>
               <button
                 type="button"
-                onClick={() => handleKeypad('×')}
+                onClick={() => handleKeypad("×")}
                 className="h-14 sm:h-16 rounded-2xl bg-[#1a2536] hover:bg-[#22334a] active:scale-95 text-[#a8c7fa] font-bold text-2xl border border-[#263750] flex items-center justify-center transition-all shadow-sm"
               >
                 ×
               </button>
               <button
                 type="button"
-                onClick={() => handleKeypad('⌫')}
+                onClick={() => handleKeypad("⌫")}
                 className="h-14 sm:h-16 rounded-2xl bg-[#1a1c22] hover:bg-[#262830] active:scale-95 text-[#c4c6cf] font-medium border border-[#23252c] flex items-center justify-center transition-all shadow-sm"
                 aria-label="Backspace"
               >
@@ -586,28 +601,28 @@ export function AddTransactionModal({
               {/* Row 2: 7, 8, 9, Minus */}
               <button
                 type="button"
-                onClick={() => handleKeypad('7')}
+                onClick={() => handleKeypad("7")}
                 className="h-14 sm:h-16 rounded-2xl bg-[#1a1c22] hover:bg-[#262830] active:scale-95 text-[#e2e2e7] font-semibold text-2xl border border-[#23252c] flex items-center justify-center transition-all shadow-sm"
               >
                 7
               </button>
               <button
                 type="button"
-                onClick={() => handleKeypad('8')}
+                onClick={() => handleKeypad("8")}
                 className="h-14 sm:h-16 rounded-2xl bg-[#1a1c22] hover:bg-[#262830] active:scale-95 text-[#e2e2e7] font-semibold text-2xl border border-[#23252c] flex items-center justify-center transition-all shadow-sm"
               >
                 8
               </button>
               <button
                 type="button"
-                onClick={() => handleKeypad('9')}
+                onClick={() => handleKeypad("9")}
                 className="h-14 sm:h-16 rounded-2xl bg-[#1a1c22] hover:bg-[#262830] active:scale-95 text-[#e2e2e7] font-semibold text-2xl border border-[#23252c] flex items-center justify-center transition-all shadow-sm"
               >
                 9
               </button>
               <button
                 type="button"
-                onClick={() => handleKeypad('-')}
+                onClick={() => handleKeypad("-")}
                 className="h-14 sm:h-16 rounded-2xl bg-[#1a2536] hover:bg-[#22334a] active:scale-95 text-[#a8c7fa] font-bold text-2xl border border-[#263750] flex items-center justify-center transition-all shadow-sm"
               >
                 −
@@ -616,28 +631,28 @@ export function AddTransactionModal({
               {/* Row 3: 4, 5, 6, Plus */}
               <button
                 type="button"
-                onClick={() => handleKeypad('4')}
+                onClick={() => handleKeypad("4")}
                 className="h-14 sm:h-16 rounded-2xl bg-[#1a1c22] hover:bg-[#262830] active:scale-95 text-[#e2e2e7] font-semibold text-2xl border border-[#23252c] flex items-center justify-center transition-all shadow-sm"
               >
                 4
               </button>
               <button
                 type="button"
-                onClick={() => handleKeypad('5')}
+                onClick={() => handleKeypad("5")}
                 className="h-14 sm:h-16 rounded-2xl bg-[#1a1c22] hover:bg-[#262830] active:scale-95 text-[#e2e2e7] font-semibold text-2xl border border-[#23252c] flex items-center justify-center transition-all shadow-sm"
               >
                 5
               </button>
               <button
                 type="button"
-                onClick={() => handleKeypad('6')}
+                onClick={() => handleKeypad("6")}
                 className="h-14 sm:h-16 rounded-2xl bg-[#1a1c22] hover:bg-[#262830] active:scale-95 text-[#e2e2e7] font-semibold text-2xl border border-[#23252c] flex items-center justify-center transition-all shadow-sm"
               >
                 6
               </button>
               <button
                 type="button"
-                onClick={() => handleKeypad('+')}
+                onClick={() => handleKeypad("+")}
                 className="h-14 sm:h-16 rounded-2xl bg-[#1a2536] hover:bg-[#22334a] active:scale-95 text-[#a8c7fa] font-bold text-2xl border border-[#263750] flex items-center justify-center transition-all shadow-sm"
               >
                 +
@@ -646,28 +661,28 @@ export function AddTransactionModal({
               {/* Row 4: 1, 2, 3, Decimal */}
               <button
                 type="button"
-                onClick={() => handleKeypad('1')}
+                onClick={() => handleKeypad("1")}
                 className="h-14 sm:h-16 rounded-2xl bg-[#1a1c22] hover:bg-[#262830] active:scale-95 text-[#e2e2e7] font-semibold text-2xl border border-[#23252c] flex items-center justify-center transition-all shadow-sm"
               >
                 1
               </button>
               <button
                 type="button"
-                onClick={() => handleKeypad('2')}
+                onClick={() => handleKeypad("2")}
                 className="h-14 sm:h-16 rounded-2xl bg-[#1a1c22] hover:bg-[#262830] active:scale-95 text-[#e2e2e7] font-semibold text-2xl border border-[#23252c] flex items-center justify-center transition-all shadow-sm"
               >
                 2
               </button>
               <button
                 type="button"
-                onClick={() => handleKeypad('3')}
+                onClick={() => handleKeypad("3")}
                 className="h-14 sm:h-16 rounded-2xl bg-[#1a1c22] hover:bg-[#262830] active:scale-95 text-[#e2e2e7] font-semibold text-2xl border border-[#23252c] flex items-center justify-center transition-all shadow-sm"
               >
                 3
               </button>
               <button
                 type="button"
-                onClick={() => handleKeypad('.')}
+                onClick={() => handleKeypad(".")}
                 className="h-14 sm:h-16 rounded-2xl bg-[#1a1c22] hover:bg-[#262830] active:scale-95 text-[#e2e2e7] font-bold text-2xl border border-[#23252c] flex items-center justify-center transition-all shadow-sm"
               >
                 .
@@ -676,21 +691,21 @@ export function AddTransactionModal({
               {/* Row 5: 00, 0, Equals (Col-span-2) */}
               <button
                 type="button"
-                onClick={() => handleKeypad('00')}
+                onClick={() => handleKeypad("00")}
                 className="h-14 sm:h-16 rounded-2xl bg-[#1a1c22] hover:bg-[#262830] active:scale-95 text-[#e2e2e7] font-semibold text-xl border border-[#23252c] flex items-center justify-center transition-all shadow-sm"
               >
                 00
               </button>
               <button
                 type="button"
-                onClick={() => handleKeypad('0')}
+                onClick={() => handleKeypad("0")}
                 className="h-14 sm:h-16 rounded-2xl bg-[#1a1c22] hover:bg-[#262830] active:scale-95 text-[#e2e2e7] font-semibold text-2xl border border-[#23252c] flex items-center justify-center transition-all shadow-sm"
               >
                 0
               </button>
               <button
                 type="button"
-                onClick={() => handleKeypad('=')}
+                onClick={() => handleKeypad("=")}
                 className="col-span-2 h-14 sm:h-16 rounded-2xl bg-[#a8c7fa] hover:bg-[#b8d4ff] active:scale-95 text-[#003062] font-bold text-2xl flex items-center justify-center transition-all shadow-md"
               >
                 =
@@ -705,14 +720,14 @@ export function AddTransactionModal({
                 onClick={goToDetailsStep}
                 className={`w-full py-4 px-6 rounded-2xl font-bold text-base flex items-center justify-center gap-2.5 shadow-lg transition-all active:scale-[0.98] ${
                   evaluatedAmount > 0
-                    ? 'bg-[#a8c7fa] hover:bg-[#b8d4ff] text-[#003062] cursor-pointer'
-                    : 'bg-[#1a1c22] text-[#60636d] border border-[#23252c] cursor-not-allowed'
+                    ? "bg-[#a8c7fa] hover:bg-[#b8d4ff] text-[#003062] cursor-pointer"
+                    : "bg-[#1a1c22] text-[#60636d] border border-[#23252c] cursor-not-allowed"
                 }`}
               >
                 <span>
                   {evaluatedAmount > 0
                     ? `Next: Add Details (${formatINR(evaluatedAmount)})`
-                    : 'Enter an amount to continue'}
+                    : "Enter an amount to continue"}
                 </span>
                 <ArrowRight className="h-5 w-5" />
               </button>
@@ -721,8 +736,11 @@ export function AddTransactionModal({
         )}
 
         {/* STEP 2: TRANSACTION DETAILS VIEW */}
-        {step === 'details' && (
-          <form onSubmit={handleSubmit} className="p-5 overflow-y-auto space-y-4">
+        {step === "details" && (
+          <form
+            onSubmit={handleSubmit}
+            className="p-5 overflow-y-auto space-y-4"
+          >
             {error && (
               <div className="p-3 rounded-2xl bg-[#2b1b1d] border border-[#48282b] text-[#f2b8b5] text-xs flex items-center gap-2">
                 <AlertCircle className="h-4 w-4 shrink-0 text-[#f2b8b5]" />
@@ -748,8 +766,8 @@ export function AddTransactionModal({
               <button
                 type="button"
                 onClick={() => {
-                  setCalcExpr(amountStr || '0');
-                  setStep('calculator');
+                  setCalcExpr(amountStr || "0");
+                  setStep("calculator");
                 }}
                 className="px-3.5 py-2 rounded-xl bg-[#1a1c22] hover:bg-[#262830] active:scale-95 text-[#c4c6cf] hover:text-[#e2e2e7] text-xs font-medium border border-[#23252c] flex items-center gap-1.5 transition-all"
                 title="Recalculate or edit amount in calculator"
@@ -767,11 +785,11 @@ export function AddTransactionModal({
               <div className="flex flex-wrap gap-2">
                 <button
                   type="button"
-                  onClick={() => setType('shared_expense')}
+                  onClick={() => setType("shared_expense")}
                   className={`flex items-center gap-2 px-4 py-2 rounded-2xl text-xs sm:text-sm font-medium transition-all ${
-                    type === 'shared_expense'
-                      ? 'bg-[#1a2536] text-[#d3e3fd]'
-                      : 'bg-[#1a1c22] text-[#c4c6cf] hover:bg-[#262830]'
+                    type === "shared_expense"
+                      ? "bg-[#1a2536] text-[#d3e3fd]"
+                      : "bg-[#1a1c22] text-[#c4c6cf] hover:bg-[#262830]"
                   }`}
                 >
                   <Users className="h-4 w-4" />
@@ -780,11 +798,11 @@ export function AddTransactionModal({
 
                 <button
                   type="button"
-                  onClick={() => setType('expense')}
+                  onClick={() => setType("expense")}
                   className={`flex items-center gap-2 px-4 py-2 rounded-2xl text-xs sm:text-sm font-medium transition-all ${
-                    type === 'expense'
-                      ? 'bg-[#1a2536] text-[#d3e3fd]'
-                      : 'bg-[#1a1c22] text-[#c4c6cf] hover:bg-[#262830]'
+                    type === "expense"
+                      ? "bg-[#1a2536] text-[#d3e3fd]"
+                      : "bg-[#1a1c22] text-[#c4c6cf] hover:bg-[#262830]"
                   }`}
                 >
                   <ArrowUpRight className="h-4 w-4" />
@@ -793,11 +811,11 @@ export function AddTransactionModal({
 
                 <button
                   type="button"
-                  onClick={() => setType('settlement_received')}
+                  onClick={() => setType("settlement_received")}
                   className={`flex items-center gap-2 px-4 py-2 rounded-2xl text-xs sm:text-sm font-medium transition-all ${
-                    type === 'settlement_received'
-                      ? 'bg-[#15241b] text-[#a8dab5]'
-                      : 'bg-[#1a1c22] text-[#c4c6cf] hover:bg-[#262830]'
+                    type === "settlement_received"
+                      ? "bg-[#15241b] text-[#a8dab5]"
+                      : "bg-[#1a1c22] text-[#c4c6cf] hover:bg-[#262830]"
                   }`}
                 >
                   <ArrowDownLeft className="h-4 w-4" />
@@ -806,11 +824,11 @@ export function AddTransactionModal({
 
                 <button
                   type="button"
-                  onClick={() => setType('settlement_paid')}
+                  onClick={() => setType("settlement_paid")}
                   className={`flex items-center gap-2 px-4 py-2 rounded-2xl text-xs sm:text-sm font-medium transition-all ${
-                    type === 'settlement_paid'
-                      ? 'bg-[#3b2d18] text-[#ffb77c]'
-                      : 'bg-[#1a1c22] text-[#c4c6cf] hover:bg-[#262830]'
+                    type === "settlement_paid"
+                      ? "bg-[#3b2d18] text-[#ffb77c]"
+                      : "bg-[#1a1c22] text-[#c4c6cf] hover:bg-[#262830]"
                   }`}
                 >
                   <ArrowRightLeft className="h-4 w-4" />
@@ -819,11 +837,11 @@ export function AddTransactionModal({
 
                 <button
                   type="button"
-                  onClick={() => setType('transfer')}
+                  onClick={() => setType("transfer")}
                   className={`flex items-center gap-2 px-4 py-2 rounded-2xl text-xs sm:text-sm font-medium transition-all ${
-                    type === 'transfer'
-                      ? 'bg-[#1a2536] text-[#d3e3fd]'
-                      : 'bg-[#1a1c22] text-[#c4c6cf] hover:bg-[#262830]'
+                    type === "transfer"
+                      ? "bg-[#1a2536] text-[#d3e3fd]"
+                      : "bg-[#1a1c22] text-[#c4c6cf] hover:bg-[#262830]"
                   }`}
                 >
                   <ArrowRightLeft className="h-4 w-4" />
@@ -832,11 +850,11 @@ export function AddTransactionModal({
 
                 <button
                   type="button"
-                  onClick={() => setType('credit_card_payment')}
+                  onClick={() => setType("credit_card_payment")}
                   className={`flex items-center gap-2 px-4 py-2 rounded-2xl text-xs sm:text-sm font-medium transition-all ${
-                    type === 'credit_card_payment'
-                      ? 'bg-[#1a2536] text-[#d3e3fd]'
-                      : 'bg-[#1a1c22] text-[#c4c6cf] hover:bg-[#262830]'
+                    type === "credit_card_payment"
+                      ? "bg-[#1a2536] text-[#d3e3fd]"
+                      : "bg-[#1a1c22] text-[#c4c6cf] hover:bg-[#262830]"
                   }`}
                 >
                   <CreditCard className="h-4 w-4" />
@@ -845,11 +863,11 @@ export function AddTransactionModal({
 
                 <button
                   type="button"
-                  onClick={() => setType('income')}
+                  onClick={() => setType("income")}
                   className={`flex items-center gap-2 px-4 py-2 rounded-2xl text-xs sm:text-sm font-medium transition-all ${
-                    type === 'income'
-                      ? 'bg-[#15241b] text-[#a8dab5]'
-                      : 'bg-[#1a1c22] text-[#c4c6cf] hover:bg-[#262830]'
+                    type === "income"
+                      ? "bg-[#15241b] text-[#a8dab5]"
+                      : "bg-[#1a1c22] text-[#c4c6cf] hover:bg-[#262830]"
                   }`}
                 >
                   <ArrowDownLeft className="h-4 w-4" />
@@ -869,13 +887,14 @@ export function AddTransactionModal({
                   autoFocus
                   required
                   placeholder={
-                    type === 'shared_expense'
-                      ? 'Groceries, dinner...'
-                      : type === 'settlement_received' || type === 'settlement_paid'
-                      ? 'GPay repayment...'
-                      : type === 'transfer'
-                      ? 'Transfer...'
-                      : 'Coffee, lunch...'
+                    type === "shared_expense"
+                      ? "Groceries, dinner..."
+                      : type === "settlement_received" ||
+                          type === "settlement_paid"
+                        ? "GPay repayment..."
+                        : type === "transfer"
+                          ? "Transfer..."
+                          : "Coffee, lunch..."
                   }
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
@@ -891,8 +910,8 @@ export function AddTransactionModal({
                   <button
                     type="button"
                     onClick={() => {
-                      setCalcExpr(amountStr || '0');
-                      setStep('calculator');
+                      setCalcExpr(amountStr || "0");
+                      setStep("calculator");
                     }}
                     className="text-xs text-[#a8c7fa] hover:underline flex items-center gap-1 font-medium"
                   >
@@ -920,11 +939,11 @@ export function AddTransactionModal({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="text-xs sm:text-sm font-medium text-[#c4c6cf] block mb-1.5">
-                  {type === 'settlement_received'
-                    ? 'Deposit into'
-                    : type === 'transfer' || type === 'credit_card_payment'
-                    ? 'From Account'
-                    : 'Paid from'}
+                  {type === "settlement_received"
+                    ? "Deposit into"
+                    : type === "transfer" || type === "credit_card_payment"
+                      ? "From Account"
+                      : "Paid from"}
                 </label>
                 <select
                   value={accountId}
@@ -939,7 +958,7 @@ export function AddTransactionModal({
                 </select>
               </div>
 
-              {(type === 'transfer' || type === 'credit_card_payment') && (
+              {(type === "transfer" || type === "credit_card_payment") && (
                 <div>
                   <label className="text-xs sm:text-sm font-medium text-[#c4c6cf] block mb-1.5">
                     To Account
@@ -958,7 +977,7 @@ export function AddTransactionModal({
                 </div>
               )}
 
-              {(type === 'expense' || type === 'shared_expense') && (
+              {(type === "expense" || type === "shared_expense") && (
                 <div>
                   <label className="text-xs sm:text-sm font-medium text-[#c4c6cf] block mb-1.5">
                     Category
@@ -967,7 +986,7 @@ export function AddTransactionModal({
                     value={categoryId}
                     onChange={(e) => {
                       setCategoryId(e.target.value);
-                      setSubcategoryId('');
+                      setSubcategoryId("");
                     }}
                     className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-4 py-3 text-sm text-[#e2e2e7] focus:outline-none min-h-[48px]"
                   >
@@ -980,7 +999,7 @@ export function AddTransactionModal({
                 </div>
               )}
 
-              {(type === 'expense' || type === 'shared_expense') &&
+              {(type === "expense" || type === "shared_expense") &&
                 availableSubcategories.length > 0 && (
                   <div>
                     <label className="text-xs sm:text-sm font-medium text-[#c4c6cf] block mb-1.5">
@@ -1001,12 +1020,13 @@ export function AddTransactionModal({
                   </div>
                 )}
 
-              {(type === 'settlement_received' || type === 'settlement_paid') && (
+              {(type === "settlement_received" ||
+                type === "settlement_paid") && (
                 <div>
                   <label className="text-xs sm:text-sm font-medium text-[#c4c6cf] block mb-1.5">
-                    {type === 'settlement_received'
-                      ? 'Friend Repaying'
-                      : 'Friend You Are Repaying'}
+                    {type === "settlement_received"
+                      ? "Friend Repaying"
+                      : "Friend You Are Repaying"}
                   </label>
                   <select
                     value={settlementPersonId}
@@ -1015,12 +1035,12 @@ export function AddTransactionModal({
                   >
                     {people.map((p) => (
                       <option key={p.id} value={p.id}>
-                        {p.name} (Balance:{' '}
+                        {p.name} (Balance:{" "}
                         {p.netBalance > 0
                           ? `Owes you ₹${p.netBalance}`
                           : p.netBalance < 0
-                          ? `You owe ₹${Math.abs(p.netBalance)}`
-                          : 'Settled ₹0'}
+                            ? `You owe ₹${Math.abs(p.netBalance)}`
+                            : "Settled ₹0"}
                         )
                       </option>
                     ))}
@@ -1043,7 +1063,7 @@ export function AddTransactionModal({
             </div>
 
             {/* SHARED EXPENSE SPLIT CONFIGURATION */}
-            {type === 'shared_expense' && (
+            {type === "shared_expense" && (
               <div className="bg-[#111216] border border-[#23252c] rounded-[24px] p-4 space-y-3.5">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#23252c] pb-2.5">
                   <div className="flex items-center gap-2">
@@ -1097,22 +1117,22 @@ export function AddTransactionModal({
                     <div className="flex rounded-xl bg-[#111216] p-1 border border-[#1a1c22]">
                       <button
                         type="button"
-                        onClick={() => setSplitMode('equal')}
+                        onClick={() => setSplitMode("equal")}
                         className={`flex-1 py-1 text-xs font-medium rounded-lg transition-colors ${
-                          splitMode === 'equal'
-                            ? 'bg-[#1a2536] text-[#d3e3fd]'
-                            : 'text-[#90929d] hover:text-[#e2e2e7]'
+                          splitMode === "equal"
+                            ? "bg-[#1a2536] text-[#d3e3fd]"
+                            : "text-[#90929d] hover:text-[#e2e2e7]"
                         }`}
                       >
                         Equal
                       </button>
                       <button
                         type="button"
-                        onClick={() => setSplitMode('exact')}
+                        onClick={() => setSplitMode("exact")}
                         className={`flex-1 py-1 text-xs font-medium rounded-lg transition-colors ${
-                          splitMode === 'exact'
-                            ? 'bg-[#1a2536] text-[#d3e3fd]'
-                            : 'text-[#90929d] hover:text-[#e2e2e7]'
+                          splitMode === "exact"
+                            ? "bg-[#1a2536] text-[#d3e3fd]"
+                            : "text-[#90929d] hover:text-[#e2e2e7]"
                         }`}
                       >
                         Exact (₹)
@@ -1127,13 +1147,13 @@ export function AddTransactionModal({
                     id="user"
                     name="My Personal Share"
                     avatar="👤"
-                    isSelected={selectedParticipants.includes('user')}
-                    onToggle={() => toggleParticipant('user')}
-                    isSplitModeExact={splitMode === 'exact'}
+                    isSelected={selectedParticipants.includes("user")}
+                    onToggle={() => toggleParticipant("user")}
+                    isSplitModeExact={splitMode === "exact"}
                     shareAmount={
-                      splitMode === 'equal'
+                      splitMode === "equal"
                         ? calculatedUserShare
-                        : parseFloat(customSplits['user'] || '0')
+                        : parseFloat(customSplits["user"] || "0")
                     }
                     onCustomAmountChange={(val) =>
                       setCustomSplits({ ...customSplits, user: val })
@@ -1143,19 +1163,20 @@ export function AddTransactionModal({
                   {people.map((p) => {
                     const isSelected = selectedParticipants.includes(p.id);
                     const friendShare =
-                      splitMode === 'equal'
-                        ? calculatedSplits.find((s) => s.personId === p.id)?.amount || 0
-                        : parseFloat(customSplits[p.id] || '0');
+                      splitMode === "equal"
+                        ? calculatedSplits.find((s) => s.personId === p.id)
+                            ?.amount || 0
+                        : parseFloat(customSplits[p.id] || "0");
 
                     return (
                       <ParticipantRow
                         key={p.id}
                         id={p.id}
                         name={p.name}
-                        avatar={p.avatar || '👤'}
+                        avatar={p.avatar || "👤"}
                         isSelected={isSelected}
                         onToggle={() => toggleParticipant(p.id)}
-                        isSplitModeExact={splitMode === 'exact'}
+                        isSplitModeExact={splitMode === "exact"}
                         shareAmount={friendShare}
                         onCustomAmountChange={(val) =>
                           setCustomSplits({ ...customSplits, [p.id]: val })
@@ -1176,7 +1197,9 @@ export function AddTransactionModal({
 
                   <div className="text-right">
                     <div className="text-[#90929d]">
-                      {paidByPersonId === 'user' ? 'Friend Receivables:' : 'Payable to Friend:'}
+                      {paidByPersonId === "user"
+                        ? "Friend Receivables:"
+                        : "Payable to Friend:"}
                     </div>
                     <div className="text-sm font-semibold text-[#ffb77c] font-mono">
                       {formatINR(totalAmount - calculatedUserShare)}
@@ -1184,7 +1207,7 @@ export function AddTransactionModal({
                   </div>
                 </div>
 
-                {splitMode === 'exact' && Math.abs(splitDifference) > 0.01 && (
+                {splitMode === "exact" && Math.abs(splitDifference) > 0.01 && (
                   <div className="text-xs text-[#f2b8b5] font-mono">
                     Unallocated difference: {formatINR(splitDifference)}
                   </div>
@@ -1193,20 +1216,24 @@ export function AddTransactionModal({
             )}
 
             {/* Settlement Clarification */}
-            {type === 'settlement_received' && (
+            {type === "settlement_received" && (
               <div className="p-3.5 rounded-2xl bg-[#15241b] border border-[#22382a] text-[#a8dab5] text-xs flex items-start gap-2.5">
                 <CheckCircle className="h-4 w-4 shrink-0 text-[#a8dab5] mt-0.5" />
                 <div>
-                  <strong>Asset Transfer (Zero Income):</strong> Liquid account balance increases and friend debt reduces. No artificial income is created.
+                  <strong>Asset Transfer (Zero Income):</strong> Liquid account
+                  balance increases and friend debt reduces. No artificial
+                  income is created.
                 </div>
               </div>
             )}
 
-            {type === 'settlement_paid' && (
+            {type === "settlement_paid" && (
               <div className="p-3.5 rounded-2xl bg-[#3b2d18] border border-[#5a4220] text-[#ffb77c] text-xs flex items-start gap-2.5">
                 <CheckCircle className="h-4 w-4 shrink-0 text-[#ffb77c] mt-0.5" />
                 <div>
-                  <strong>Debt Repayment (Zero Expense):</strong> Outflow settles payable balance to the friend without inflating your expense budgets.
+                  <strong>Debt Repayment (Zero Expense):</strong> Outflow
+                  settles payable balance to the friend without inflating your
+                  expense budgets.
                 </div>
               </div>
             )}
@@ -1245,8 +1272,8 @@ export function AddTransactionModal({
               <button
                 type="button"
                 onClick={() => {
-                  setCalcExpr(amountStr || '0');
-                  setStep('calculator');
+                  setCalcExpr(amountStr || "0");
+                  setStep("calculator");
                 }}
                 className="px-4 py-2.5 rounded-full text-xs sm:text-sm font-medium text-[#c4c6cf] hover:bg-[#1a1c22] flex items-center gap-2 transition-colors min-h-[44px]"
               >
@@ -1312,11 +1339,14 @@ function ParticipantRow({
     <div
       className={`p-3 rounded-2xl border flex items-center justify-between gap-3 min-h-[52px] transition-colors ${
         isSelected
-          ? 'bg-[#16171c] border-[#262830] text-[#e2e2e7]'
-          : 'bg-[#111216] border-transparent text-[#90929d]'
+          ? "bg-[#16171c] border-[#262830] text-[#e2e2e7]"
+          : "bg-[#111216] border-transparent text-[#90929d]"
       }`}
     >
-      <div className="flex items-center gap-3 cursor-pointer" onClick={onToggle}>
+      <div
+        className="flex items-center gap-3 cursor-pointer"
+        onClick={onToggle}
+      >
         <input
           type="checkbox"
           id={inputId}
@@ -1325,7 +1355,10 @@ function ParticipantRow({
           className="rounded-lg border-[#23252c] text-[#a8c7fa] bg-[#111216] h-5 w-5 cursor-pointer"
         />
         <span className="text-lg select-none">{avatar}</span>
-        <label htmlFor={inputId} className="text-sm font-medium select-none cursor-pointer">
+        <label
+          htmlFor={inputId}
+          className="text-sm font-medium select-none cursor-pointer"
+        >
           {name}
         </label>
       </div>
@@ -1337,7 +1370,7 @@ function ParticipantRow({
               type="number"
               step="0.01"
               placeholder="0.00"
-              value={shareAmount || ''}
+              value={shareAmount || ""}
               onChange={(e) => onCustomAmountChange(e.target.value)}
               className="w-28 bg-[#111216] border border-[#23252c] rounded-xl px-3 py-1.5 text-sm text-right text-[#e2e2e7] font-mono focus:outline-none focus:border-[#a8c7fa]"
             />

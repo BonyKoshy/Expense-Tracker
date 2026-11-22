@@ -1,6 +1,11 @@
-import { ArrowLeft, Settings } from 'lucide-react';
+import { ArrowLeft, Settings } from "lucide-react";
 
-export type NavigationTab = 'home' | 'budget' | 'transactions' | 'splits' | 'settings';
+export type NavigationTab =
+  | "home"
+  | "budget"
+  | "transactions"
+  | "splits"
+  | "settings";
 
 interface TopAppBarProps {
   activeTab: NavigationTab;
@@ -24,7 +29,7 @@ export function TopAppBar({
 }: TopAppBarProps) {
   return (
     <header className="sticky top-0 z-30 bg-[#0e0f12]/95 backdrop-blur-md px-4 sm:px-6 py-3.5 flex items-center justify-between border-b border-[#1c1d22]">
-      {activeTab === 'settings' ? (
+      {activeTab === "settings" ? (
         <div className="flex items-center gap-3">
           <button
             type="button"
@@ -48,22 +53,22 @@ export function TopAppBar({
         <div className="flex items-center gap-3">
           <div>
             <h1 className="text-base sm:text-lg font-semibold tracking-tight text-[#e2e2e7] m-0">
-              {activeTab === 'home'
+              {activeTab === "home"
                 ? `Hi, ${userName}`
-                : activeTab === 'budget'
-                ? 'Budget & Commitments'
-                : activeTab === 'transactions'
-                ? 'Transactions'
-                : 'Shared Splits'}
+                : activeTab === "budget"
+                  ? "Budget & Commitments"
+                  : activeTab === "transactions"
+                    ? "Transactions"
+                    : "Shared Splits"}
             </h1>
             <p className="text-[11px] text-[#90929d] m-0">
-              {activeTab === 'home'
-                ? 'Available to Spend & Live Liquidity'
-                : activeTab === 'budget'
-                ? `${recurringCount} commitments • Accounts & limits`
-                : activeTab === 'transactions'
-                ? `${transactionsCount} entries across months`
-                : `${peopleCount} friends • Group ledgers & GPay`}
+              {activeTab === "home"
+                ? "Available to Spend & Live Liquidity"
+                : activeTab === "budget"
+                  ? `${recurringCount} commitments • Accounts & limits`
+                  : activeTab === "transactions"
+                    ? `${transactionsCount} entries across months`
+                    : `${peopleCount} friends • Group ledgers & GPay`}
             </p>
           </div>
         </div>
@@ -76,10 +81,10 @@ export function TopAppBar({
           <span>On-Device</span>
         </div>
 
-        {activeTab !== 'settings' && (
+        {activeTab !== "settings" && (
           <button
             type="button"
-            onClick={() => onNavigate('settings')}
+            onClick={() => onNavigate("settings")}
             className="p-2.5 rounded-full bg-[#16171c] hover:bg-[#202228] text-[#c4c6cf] hover:text-[#e2e2e7] border border-[#23252c] transition-colors active:scale-95"
             title="Settings"
             aria-label="Settings"

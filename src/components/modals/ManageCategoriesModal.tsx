@@ -1,7 +1,7 @@
-import { useState } from 'react';
-import { X, Tags, FolderPlus, Tag } from 'lucide-react';
-import type { Category, Subcategory, CategoryType } from '@/types';
-import { db } from '@/db';
+import { useState } from "react";
+import { X, Tags, FolderPlus, Tag } from "lucide-react";
+import type { Category, Subcategory, CategoryType } from "@/types";
+import { db } from "@/db";
 
 interface ManageCategoriesModalProps {
   isOpen: boolean;
@@ -18,14 +18,14 @@ export function ManageCategoriesModal({
   subcategories,
   onSuccess,
 }: ManageCategoriesModalProps) {
-  const [catName, setCatName] = useState('');
-  const [catType, setCatType] = useState<CategoryType>('expense');
-  const [catColor, setCatColor] = useState('#1a2536');
+  const [catName, setCatName] = useState("");
+  const [catType, setCatType] = useState<CategoryType>("expense");
+  const [catColor, setCatColor] = useState("#1a2536");
 
   const [selectedParentCatId, setSelectedParentCatId] = useState(
-    categories[0]?.id || ''
+    categories[0]?.id || "",
   );
-  const [subName, setSubName] = useState('');
+  const [subName, setSubName] = useState("");
 
   const [error, setError] = useState<string | null>(null);
 
@@ -35,7 +35,7 @@ export function ManageCategoriesModal({
     e.preventDefault();
     setError(null);
     if (!catName.trim()) {
-      setError('Category name is required.');
+      setError("Category name is required.");
       return;
     }
 
@@ -44,18 +44,18 @@ export function ManageCategoriesModal({
         id: `cat_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
         name: catName.trim(),
         type: catType,
-        icon: 'Tag',
+        icon: "Tag",
         color: catColor,
         isDefault: false,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
       await db.categories.add(newCat);
-      setCatName('');
+      setCatName("");
       if (onSuccess) onSuccess(`Category "${newCat.name}" added.`);
     } catch (err: unknown) {
       console.error(err);
-      setError(err instanceof Error ? err.message : 'Failed to add category');
+      setError(err instanceof Error ? err.message : "Failed to add category");
     }
   };
 
@@ -63,11 +63,11 @@ export function ManageCategoriesModal({
     e.preventDefault();
     setError(null);
     if (!subName.trim()) {
-      setError('Subcategory name is required.');
+      setError("Subcategory name is required.");
       return;
     }
     if (!selectedParentCatId) {
-      setError('Please select a parent category.');
+      setError("Please select a parent category.");
       return;
     }
 
@@ -80,11 +80,13 @@ export function ManageCategoriesModal({
         updatedAt: new Date().toISOString(),
       };
       await db.subcategories.add(newSub);
-      setSubName('');
+      setSubName("");
       if (onSuccess) onSuccess(`Subcategory "${newSub.name}" created.`);
     } catch (err: unknown) {
       console.error(err);
-      setError(err instanceof Error ? err.message : 'Failed to add subcategory');
+      setError(
+        err instanceof Error ? err.message : "Failed to add subcategory",
+      );
     }
   };
 
@@ -173,7 +175,9 @@ export function ManageCategoriesModal({
                     onChange={(e) => setCatColor(e.target.value)}
                     className="h-10 w-14 rounded-xl border border-[#23252c] bg-transparent cursor-pointer"
                   />
-                  <span className="text-xs font-mono text-[#90929d]">{catColor}</span>
+                  <span className="text-xs font-mono text-[#90929d]">
+                    {catColor}
+                  </span>
                 </div>
               </div>
             </div>
@@ -256,7 +260,9 @@ export function ManageCategoriesModal({
                       className="h-2.5 w-2.5 rounded-full shrink-0"
                       style={{ backgroundColor: c.color }}
                     />
-                    <span className="text-sm font-semibold text-[#e2e2e7]">{c.name}</span>
+                    <span className="text-sm font-semibold text-[#e2e2e7]">
+                      {c.name}
+                    </span>
                     <span className="text-[10px] font-mono px-2 py-0.2 rounded-full bg-[#1a1c22] text-[#90929d] uppercase ml-auto">
                       {c.type}
                     </span>

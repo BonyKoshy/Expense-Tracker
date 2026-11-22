@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo } from "react";
 import {
   PiggyBank,
   Target,
@@ -12,9 +12,9 @@ import {
   X,
   Layers,
   ArrowDownLeft,
-} from 'lucide-react';
-import type { Account, Category, Transaction } from '@/types';
-import { formatINR } from '@/utils/formatters';
+} from "lucide-react";
+import type { Account, Category, Transaction } from "@/types";
+import { formatINR } from "@/utils/formatters";
 
 interface SavingsGoalCardProps {
   accounts?: Account[];
@@ -36,20 +36,23 @@ export function SavingsGoalCard({
   onQuickTransferToSavings,
 }: SavingsGoalCardProps) {
   // Tracking Mode: 'accounts' (balance of selected accounts) or 'transactions' (sum of transactions in savings category)
-  const [trackingMode, setTrackingMode] = useState<'accounts' | 'transactions'>(() => {
-    try {
-      return (
-        (localStorage.getItem('fintrack_savings_mode') as 'accounts' | 'transactions') ||
-        'accounts'
-      );
-    } catch {
-      return 'accounts';
-    }
-  });
+  const [trackingMode, setTrackingMode] = useState<"accounts" | "transactions">(
+    () => {
+      try {
+        return (
+          (localStorage.getItem("fintrack_savings_mode") as
+            | "accounts"
+            | "transactions") || "accounts"
+        );
+      } catch {
+        return "accounts";
+      }
+    },
+  );
 
   const [savingsTarget, setSavingsTarget] = useState<number>(() => {
     try {
-      const saved = localStorage.getItem('fintrack_savings_target');
+      const saved = localStorage.getItem("fintrack_savings_target");
       return saved ? Number(saved) : 50000;
     } catch {
       return 50000;
@@ -58,23 +61,23 @@ export function SavingsGoalCard({
 
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>(() => {
     try {
-      const saved = localStorage.getItem('fintrack_savings_cat_id');
+      const saved = localStorage.getItem("fintrack_savings_cat_id");
       if (saved) return saved;
     } catch {
       // ignore
     }
     const defaultCat = categories.find(
       (c) =>
-        c.id === 'cat_investments' ||
-        c.name.toLowerCase().includes('saving') ||
-        c.name.toLowerCase().includes('invest')
+        c.id === "cat_investments" ||
+        c.name.toLowerCase().includes("saving") ||
+        c.name.toLowerCase().includes("invest"),
     );
-    return defaultCat ? defaultCat.id : 'cat_investments';
+    return defaultCat ? defaultCat.id : "cat_investments";
   });
 
   const [selectedAccountIds, setSelectedAccountIds] = useState<string[]>(() => {
     try {
-      const stored = localStorage.getItem('fintrack_savings_acc_ids');
+      const stored = localStorage.getItem("fintrack_savings_acc_ids");
       if (stored) return JSON.parse(stored);
     } catch {
       // ignore
@@ -84,10 +87,10 @@ export function SavingsGoalCard({
       .filter(
         (a) =>
           !a.isArchived &&
-          (a.name.toLowerCase().includes('canara') ||
-            a.type === 'investment' ||
-            a.name.toLowerCase().includes('saving') ||
-            a.name.toLowerCase().includes('rd'))
+          (a.name.toLowerCase().includes("canara") ||
+            a.type === "investment" ||
+            a.name.toLowerCase().includes("saving") ||
+            a.name.toLowerCase().includes("rd")),
       )
       .map((a) => a.id);
     return defaultIds.length > 0 ? defaultIds : [];
@@ -102,7 +105,7 @@ export function SavingsGoalCard({
     if (!isNaN(val) && val > 0) {
       setSavingsTarget(val);
       try {
-        localStorage.setItem('fintrack_savings_target', String(val));
+        localStorage.setItem("fintrack_savings_target", String(val));
       } catch {
         // ignore
       }
@@ -110,7 +113,7 @@ export function SavingsGoalCard({
     setIsEditingTarget(false);
   };
 
-  const isCategoryMode = trackingMode === 'transactions';
+  const isCategoryMode = trackingMode === "transactions";
 
   // Category mode calculation: sum of all transactions under selected category
   const targetCategory = useMemo(() => {
@@ -123,7 +126,7 @@ export function SavingsGoalCard({
 
   const categorySavingsTotal = useMemo(() => {
     return categoryTxs.reduce((sum, t) => {
-      if (t.type === 'income') {
+      if (t.type === "income") {
         return sum + (t.amount || 0);
       }
       return sum + (t.personalExpenseAmount || t.amount || 0);
@@ -132,7 +135,7 @@ export function SavingsGoalCard({
 
   const currentMonthCategorySavings = useMemo(() => {
     const now = new Date();
-    const curMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    const curMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
     return categoryTxs
       .filter((t) => t.date && t.date.slice(0, 7) === curMonth)
       .reduce((sum, t) => sum + (t.personalExpenseAmount || t.amount || 0), 0);
@@ -144,9 +147,9 @@ export function SavingsGoalCard({
       const matching = accounts.filter(
         (a) =>
           !a.isArchived &&
-          (a.name.toLowerCase().includes('canara') ||
-            a.type === 'investment' ||
-            a.name.toLowerCase().includes('saving'))
+          (a.name.toLowerCase().includes("canara") ||
+            a.type === "investment" ||
+            a.name.toLowerCase().includes("saving")),
       );
       return matching.length > 0 ? matching : accounts.slice(0, 1);
     }
@@ -161,10 +164,12 @@ export function SavingsGoalCard({
   }, [activeSelectedAccounts, savingsBalance]);
 
   // Effective Savings Balance depending on mode
-  const effectiveSavingsBalance = isCategoryMode ? categorySavingsTotal : accountSavingsTotal;
+  const effectiveSavingsBalance = isCategoryMode
+    ? categorySavingsTotal
+    : accountSavingsTotal;
   const progressPct = Math.min(
     100,
-    Math.round((effectiveSavingsBalance / (savingsTarget || 1)) * 100)
+    Math.round((effectiveSavingsBalance / (savingsTarget || 1)) * 100),
   );
 
   const handleToggleAccount = (id: string) => {
@@ -173,16 +178,16 @@ export function SavingsGoalCard({
       : [...selectedAccountIds, id];
     setSelectedAccountIds(next);
     try {
-      localStorage.setItem('fintrack_savings_acc_ids', JSON.stringify(next));
+      localStorage.setItem("fintrack_savings_acc_ids", JSON.stringify(next));
     } catch {
       // ignore
     }
   };
 
-  const handleModeChange = (mode: 'accounts' | 'transactions') => {
+  const handleModeChange = (mode: "accounts" | "transactions") => {
     setTrackingMode(mode);
     try {
-      localStorage.setItem('fintrack_savings_mode', mode);
+      localStorage.setItem("fintrack_savings_mode", mode);
     } catch {
       // ignore
     }
@@ -191,7 +196,7 @@ export function SavingsGoalCard({
   const handleCategoryChange = (catId: string) => {
     setSelectedCategoryId(catId);
     try {
-      localStorage.setItem('fintrack_savings_cat_id', catId);
+      localStorage.setItem("fintrack_savings_cat_id", catId);
     } catch {
       // ignore
     }
@@ -199,13 +204,13 @@ export function SavingsGoalCard({
 
   const getAccountIcon = (type: string) => {
     switch (type) {
-      case 'credit_card':
+      case "credit_card":
         return <CreditCard className="h-4 w-4 text-[#f2b8b5]" />;
-      case 'cash':
+      case "cash":
         return <Banknote className="h-4 w-4 text-[#a8dab5]" />;
-      case 'wallet':
+      case "wallet":
         return <Wallet className="h-4 w-4 text-[#ffb787]" />;
-      case 'investment':
+      case "investment":
         return <PiggyBank className="h-4 w-4 text-[#d0bcff]" />;
       default:
         return <Landmark className="h-4 w-4 text-[#9fd5cb]" />;
@@ -231,10 +236,10 @@ export function SavingsGoalCard({
             </div>
             <p className="text-xs text-[#90929d] mt-0.5">
               {isCategoryMode
-                ? `Tracked via transactions in ${targetCategory?.name || 'Investments & Savings'}`
+                ? `Tracked via transactions in ${targetCategory?.name || "Investments & Savings"}`
                 : activeSelectedAccounts.length > 0
-                ? `Accumulated in ${activeSelectedAccounts.map((a) => a.name).join(' & ')}`
-                : 'Accumulated in Canara Bank & RD investments'}
+                  ? `Accumulated in ${activeSelectedAccounts.map((a) => a.name).join(" & ")}`
+                  : "Accumulated in Canara Bank & RD investments"}
             </p>
           </div>
         </div>
@@ -310,7 +315,8 @@ export function SavingsGoalCard({
           </div>
 
           <span className="text-xs text-[#a8dab5] font-medium">
-            {formatINR(Math.max(0, savingsTarget - effectiveSavingsBalance))} remaining
+            {formatINR(Math.max(0, savingsTarget - effectiveSavingsBalance))}{" "}
+            remaining
           </span>
         </div>
 
@@ -329,9 +335,11 @@ export function SavingsGoalCard({
             <div className="flex items-center gap-2">
               <ArrowDownLeft className="h-4 w-4 text-[#a8dab5]" />
               <div>
-                <div className="text-[#e2e2e7] font-medium">This Month Deposits</div>
+                <div className="text-[#e2e2e7] font-medium">
+                  This Month Deposits
+                </div>
                 <div className="text-[10px] text-[#90929d]">
-                  Saved in {targetCategory?.name || 'Category'}
+                  Saved in {targetCategory?.name || "Category"}
                 </div>
               </div>
             </div>
@@ -344,7 +352,9 @@ export function SavingsGoalCard({
             <div className="flex items-center gap-2">
               <Layers className="h-4 w-4 text-[#d0bcff]" />
               <div>
-                <div className="text-[#e2e2e7] font-medium">All-Time Cumulative</div>
+                <div className="text-[#e2e2e7] font-medium">
+                  All-Time Cumulative
+                </div>
                 <div className="text-[10px] text-[#90929d]">
                   {categoryTxs.length} savings transaction(s) logged
                 </div>
@@ -367,7 +377,7 @@ export function SavingsGoalCard({
                 <div>
                   <div className="text-[#e2e2e7] font-medium">{acc.name}</div>
                   <div className="text-[10px] text-[#90929d]">
-                    {acc.institution || acc.type.replace('_', ' ')}
+                    {acc.institution || acc.type.replace("_", " ")}
                   </div>
                 </div>
               </div>
@@ -384,7 +394,9 @@ export function SavingsGoalCard({
               <Landmark className="h-4 w-4 text-[#9fd5cb]" />
               <div>
                 <div className="text-[#e2e2e7] font-medium">CANARA Bank</div>
-                <div className="text-[10px] text-[#90929d]">Savings &amp; Emergency Buffer</div>
+                <div className="text-[10px] text-[#90929d]">
+                  Savings &amp; Emergency Buffer
+                </div>
               </div>
             </div>
             <span className="font-mono text-sm font-semibold text-[#e2e2e7]">
@@ -397,7 +409,9 @@ export function SavingsGoalCard({
               <PiggyBank className="h-4 w-4 text-[#d0bcff]" />
               <div>
                 <div className="text-[#e2e2e7] font-medium">ICCSL RD</div>
-                <div className="text-[10px] text-[#90929d]">Recurring Deposit Investment</div>
+                <div className="text-[10px] text-[#90929d]">
+                  Recurring Deposit Investment
+                </div>
               </div>
             </div>
             <span className="font-mono text-sm font-semibold text-[#e2e2e7]">
@@ -443,11 +457,11 @@ export function SavingsGoalCard({
               <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
-                  onClick={() => handleModeChange('accounts')}
+                  onClick={() => handleModeChange("accounts")}
                   className={`p-3 rounded-2xl text-left border transition-all ${
                     !isCategoryMode
-                      ? 'bg-[#1a2536] border-[#a8c7fa] text-[#d3e3fd]'
-                      : 'bg-[#111216] border-[#23252c] text-[#90929d] hover:text-[#e2e2e7]'
+                      ? "bg-[#1a2536] border-[#a8c7fa] text-[#d3e3fd]"
+                      : "bg-[#111216] border-[#23252c] text-[#90929d] hover:text-[#e2e2e7]"
                   }`}
                 >
                   <div className="font-semibold text-xs">Account Balances</div>
@@ -458,11 +472,11 @@ export function SavingsGoalCard({
 
                 <button
                   type="button"
-                  onClick={() => handleModeChange('transactions')}
+                  onClick={() => handleModeChange("transactions")}
                   className={`p-3 rounded-2xl text-left border transition-all ${
                     isCategoryMode
-                      ? 'bg-[#15241b] border-[#a8dab5] text-[#a8dab5]'
-                      : 'bg-[#111216] border-[#23252c] text-[#90929d] hover:text-[#e2e2e7]'
+                      ? "bg-[#15241b] border-[#a8dab5] text-[#a8dab5]"
+                      : "bg-[#111216] border-[#23252c] text-[#90929d] hover:text-[#e2e2e7]"
                   }`}
                 >
                   <div className="font-semibold text-xs">Category Deposits</div>
@@ -485,7 +499,7 @@ export function SavingsGoalCard({
                   className="w-full bg-[#16171c] border border-[#23252c] focus:border-[#a8c7fa] rounded-xl px-3 py-2 text-xs text-[#e2e2e7] focus:outline-none"
                 >
                   {categories
-                    .filter((c) => c.type === 'expense' || c.type === 'both')
+                    .filter((c) => c.type === "expense" || c.type === "both")
                     .map((cat) => (
                       <option key={cat.id} value={cat.id}>
                         {cat.name}
@@ -493,8 +507,8 @@ export function SavingsGoalCard({
                     ))}
                 </select>
                 <p className="text-[11px] text-[#90929d] pt-1">
-                  Every transaction recorded under this category will automatically increase your
-                  savings progress.
+                  Every transaction recorded under this category will
+                  automatically increase your savings progress.
                 </p>
               </div>
             ) : (
@@ -517,10 +531,16 @@ export function SavingsGoalCard({
                             onChange={() => handleToggleAccount(acc.id)}
                             className="rounded border-[#23252c] text-[#a8c7fa] bg-[#111216]"
                           />
-                          <span className="font-medium text-[#e2e2e7]">{acc.name}</span>
-                          <span className="text-[10px] text-[#90929d]">({acc.type})</span>
+                          <span className="font-medium text-[#e2e2e7]">
+                            {acc.name}
+                          </span>
+                          <span className="text-[10px] text-[#90929d]">
+                            ({acc.type})
+                          </span>
                         </div>
-                        <span className="font-mono text-[#a8dab5]">{formatINR(acc.balance)}</span>
+                        <span className="font-mono text-[#a8dab5]">
+                          {formatINR(acc.balance)}
+                        </span>
                       </label>
                     );
                   })}

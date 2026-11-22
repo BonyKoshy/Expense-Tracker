@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo, useRef } from "react";
 import {
   Users,
   ArrowUpRight,
@@ -9,7 +9,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Search,
-} from 'lucide-react';
+} from "lucide-react";
 import type {
   Transaction,
   Account,
@@ -17,8 +17,8 @@ import type {
   Subcategory,
   Group,
   Person,
-} from '@/types';
-import { formatINR, formatDate } from '@/utils/formatters';
+} from "@/types";
+import { formatINR, formatDate } from "@/utils/formatters";
 
 interface TransactionsViewProps {
   transactions: Transaction[];
@@ -53,8 +53,8 @@ export function TransactionsView({
   onDeleteTx,
   onNewTx,
 }: TransactionsViewProps) {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedType, setSelectedType] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedType, setSelectedType] = useState<string>("all");
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   // Group transactions by YYYY-MM
@@ -64,8 +64,8 @@ export function TransactionsView({
     for (const tx of transactions) {
       const date = new Date(tx.date);
       const key = !isNaN(date.getTime())
-        ? `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
-        : 'unknown';
+        ? `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`
+        : "unknown";
 
       if (!map.has(key)) {
         map.set(key, []);
@@ -74,20 +74,25 @@ export function TransactionsView({
     }
 
     // Sort keys ascending: previous/earlier month on left side, newer on right!
-    const sortedKeys = Array.from(map.keys()).sort((a, b) => a.localeCompare(b));
+    const sortedKeys = Array.from(map.keys()).sort((a, b) =>
+      a.localeCompare(b),
+    );
 
     return sortedKeys.map((key) => {
       const txs = map.get(key)!;
-      let label = 'Other';
+      let label = "Other";
       let year = 0;
       let month = 0;
 
-      if (key !== 'unknown') {
-        const [y, m] = key.split('-').map(Number);
+      if (key !== "unknown") {
+        const [y, m] = key.split("-").map(Number);
         year = y;
         month = m;
         const d = new Date(year, month - 1, 1);
-        label = d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+        label = d.toLocaleDateString("en-US", {
+          month: "long",
+          year: "numeric",
+        });
       }
 
       let personalSpend = 0;
@@ -96,18 +101,18 @@ export function TransactionsView({
       let settlementsReceived = 0;
 
       for (const tx of txs) {
-        if (tx.type === 'expense') {
+        if (tx.type === "expense") {
           personalSpend += tx.personalExpenseAmount || tx.amount || 0;
           totalSwiped += tx.amount || 0;
-        } else if (tx.type === 'shared_expense') {
+        } else if (tx.type === "shared_expense") {
           personalSpend += tx.personalExpenseAmount || 0;
           // Only count under total swiped if the user actually paid/swiped the bill
-          if (!tx.paidByPersonId || tx.paidByPersonId === 'user') {
+          if (!tx.paidByPersonId || tx.paidByPersonId === "user") {
             totalSwiped += tx.amount || 0;
           }
-        } else if (tx.type === 'income') {
+        } else if (tx.type === "income") {
           totalIncome += tx.amount || 0;
-        } else if (tx.type === 'settlement_received') {
+        } else if (tx.type === "settlement_received") {
           settlementsReceived += tx.amount || 0;
         }
       }
@@ -127,7 +132,7 @@ export function TransactionsView({
   }, [transactions]);
 
   const [activeMonthKey, setActiveMonthKey] = useState<string>(
-    monthGroups[monthGroups.length - 1]?.key || monthGroups[0]?.key || ''
+    monthGroups[monthGroups.length - 1]?.key || monthGroups[0]?.key || "",
   );
 
   const currentMonthIndex = useMemo(() => {
@@ -141,9 +146,9 @@ export function TransactionsView({
     const element = document.getElementById(`month-card-${key}`);
     if (element && scrollContainerRef.current) {
       element.scrollIntoView({
-        behavior: 'smooth',
-        inline: 'center',
-        block: 'nearest',
+        behavior: "smooth",
+        inline: "center",
+        block: "nearest",
       });
     }
   };
@@ -165,7 +170,7 @@ export function TransactionsView({
   // Filter transactions within each month
   const filterTxs = (txs: Transaction[]) => {
     return txs.filter((tx) => {
-      if (selectedType !== 'all' && tx.type !== selectedType) return false;
+      if (selectedType !== "all" && tx.type !== selectedType) return false;
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
         const matchTitle = tx.title.toLowerCase().includes(q);
@@ -183,9 +188,12 @@ export function TransactionsView({
         <div className="h-12 w-12 rounded-2xl bg-[#1a1c22] border border-[#262830] text-[#a8c7fa] flex items-center justify-center mx-auto">
           <Calendar className="h-6 w-6" />
         </div>
-        <h3 className="text-base font-semibold text-[#e2e2e7]">No Transactions Recorded</h3>
+        <h3 className="text-base font-semibold text-[#e2e2e7]">
+          No Transactions Recorded
+        </h3>
         <p className="text-xs text-[#90929d] max-w-sm mx-auto">
-          Record your first expense, shared PG bill, or GPay settlement using the button below.
+          Record your first expense, shared PG bill, or GPay settlement using
+          the button below.
         </p>
         {onNewTx && (
           <button
@@ -221,7 +229,9 @@ export function TransactionsView({
             <div className="relative flex items-center">
               <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-[#1a2536] text-[#d3e3fd] text-xs font-semibold border border-[#2e405b] hover:bg-[#223147] transition-colors cursor-pointer min-h-[38px]">
                 <Calendar className="h-4 w-4 text-[#a8c7fa]" />
-                <span>{monthGroups[currentMonthIndex]?.label || 'Select Month'}</span>
+                <span>
+                  {monthGroups[currentMonthIndex]?.label || "Select Month"}
+                </span>
                 <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#0a3560] text-[#a8c7fa]">
                   {monthGroups[currentMonthIndex]?.transactions.length || 0}
                 </span>
@@ -235,7 +245,11 @@ export function TransactionsView({
                 title="Select Month"
               >
                 {monthGroups.map((mg) => (
-                  <option key={mg.key} value={mg.key} className="bg-[#16171c] text-[#e2e2e7]">
+                  <option
+                    key={mg.key}
+                    value={mg.key}
+                    className="bg-[#16171c] text-[#e2e2e7]"
+                  >
                     {mg.label} ({mg.transactions.length} entries)
                   </option>
                 ))}
@@ -245,7 +259,10 @@ export function TransactionsView({
             <button
               type="button"
               onClick={handleNextMonth}
-              disabled={currentMonthIndex < 0 || currentMonthIndex >= monthGroups.length - 1}
+              disabled={
+                currentMonthIndex < 0 ||
+                currentMonthIndex >= monthGroups.length - 1
+              }
               className="h-9 w-9 rounded-full bg-[#111216] hover:bg-[#1a1c22] disabled:opacity-30 disabled:pointer-events-none text-[#c4c6cf] hover:text-[#e2e2e7] flex items-center justify-center border border-[#23252c] transition-colors shrink-0"
               title="Next Month"
             >
@@ -261,12 +278,12 @@ export function TransactionsView({
                   onClick={() => scrollToMonth(mg.key)}
                   className={`text-[11px] transition-colors hover:text-[#e2e2e7] ${
                     activeMonthKey === mg.key
-                      ? 'text-[#a8c7fa] font-semibold underline underline-offset-4'
-                      : 'text-[#90929d]'
+                      ? "text-[#a8c7fa] font-semibold underline underline-offset-4"
+                      : "text-[#90929d]"
                   }`}
                 >
-                  {mg.label.split(' ')[0]}
-                  {i < monthGroups.length - 1 ? ' •' : ''}
+                  {mg.label.split(" ")[0]}
+                  {i < monthGroups.length - 1 ? " •" : ""}
                 </button>
               ))}
             </div>
@@ -289,20 +306,20 @@ export function TransactionsView({
         <div className="flex items-center gap-2 overflow-x-auto pb-0.5 scrollbar-none pt-0.5">
           <button
             type="button"
-            onClick={() => setSelectedType('all')}
+            onClick={() => setSelectedType("all")}
             className={`shrink-0 px-3 py-1 rounded-full text-xs font-semibold transition-all ${
-              selectedType === 'all'
-                ? 'bg-[#1a2536] text-[#d3e3fd] border border-[#2e405b]'
-                : 'bg-[#111216] text-[#90929d] hover:text-[#e2e2e7] border border-[#23252c]'
+              selectedType === "all"
+                ? "bg-[#1a2536] text-[#d3e3fd] border border-[#2e405b]"
+                : "bg-[#111216] text-[#90929d] hover:text-[#e2e2e7] border border-[#23252c]"
             }`}
           >
             All
           </button>
           {[
-            { id: 'shared_expense', label: 'Shared Splits' },
-            { id: 'expense', label: 'Personal' },
-            { id: 'settlement_received', label: 'Settlements' },
-            { id: 'income', label: 'Inflow' },
+            { id: "shared_expense", label: "Shared Splits" },
+            { id: "expense", label: "Personal" },
+            { id: "settlement_received", label: "Settlements" },
+            { id: "income", label: "Inflow" },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -310,8 +327,8 @@ export function TransactionsView({
               onClick={() => setSelectedType(tab.id)}
               className={`shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-all ${
                 selectedType === tab.id
-                  ? 'bg-[#1a2536] text-[#d3e3fd] border border-[#2e405b]'
-                  : 'bg-[#111216] text-[#90929d] hover:text-[#e2e2e7] border border-[#23252c]'
+                  ? "bg-[#1a2536] text-[#d3e3fd] border border-[#2e405b]"
+                  : "bg-[#111216] text-[#90929d] hover:text-[#e2e2e7] border border-[#23252c]"
               }`}
             >
               {tab.label}
@@ -324,7 +341,7 @@ export function TransactionsView({
       <div
         ref={scrollContainerRef}
         className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-6 pt-1 px-0.5 scrollbar-thin"
-        style={{ scrollBehavior: 'smooth' }}
+        style={{ scrollBehavior: "smooth" }}
       >
         {monthGroups.map((mg) => {
           const filteredTxs = filterTxs(mg.transactions);
@@ -343,7 +360,8 @@ export function TransactionsView({
                       {mg.label}
                     </h3>
                     <p className="text-xs text-[#90929d] mt-0.5">
-                      {filteredTxs.length} of {mg.transactions.length} transactions
+                      {filteredTxs.length} of {mg.transactions.length}{" "}
+                      transactions
                     </p>
                   </div>
                   <span className="px-3 py-1 rounded-full text-xs font-mono font-medium bg-[#111216] border border-[#23252c] text-[#a8c7fa]">
@@ -354,14 +372,18 @@ export function TransactionsView({
                 {/* Monthly Financial Summary Chips */}
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   <div className="p-2.5 rounded-2xl bg-[#111216] border border-[#1e2026]">
-                    <div className="text-[11px] text-[#90929d]">Personal Spend</div>
+                    <div className="text-[11px] text-[#90929d]">
+                      Personal Spend
+                    </div>
                     <div className="text-sm font-semibold text-[#f2b8b5] font-mono mt-0.5">
                       {formatINR(mg.personalSpend)}
                     </div>
                   </div>
 
                   <div className="p-2.5 rounded-2xl bg-[#111216] border border-[#1e2026]">
-                    <div className="text-[11px] text-[#90929d]">Total Swiped / Billed</div>
+                    <div className="text-[11px] text-[#90929d]">
+                      Total Swiped / Billed
+                    </div>
                     <div className="text-sm font-semibold text-[#e2e2e7] font-mono mt-0.5">
                       {formatINR(mg.totalSwiped)}
                     </div>
@@ -369,7 +391,9 @@ export function TransactionsView({
 
                   {mg.totalIncome > 0 && (
                     <div className="p-2.5 rounded-2xl bg-[#111216] border border-[#1e2026]">
-                      <div className="text-[11px] text-[#90929d]">Income / Inflow</div>
+                      <div className="text-[11px] text-[#90929d]">
+                        Income / Inflow
+                      </div>
                       <div className="text-sm font-semibold text-[#a8dab5] font-mono mt-0.5">
                         +{formatINR(mg.totalIncome)}
                       </div>
@@ -378,7 +402,9 @@ export function TransactionsView({
 
                   {mg.settlementsReceived > 0 && (
                     <div className="p-2.5 rounded-2xl bg-[#111216] border border-[#1e2026]">
-                      <div className="text-[11px] text-[#90929d]">Settlements Recovered</div>
+                      <div className="text-[11px] text-[#90929d]">
+                        Settlements Recovered
+                      </div>
                       <div className="text-sm font-semibold text-[#a8dab5] font-mono mt-0.5">
                         +{formatINR(mg.settlementsReceived)}
                       </div>
@@ -391,21 +417,28 @@ export function TransactionsView({
               <div className="divide-y divide-[#1c1d22] overflow-y-auto max-h-[580px] flex-1">
                 {filteredTxs.length === 0 ? (
                   <div className="p-8 text-center text-xs text-[#90929d]">
-                    No transactions match current search criteria for {mg.label}.
+                    No transactions match current search criteria for {mg.label}
+                    .
                   </div>
                 ) : (
                   filteredTxs.map((tx) => {
                     const account = accounts.find((a) => a.id === tx.accountId);
-                    const category = categories.find((c) => c.id === tx.categoryId);
-                    const subcategory = subcategories.find((s) => s.id === tx.subcategoryId);
-                    const isShared = tx.type === 'shared_expense';
-                    const isSettlement = tx.type === 'settlement_received';
-                    const isIncome = tx.type === 'income';
-                    const isCCPay = tx.type === 'credit_card_payment';
+                    const category = categories.find(
+                      (c) => c.id === tx.categoryId,
+                    );
+                    const subcategory = subcategories.find(
+                      (s) => s.id === tx.subcategoryId,
+                    );
+                    const isShared = tx.type === "shared_expense";
+                    const isSettlement = tx.type === "settlement_received";
+                    const isIncome = tx.type === "income";
+                    const isCCPay = tx.type === "credit_card_payment";
 
                     // Find friend who settled if settlement
                     const friend = people.find(
-                      (p) => p.id === tx.paidByPersonId || p.id === tx.splits?.[0]?.personId
+                      (p) =>
+                        p.id === tx.paidByPersonId ||
+                        p.id === tx.splits?.[0]?.personId,
                     );
 
                     return (
@@ -417,14 +450,14 @@ export function TransactionsView({
                           <div
                             className={`p-2.5 rounded-2xl shrink-0 mt-0.5 border ${
                               isShared
-                                ? 'bg-[#2a1f17] text-[#ffb787] border-[#422e1e]'
+                                ? "bg-[#2a1f17] text-[#ffb787] border-[#422e1e]"
                                 : isSettlement
-                                ? 'bg-[#15241b] text-[#a8dab5] border-[#223a2b]'
-                                : isIncome
-                                ? 'bg-[#15241b] text-[#a8dab5] border-[#223a2b]'
-                                : isCCPay
-                                ? 'bg-[#1a2536] text-[#a8c7fa] border-[#2e405b]'
-                                : 'bg-[#1a1c22] text-[#a8c7fa] border-[#262830]'
+                                  ? "bg-[#15241b] text-[#a8dab5] border-[#223a2b]"
+                                  : isIncome
+                                    ? "bg-[#15241b] text-[#a8dab5] border-[#223a2b]"
+                                    : isCCPay
+                                      ? "bg-[#1a2536] text-[#a8c7fa] border-[#2e405b]"
+                                      : "bg-[#1a1c22] text-[#a8c7fa] border-[#262830]"
                             }`}
                           >
                             {isShared ? (
@@ -482,7 +515,8 @@ export function TransactionsView({
 
                               {tx.groupId && (
                                 <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-[#1a2536] text-[#d3e3fd] border border-[#2e405b]">
-                                  {groups.find((g) => g.id === tx.groupId)?.name || tx.groupId}
+                                  {groups.find((g) => g.id === tx.groupId)
+                                    ?.name || tx.groupId}
                                 </span>
                               )}
                             </div>
@@ -490,19 +524,26 @@ export function TransactionsView({
                             <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-[#90929d]">
                               <span>{formatDate(tx.date)}</span>
                               <span>•</span>
-                              {isShared && tx.paidByPersonId && tx.paidByPersonId !== 'user' ? (
+                              {isShared &&
+                              tx.paidByPersonId &&
+                              tx.paidByPersonId !== "user" ? (
                                 <span className="text-[#ffb787] font-medium">
-                                  Paid by {people.find((p) => p.id === tx.paidByPersonId)?.name || 'Friend'}
+                                  Paid by{" "}
+                                  {people.find(
+                                    (p) => p.id === tx.paidByPersonId,
+                                  )?.name || "Friend"}
                                 </span>
                               ) : (
                                 <span className="text-[#c4c6cf]">
-                                  {account?.name || 'Account'}
+                                  {account?.name || "Account"}
                                 </span>
                               )}
                               {friend && isSettlement && (
                                 <>
                                   <span>•</span>
-                                  <span className="text-[#a8dab5]">From {friend.name}</span>
+                                  <span className="text-[#a8dab5]">
+                                    From {friend.name}
+                                  </span>
                                 </>
                               )}
                             </div>
@@ -517,23 +558,27 @@ export function TransactionsView({
                             {isShared && tx.splits && tx.splits.length > 1 && (
                               <div className="pt-0.5 flex flex-wrap gap-1 text-[10px]">
                                 <span className="text-[#90929d]">
-                                  Personal: {formatINR(tx.personalExpenseAmount)} • Friends:
+                                  Personal:{" "}
+                                  {formatINR(tx.personalExpenseAmount)} •
+                                  Friends:
                                 </span>
                                 {tx.splits
-                                  .filter((s) => s.personId !== 'user')
+                                  .filter((s) => s.personId !== "user")
                                   .map((s) => {
                                     const pName =
-                                      people.find((p) => p.id === s.personId)?.name || 'Friend';
+                                      people.find((p) => p.id === s.personId)
+                                        ?.name || "Friend";
                                     return (
                                       <span
                                         key={s.personId}
                                         className={`px-1.5 py-0.2 rounded border ${
                                           s.isSettled
-                                            ? 'bg-[#15241b] text-[#a8dab5] border-[#223a2b]'
-                                            : 'bg-[#2a1f17] text-[#ffb787] border-[#422e1e]'
+                                            ? "bg-[#15241b] text-[#a8dab5] border-[#223a2b]"
+                                            : "bg-[#2a1f17] text-[#ffb787] border-[#422e1e]"
                                         }`}
                                       >
-                                        {pName}: {formatINR(s.amount)} ({s.isSettled ? 'paid' : 'due'})
+                                        {pName}: {formatINR(s.amount)} (
+                                        {s.isSettled ? "paid" : "due"})
                                       </span>
                                     );
                                   })}
@@ -547,21 +592,22 @@ export function TransactionsView({
                           <div
                             className={`font-mono text-xs sm:text-sm font-semibold ${
                               isIncome || isSettlement
-                                ? 'text-[#a8dab5]'
+                                ? "text-[#a8dab5]"
                                 : isShared
-                                ? 'text-[#ffb787]'
-                                : 'text-[#e2e2e7]'
+                                  ? "text-[#ffb787]"
+                                  : "text-[#e2e2e7]"
                             }`}
                           >
-                            {isIncome || isSettlement ? '+' : '-'}
+                            {isIncome || isSettlement ? "+" : "-"}
                             {formatINR(tx.amount)}
                           </div>
 
-                          {isShared && tx.personalExpenseAmount !== tx.amount && (
-                            <div className="text-[10px] text-[#90929d] font-mono mt-0.5">
-                              My Share: {formatINR(tx.personalExpenseAmount)}
-                            </div>
-                          )}
+                          {isShared &&
+                            tx.personalExpenseAmount !== tx.amount && (
+                              <div className="text-[10px] text-[#90929d] font-mono mt-0.5">
+                                My Share: {formatINR(tx.personalExpenseAmount)}
+                              </div>
+                            )}
 
                           <button
                             type="button"

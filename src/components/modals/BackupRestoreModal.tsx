@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from "react";
 import {
   X,
   Download,
@@ -10,35 +10,42 @@ import {
   AlertCircle,
   FileSpreadsheet,
   ArrowRight,
-} from 'lucide-react';
+} from "lucide-react";
 import {
   exportEncryptedBackup,
   exportPlainBackup,
   restoreBackup,
-} from '@/utils/cryptoBackup';
-import { importCashewCSV, previewCashewCSV, type CashewPreviewSummary } from '@/services/cashewImporter';
-import { formatINR } from '@/utils/formatters';
+} from "@/utils/cryptoBackup";
+import {
+  importCashewCSV,
+  previewCashewCSV,
+  type CashewPreviewSummary,
+} from "@/services/cashewImporter";
+import { formatINR } from "@/utils/formatters";
 
 interface BackupRestoreModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: (msg: string) => void;
-  initialTab?: 'backup' | 'restore' | 'cashew';
+  initialTab?: "backup" | "restore" | "cashew";
 }
 
 export function BackupRestoreModal({
   isOpen,
   onClose,
   onSuccess,
-  initialTab = 'backup',
+  initialTab = "backup",
 }: BackupRestoreModalProps) {
-  const [activeTab, setActiveTab] = useState<'backup' | 'restore' | 'cashew'>(initialTab);
-  const [encryptPassword, setEncryptPassword] = useState('');
-  const [decryptPassword, setDecryptPassword] = useState('');
+  const [activeTab, setActiveTab] = useState<"backup" | "restore" | "cashew">(
+    initialTab,
+  );
+  const [encryptPassword, setEncryptPassword] = useState("");
+  const [decryptPassword, setDecryptPassword] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [cashewPreview, setCashewPreview] = useState<CashewPreviewSummary | null>(null);
+  const [cashewPreview, setCashewPreview] =
+    useState<CashewPreviewSummary | null>(null);
   const [cashewRawText, setCashewRawText] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cashewFileInputRef = useRef<HTMLInputElement>(null);
@@ -56,9 +63,9 @@ export function BackupRestoreModal({
   if (!isOpen) return null;
 
   const downloadFile = (content: string, fileName: string) => {
-    const blob = new Blob([content], { type: 'application/json' });
+    const blob = new Blob([content], { type: "application/json" });
     const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
+    const link = document.createElement("a");
     link.href = url;
     link.download = fileName;
     document.body.appendChild(link);
@@ -70,7 +77,7 @@ export function BackupRestoreModal({
   const handleExportEncrypted = async () => {
     setErrorMessage(null);
     if (!encryptPassword || encryptPassword.length < 6) {
-      setErrorMessage('Password must be at least 6 characters.');
+      setErrorMessage("Password must be at least 6 characters.");
       return;
     }
 
@@ -78,16 +85,13 @@ export function BackupRestoreModal({
     try {
       const encryptedJson = await exportEncryptedBackup(encryptPassword);
       const dateStr = new Date().toISOString().slice(0, 10);
-      downloadFile(
-        encryptedJson,
-        `fintrack-backup-encrypted-${dateStr}.json`
-      );
-      setStatusMessage('Encrypted backup downloaded.');
-      setEncryptPassword('');
+      downloadFile(encryptedJson, `fintrack-backup-encrypted-${dateStr}.json`);
+      setStatusMessage("Encrypted backup downloaded.");
+      setEncryptPassword("");
       setTimeout(() => setStatusMessage(null), 4000);
     } catch (err: unknown) {
       console.error(err);
-      setErrorMessage(err instanceof Error ? err.message : 'Encryption failed');
+      setErrorMessage(err instanceof Error ? err.message : "Encryption failed");
     } finally {
       setIsProcessing(false);
     }
@@ -100,11 +104,11 @@ export function BackupRestoreModal({
       const plainJson = await exportPlainBackup();
       const dateStr = new Date().toISOString().slice(0, 10);
       downloadFile(plainJson, `fintrack-backup-plain-${dateStr}.json`);
-      setStatusMessage('Plain JSON backup downloaded.');
+      setStatusMessage("Plain JSON backup downloaded.");
       setTimeout(() => setStatusMessage(null), 4000);
     } catch (err: unknown) {
       console.error(err);
-      setErrorMessage(err instanceof Error ? err.message : 'Export failed');
+      setErrorMessage(err instanceof Error ? err.message : "Export failed");
     } finally {
       setIsProcessing(false);
     }
@@ -123,32 +127,34 @@ export function BackupRestoreModal({
 
       if (parsed.encrypted === true && !decryptPassword) {
         setErrorMessage(
-          'Encrypted backup file. Please enter your password above before selecting the file.'
+          "Encrypted backup file. Please enter your password above before selecting the file.",
         );
         setIsProcessing(false);
         return;
       }
 
       await restoreBackup(text, decryptPassword || undefined);
-      setStatusMessage('Database restored successfully.');
+      setStatusMessage("Database restored successfully.");
       if (onSuccess) {
-        onSuccess('Database restored successfully from backup.');
+        onSuccess("Database restored successfully from backup.");
       }
       setTimeout(() => setStatusMessage(null), 4000);
     } catch (err: unknown) {
       console.error(err);
       setErrorMessage(
-        err instanceof Error ? err.message : 'Failed to restore backup'
+        err instanceof Error ? err.message : "Failed to restore backup",
       );
     } finally {
       setIsProcessing(false);
       if (fileInputRef.current) {
-        fileInputRef.current.value = '';
+        fileInputRef.current.value = "";
       }
     }
   };
 
-  const handleCashewCSVSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleCashewCSVSelect = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -159,7 +165,7 @@ export function BackupRestoreModal({
       const text = await file.text();
       const preview = await previewCashewCSV(text);
       if (preview.totalRows === 0) {
-        setErrorMessage('No valid transaction rows found in this CSV file.');
+        setErrorMessage("No valid transaction rows found in this CSV file.");
         return;
       }
       setCashewRawText(text);
@@ -167,12 +173,12 @@ export function BackupRestoreModal({
     } catch (err: unknown) {
       console.error(err);
       setErrorMessage(
-        err instanceof Error ? err.message : 'Failed to parse Cashew CSV'
+        err instanceof Error ? err.message : "Failed to parse Cashew CSV",
       );
     } finally {
       setIsProcessing(false);
       if (cashewFileInputRef.current) {
-        cashewFileInputRef.current.value = '';
+        cashewFileInputRef.current.value = "";
       }
     }
   };
@@ -195,7 +201,7 @@ export function BackupRestoreModal({
     } catch (err: unknown) {
       console.error(err);
       setErrorMessage(
-        err instanceof Error ? err.message : 'Failed to import Cashew CSV'
+        err instanceof Error ? err.message : "Failed to import Cashew CSV",
       );
     } finally {
       setIsProcessing(false);
@@ -235,33 +241,33 @@ export function BackupRestoreModal({
           <div className="flex p-1 bg-[#111216] rounded-full border border-[#23252c]">
             <button
               type="button"
-              onClick={() => setActiveTab('backup')}
+              onClick={() => setActiveTab("backup")}
               className={`flex-1 py-2 px-3 rounded-full text-xs font-semibold transition-all ${
-                activeTab === 'backup'
-                  ? 'bg-[#a8c7fa] text-[#003062] shadow-sm'
-                  : 'text-[#90929d] hover:text-[#e2e2e7]'
+                activeTab === "backup"
+                  ? "bg-[#a8c7fa] text-[#003062] shadow-sm"
+                  : "text-[#90929d] hover:text-[#e2e2e7]"
               }`}
             >
               Export
             </button>
             <button
               type="button"
-              onClick={() => setActiveTab('restore')}
+              onClick={() => setActiveTab("restore")}
               className={`flex-1 py-2 px-3 rounded-full text-xs font-semibold transition-all ${
-                activeTab === 'restore'
-                  ? 'bg-[#a8c7fa] text-[#003062] shadow-sm'
-                  : 'text-[#90929d] hover:text-[#e2e2e7]'
+                activeTab === "restore"
+                  ? "bg-[#a8c7fa] text-[#003062] shadow-sm"
+                  : "text-[#90929d] hover:text-[#e2e2e7]"
               }`}
             >
               Restore
             </button>
             <button
               type="button"
-              onClick={() => setActiveTab('cashew')}
+              onClick={() => setActiveTab("cashew")}
               className={`flex-1 py-2 px-3 rounded-full text-xs font-semibold transition-all flex items-center justify-center gap-1.5 ${
-                activeTab === 'cashew'
-                  ? 'bg-[#a8dab5] text-[#00391c] shadow-sm'
-                  : 'text-[#90929d] hover:text-[#a8dab5]'
+                activeTab === "cashew"
+                  ? "bg-[#a8dab5] text-[#00391c] shadow-sm"
+                  : "text-[#90929d] hover:text-[#a8dab5]"
               }`}
             >
               <FileSpreadsheet className="h-4 w-4" />
@@ -286,7 +292,7 @@ export function BackupRestoreModal({
           )}
 
           {/* TAB 1: EXPORT / BACKUP */}
-          {activeTab === 'backup' && (
+          {activeTab === "backup" && (
             <div className="space-y-4">
               {/* Encrypted Export */}
               <div className="bg-[#111216] border border-[#23252c] rounded-[24px] p-4 space-y-2.5">
@@ -297,7 +303,8 @@ export function BackupRestoreModal({
                   </span>
                 </div>
                 <p className="text-xs text-[#90929d] leading-relaxed">
-                  PBKDF2 + AES-GCM 256-bit envelope. Protects accounts, personal expenses, and friend split debts.
+                  PBKDF2 + AES-GCM 256-bit envelope. Protects accounts, personal
+                  expenses, and friend split debts.
                 </p>
 
                 <div className="flex flex-col sm:flex-row gap-2.5 pt-1">
@@ -340,14 +347,15 @@ export function BackupRestoreModal({
                   </button>
                 </div>
                 <p className="text-xs text-[#90929d]">
-                  Unencrypted JSON for spreadsheet auditing and manual inspection.
+                  Unencrypted JSON for spreadsheet auditing and manual
+                  inspection.
                 </p>
               </div>
             </div>
           )}
 
           {/* TAB 2: RESTORE */}
-          {activeTab === 'restore' && (
+          {activeTab === "restore" && (
             <div className="space-y-4">
               <div className="bg-[#111216] border border-[#23252c] rounded-[24px] p-4 space-y-2.5">
                 <div className="flex items-center gap-2">
@@ -380,7 +388,9 @@ export function BackupRestoreModal({
                     className="w-full p-4 rounded-2xl border border-dashed border-[#23252c] hover:border-[#a8c7fa] bg-[#111216] transition-colors cursor-pointer flex flex-col items-center justify-center gap-1 text-center text-xs text-[#c4c6cf]"
                   >
                     <Upload className="h-5 w-5 text-[#a8c7fa]" />
-                    <span className="font-semibold text-[#e2e2e7]">Tap to select backup .json file</span>
+                    <span className="font-semibold text-[#e2e2e7]">
+                      Tap to select backup .json file
+                    </span>
                     <span className="text-[11px] text-[#90929d]">
                       Restores all accounts, splits, and history
                     </span>
@@ -391,7 +401,7 @@ export function BackupRestoreModal({
           )}
 
           {/* TAB 3: CASHEW CSV MIGRATION */}
-          {activeTab === 'cashew' && (
+          {activeTab === "cashew" && (
             <div className="space-y-4">
               {!cashewPreview ? (
                 <div className="bg-[#111216] border border-[#23252c] rounded-[24px] p-4 space-y-3">
@@ -402,7 +412,10 @@ export function BackupRestoreModal({
                     </span>
                   </div>
                   <p className="text-xs text-[#90929d] leading-relaxed">
-                    FinTrack parses your Cashew CSV export, automatically discovers your accounts, categories, and group split breakdowns, and converts friend repayments into pure non-income balance transfers.
+                    FinTrack parses your Cashew CSV export, automatically
+                    discovers your accounts, categories, and group split
+                    breakdowns, and converts friend repayments into pure
+                    non-income balance transfers.
                   </p>
 
                   <div className="p-3 rounded-2xl bg-[#111216] border border-[#1a1c22] space-y-1.5 text-[11px] text-[#c4c6cf]">
@@ -411,9 +424,25 @@ export function BackupRestoreModal({
                       <span>How FinTrack fixes Cashew:</span>
                     </div>
                     <ul className="list-disc list-inside space-y-1 text-[#90929d] pl-1">
-                      <li><strong className="text-[#e2e2e7]">DMart &amp; Pepper Leaf splits:</strong> Only personal share is counted as expense; friend shares are stored as receivables.</li>
-                      <li><strong className="text-[#e2e2e7]">GPay / UPI repayments:</strong> Treated as asset transfers, not false monthly income.</li>
-                      <li><strong className="text-[#e2e2e7]">Loans &amp; Lent:</strong> Booked as receivables from friends.</li>
+                      <li>
+                        <strong className="text-[#e2e2e7]">
+                          DMart &amp; Pepper Leaf splits:
+                        </strong>{" "}
+                        Only personal share is counted as expense; friend shares
+                        are stored as receivables.
+                      </li>
+                      <li>
+                        <strong className="text-[#e2e2e7]">
+                          GPay / UPI repayments:
+                        </strong>{" "}
+                        Treated as asset transfers, not false monthly income.
+                      </li>
+                      <li>
+                        <strong className="text-[#e2e2e7]">
+                          Loans &amp; Lent:
+                        </strong>{" "}
+                        Booked as receivables from friends.
+                      </li>
                     </ul>
                   </div>
 
@@ -432,7 +461,9 @@ export function BackupRestoreModal({
                       className="w-full p-4 rounded-2xl border border-dashed border-[#22382a] hover:border-[#a8dab5] bg-[#111216] transition-colors cursor-pointer flex flex-col items-center justify-center gap-1 text-center text-xs text-[#c4c6cf]"
                     >
                       <FileSpreadsheet className="h-6 w-6 text-[#a8dab5]" />
-                      <span className="font-semibold text-[#e2e2e7]">Tap to select cashew-*.csv</span>
+                      <span className="font-semibold text-[#e2e2e7]">
+                        Tap to select cashew-*.csv
+                      </span>
                       <span className="text-[11px] text-[#90929d]">
                         Supports exports from Cashew Android / iOS app
                       </span>
@@ -463,21 +494,36 @@ export function BackupRestoreModal({
                   {/* Summary Grid */}
                   <div className="grid grid-cols-2 gap-2 text-xs">
                     <div className="p-3 rounded-2xl bg-[#16171c] border border-[#23252c]">
-                      <span className="text-[#90929d] block text-[10px]">TOTAL ROWS</span>
-                      <span className="text-base font-bold text-[#e2e2e7]">{cashewPreview.totalRows}</span>
-                    </div>
-                    <div className="p-3 rounded-2xl bg-[#16171c] border border-[#23252c]">
-                      <span className="text-[#a8dab5] block text-[10px]">NEW TO IMPORT</span>
-                      <span className="text-base font-bold text-[#a8dab5]">
-                        {Math.max(0, cashewPreview.validRows - cashewPreview.duplicateRows)}
+                      <span className="text-[#90929d] block text-[10px]">
+                        TOTAL ROWS
+                      </span>
+                      <span className="text-base font-bold text-[#e2e2e7]">
+                        {cashewPreview.totalRows}
                       </span>
                     </div>
                     <div className="p-3 rounded-2xl bg-[#16171c] border border-[#23252c]">
-                      <span className="text-[#f2b8b5] block text-[10px]">DUPLICATES SKIPPED</span>
-                      <span className="text-base font-bold text-[#f2b8b5]">{cashewPreview.duplicateRows}</span>
+                      <span className="text-[#a8dab5] block text-[10px]">
+                        NEW TO IMPORT
+                      </span>
+                      <span className="text-base font-bold text-[#a8dab5]">
+                        {Math.max(
+                          0,
+                          cashewPreview.validRows - cashewPreview.duplicateRows,
+                        )}
+                      </span>
                     </div>
                     <div className="p-3 rounded-2xl bg-[#16171c] border border-[#23252c]">
-                      <span className="text-[#90929d] block text-[10px]">TOTAL AMOUNT</span>
+                      <span className="text-[#f2b8b5] block text-[10px]">
+                        DUPLICATES SKIPPED
+                      </span>
+                      <span className="text-base font-bold text-[#f2b8b5]">
+                        {cashewPreview.duplicateRows}
+                      </span>
+                    </div>
+                    <div className="p-3 rounded-2xl bg-[#16171c] border border-[#23252c]">
+                      <span className="text-[#90929d] block text-[10px]">
+                        TOTAL AMOUNT
+                      </span>
                       <span className="text-xs font-semibold text-[#e2e2e7] font-mono">
                         {formatINR(cashewPreview.totalVolume)}
                       </span>
@@ -488,7 +534,8 @@ export function BackupRestoreModal({
                     <div className="p-2.5 rounded-2xl bg-[#16171c] border border-[#23252c] text-[11px] text-[#90929d] flex items-center justify-between">
                       <span>Date Span:</span>
                       <span className="font-mono text-[#e2e2e7]">
-                        {cashewPreview.dateRange.start.slice(0, 10)} → {cashewPreview.dateRange.end.slice(0, 10)}
+                        {cashewPreview.dateRange.start.slice(0, 10)} →{" "}
+                        {cashewPreview.dateRange.end.slice(0, 10)}
                       </span>
                     </div>
                   )}
@@ -497,20 +544,26 @@ export function BackupRestoreModal({
                   <div className="space-y-1.5 text-xs">
                     {cashewPreview.newAccounts.length > 0 && (
                       <div className="text-[11px] text-[#c4c6cf]">
-                        <span className="text-[#90929d]">New accounts found: </span>
-                        {cashewPreview.newAccounts.join(', ')}
+                        <span className="text-[#90929d]">
+                          New accounts found:{" "}
+                        </span>
+                        {cashewPreview.newAccounts.join(", ")}
                       </div>
                     )}
                     {cashewPreview.newCategories.length > 0 && (
                       <div className="text-[11px] text-[#c4c6cf]">
-                        <span className="text-[#90929d]">New categories found: </span>
-                        {cashewPreview.newCategories.join(', ')}
+                        <span className="text-[#90929d]">
+                          New categories found:{" "}
+                        </span>
+                        {cashewPreview.newCategories.join(", ")}
                       </div>
                     )}
                     {cashewPreview.newPeople.length > 0 && (
                       <div className="text-[11px] text-[#c4c6cf]">
-                        <span className="text-[#90929d]">New friends found: </span>
-                        {cashewPreview.newPeople.join(', ')}
+                        <span className="text-[#90929d]">
+                          New friends found:{" "}
+                        </span>
+                        {cashewPreview.newPeople.join(", ")}
                       </div>
                     )}
                   </div>
@@ -528,13 +581,22 @@ export function BackupRestoreModal({
                     </button>
                     <button
                       type="button"
-                      disabled={isProcessing || (cashewPreview.validRows - cashewPreview.duplicateRows) <= 0}
+                      disabled={
+                        isProcessing ||
+                        cashewPreview.validRows - cashewPreview.duplicateRows <=
+                          0
+                      }
                       onClick={handleConfirmCashewImport}
                       className="flex-1 py-2 rounded-full bg-[#a8dab5] hover:bg-[#b8e8c5] disabled:opacity-50 text-[#00391c] text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors shadow-sm"
                     >
                       <CheckCircle className="h-4 w-4" />
                       <span>
-                        Confirm &amp; Import ({Math.max(0, cashewPreview.validRows - cashewPreview.duplicateRows)})
+                        Confirm &amp; Import (
+                        {Math.max(
+                          0,
+                          cashewPreview.validRows - cashewPreview.duplicateRows,
+                        )}
+                        )
                       </span>
                     </button>
                   </div>

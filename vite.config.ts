@@ -8,6 +8,17 @@ import path from "node:path";
 export default defineConfig({
   plugins: [
     tailwindcss(),
+    {
+      name: "clean-css-diagnostics",
+      enforce: "post",
+      generateBundle(_, bundle) {
+        for (const file of Object.values(bundle)) {
+          if (file.type === "asset" && typeof file.source === "string" && file.fileName.endsWith(".css")) {
+            file.source = file.source.replace(/vertical-align:\s*middle;\s*display:\s*block/g, "display:block");
+          }
+        }
+      },
+    },
     react(),
     VitePWA({
       registerType: "autoUpdate",

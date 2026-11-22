@@ -1,10 +1,10 @@
 export type AccountType =
-  | 'bank'
-  | 'credit_card'
-  | 'wallet'
-  | 'cash'
-  | 'investment'
-  | 'other';
+  | "bank"
+  | "credit_card"
+  | "wallet"
+  | "cash"
+  | "investment"
+  | "other";
 
 export interface Account {
   id: string;
@@ -26,7 +26,7 @@ export interface Account {
   updatedAt: string;
 }
 
-export type CategoryType = 'expense' | 'income' | 'both';
+export type CategoryType = "expense" | "income" | "both";
 
 export interface Subcategory {
   id: string;
@@ -73,22 +73,22 @@ export interface Group {
   name: string; // e.g. "514", "PG Flatmates", "Goa Trip"
   description?: string;
   memberIds: string[]; // List of Person IDs belonging to this group
-  defaultSplitType: 'equal' | 'exact' | 'percentage' | 'shares';
+  defaultSplitType: "equal" | "exact" | "percentage" | "shares";
   icon?: string;
   createdAt: string;
   updatedAt: string;
 }
 
 export type TransactionType =
-  | 'expense' // Standard personal expense
-  | 'income' // Standard personal income
-  | 'transfer' // Inter-account transfer (e.g. HDFC -> Amazon Pay)
-  | 'shared_expense' // Split expense (e.g. DMart grocery split among 5 people)
-  | 'settlement_received' // Friend repays user (Pure asset transfer, NOT income)
-  | 'settlement_paid' // User repays friend (Pure debt settlement, NOT expense)
-  | 'credit_card_payment'; // Payment from bank account to credit card
+  | "expense" // Standard personal expense
+  | "income" // Standard personal income
+  | "transfer" // Inter-account transfer (e.g. HDFC -> Amazon Pay)
+  | "shared_expense" // Split expense (e.g. DMart grocery split among 5 people)
+  | "settlement_received" // Friend repays user (Pure asset transfer, NOT income)
+  | "settlement_paid" // User repays friend (Pure debt settlement, NOT expense)
+  | "credit_card_payment"; // Payment from bank account to credit card
 
-export type SplitMode = 'equal' | 'exact' | 'percentage' | 'shares';
+export type SplitMode = "equal" | "exact" | "percentage" | "shares";
 
 export interface TransactionSplit {
   personId: string; // 'user' for current user, or Person.id for friends
@@ -127,9 +127,9 @@ export interface Transaction {
 }
 
 export type RecurringCommitmentType =
-  | 'recurring_expense' // Ongoing commitment like Rent, Internet
-  | 'recurring_investment' // Fixed duration investment like 2-year RD
-  | 'emi'; // Fixed installment debt repayment like Phone EMI
+  | "recurring_expense" // Ongoing commitment like Rent, Internet
+  | "recurring_investment" // Fixed duration investment like 2-year RD
+  | "emi"; // Fixed installment debt repayment like Phone EMI
 
 export interface RecurringCommitment {
   id: string;
@@ -139,7 +139,7 @@ export interface RecurringCommitment {
   accountId: string;
   categoryId: string;
   subcategoryId?: string;
-  frequency: 'monthly' | 'weekly' | 'yearly';
+  frequency: "monthly" | "weekly" | "yearly";
   dayOfMonth: number; // 1-31
   startDate: string;
   endDate?: string;

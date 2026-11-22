@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo } from "react";
 import {
   Users,
   ArrowDownLeft,
@@ -6,9 +6,9 @@ import {
   CheckCircle,
   ChevronRight,
   Clock,
-} from 'lucide-react';
-import type { Group, Person, Transaction } from '../../types';
-import { formatINR, formatDate } from '../../utils/formatters';
+} from "lucide-react";
+import type { Group, Person, Transaction } from "../../types";
+import { formatINR, formatDate } from "../../utils/formatters";
 
 interface SplitsViewProps {
   groups: Group[];
@@ -16,7 +16,11 @@ interface SplitsViewProps {
   transactions: Transaction[];
   totalReceivables: number;
   onOpenPeople: () => void;
-  onSimulateSettlement: (personId: string, personName: string, amount: number) => void;
+  onSimulateSettlement: (
+    personId: string,
+    personName: string,
+    amount: number,
+  ) => void;
 }
 
 export function SplitsView({
@@ -28,7 +32,7 @@ export function SplitsView({
   onSimulateSettlement,
 }: SplitsViewProps) {
   const [selectedPersonId, setSelectedPersonId] = useState<string | null>(null);
-  const [viewFilter, setViewFilter] = useState<'pending' | 'all'>('pending');
+  const [viewFilter, setViewFilter] = useState<"pending" | "all">("pending");
 
   const selectedPerson = useMemo(() => {
     return people.find((p) => p.id === selectedPersonId) || null;
@@ -38,13 +42,13 @@ export function SplitsView({
   const personTransactions = useMemo(() => {
     if (!selectedPerson) return [];
     return transactions.filter((tx) => {
-      if (tx.type === 'shared_expense') {
+      if (tx.type === "shared_expense") {
         return (
           tx.paidByPersonId === selectedPerson.id ||
           tx.splits?.some((s) => s.personId === selectedPerson.id)
         );
       }
-      if (tx.type === 'settlement_received' || tx.type === 'settlement_paid') {
+      if (tx.type === "settlement_received" || tx.type === "settlement_paid") {
         return (
           tx.paidByPersonId === selectedPerson.id ||
           tx.splits?.some((s) => s.personId === selectedPerson.id)
@@ -59,33 +63,37 @@ export function SplitsView({
     if (!selectedPerson) return [];
     const items: {
       tx: Transaction;
-      type: 'receivable' | 'payable';
+      type: "receivable" | "payable";
       shareAmount: number;
       role: string;
     }[] = [];
 
     for (const tx of personTransactions) {
-      if (tx.type === 'shared_expense') {
+      if (tx.type === "shared_expense") {
         // Case 1: User paid the bill, friend has an unsettled split share
-        if (!tx.paidByPersonId || tx.paidByPersonId === 'user') {
-          const split = tx.splits?.find((s) => s.personId === selectedPerson.id);
+        if (!tx.paidByPersonId || tx.paidByPersonId === "user") {
+          const split = tx.splits?.find(
+            (s) => s.personId === selectedPerson.id,
+          );
           if (split && !split.isSettled) {
             items.push({
               tx,
-              type: 'receivable',
+              type: "receivable",
               shareAmount: split.amount,
-              role: 'You swiped the bill',
+              role: "You swiped the bill",
             });
           }
         }
         // Case 2: Friend paid the bill, user has an unsettled split share
         else if (tx.paidByPersonId === selectedPerson.id) {
-          const userSplit = tx.splits?.find((s) => s.personId === 'user');
-          const userShare = userSplit ? userSplit.amount : tx.personalExpenseAmount || 0;
+          const userSplit = tx.splits?.find((s) => s.personId === "user");
+          const userShare = userSplit
+            ? userSplit.amount
+            : tx.personalExpenseAmount || 0;
           if (userSplit && !userSplit.isSettled) {
             items.push({
               tx,
-              type: 'payable',
+              type: "payable",
               shareAmount: userShare,
               role: `${selectedPerson.name} swiped the bill`,
             });
@@ -105,7 +113,9 @@ export function SplitsView({
       {/* Top Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-sm font-semibold text-[#e2e2e7] m-0">Shared Expenses &amp; Debt</h2>
+          <h2 className="text-sm font-semibold text-[#e2e2e7] m-0">
+            Shared Expenses &amp; Debt
+          </h2>
           <p className="text-xs text-[#90929d] mt-0.5">
             Click any friend to inspect pending due transactions
           </p>
@@ -135,7 +145,9 @@ export function SplitsView({
           >
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-sm font-semibold text-[#e2e2e7]">{grp.name}</span>
+                <span className="text-sm font-semibold text-[#e2e2e7]">
+                  {grp.name}
+                </span>
                 <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-[#1a2536] text-[#d3e3fd] border border-[#283a54]">
                   Group
                 </span>
@@ -155,7 +167,9 @@ export function SplitsView({
       <div className="rounded-[28px] bg-[#16171c] border border-[#23252c] overflow-hidden">
         <div className="px-5 py-4 border-b border-[#23252c] flex items-center justify-between">
           <div>
-            <h3 className="text-sm font-semibold text-[#e2e2e7] m-0">Friends Ledger</h3>
+            <h3 className="text-sm font-semibold text-[#e2e2e7] m-0">
+              Friends Ledger
+            </h3>
             <p className="text-xs text-[#90929d] mt-0.5">
               Tap any friend card to view their itemized pending dues
             </p>
@@ -172,13 +186,13 @@ export function SplitsView({
                 key={p.id}
                 onClick={() => {
                   setSelectedPersonId(p.id);
-                  setViewFilter('pending');
+                  setViewFilter("pending");
                 }}
                 className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-[#1a1c22]/70 cursor-pointer transition-all group"
               >
                 <div className="flex items-center gap-3">
                   <div className="h-10 w-10 rounded-2xl bg-[#1a2536] flex items-center justify-center text-lg shrink-0 border border-[#262830]">
-                    {p.avatar || '👤'}
+                    {p.avatar || "👤"}
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
@@ -196,7 +210,9 @@ export function SplitsView({
                       {p.upiId && (
                         <>
                           <span>•</span>
-                          <span className="font-mono text-[#a8c7fa]">{p.upiId}</span>
+                          <span className="font-mono text-[#a8c7fa]">
+                            {p.upiId}
+                          </span>
                         </>
                       )}
                       <span>•</span>
@@ -212,20 +228,24 @@ export function SplitsView({
                     <div
                       className={`text-sm font-semibold font-mono ${
                         owesMe
-                          ? 'text-[#ffb787]'
+                          ? "text-[#ffb787]"
                           : isSettled
-                          ? 'text-[#90929d]'
-                          : 'text-[#f2b8b5]'
+                            ? "text-[#90929d]"
+                            : "text-[#f2b8b5]"
                       }`}
                     >
                       {isSettled
-                        ? 'Settled (₹0)'
+                        ? "Settled (₹0)"
                         : owesMe
-                        ? `Owes you ${formatINR(p.netBalance)}`
-                        : `You owe ${formatINR(Math.abs(p.netBalance))}`}
+                          ? `Owes you ${formatINR(p.netBalance)}`
+                          : `You owe ${formatINR(Math.abs(p.netBalance))}`}
                     </div>
                     <div className="text-[10px] text-[#90929d]">
-                      {owesMe ? 'Receivable' : isSettled ? 'Settled' : 'Payable'}
+                      {owesMe
+                        ? "Receivable"
+                        : isSettled
+                          ? "Settled"
+                          : "Payable"}
                     </div>
                   </div>
 
@@ -265,7 +285,7 @@ export function SplitsView({
             <div className="px-5 py-3.5 border-b border-[#23252c] flex items-center justify-between shrink-0">
               <div className="flex items-center gap-3">
                 <div className="h-10 w-10 rounded-2xl bg-[#1a2536] flex items-center justify-center text-lg border border-[#262830]">
-                  {selectedPerson.avatar || '👤'}
+                  {selectedPerson.avatar || "👤"}
                 </div>
                 <div>
                   <h2 className="text-base font-semibold text-[#e2e2e7] m-0">
@@ -298,28 +318,28 @@ export function SplitsView({
                     <span
                       className={`text-2xl sm:text-3xl font-bold font-mono ${
                         selectedPerson.netBalance > 0
-                          ? 'text-[#ffb787]'
+                          ? "text-[#ffb787]"
                           : selectedPerson.netBalance < 0
-                          ? 'text-[#f2b8b5]'
-                          : 'text-[#a8dab5]'
+                            ? "text-[#f2b8b5]"
+                            : "text-[#a8dab5]"
                       }`}
                     >
                       {formatINR(Math.abs(selectedPerson.netBalance))}
                     </span>
                     <span className="text-xs font-medium text-[#c4c6cf]">
                       {selectedPerson.netBalance > 0
-                        ? 'Owed to you'
+                        ? "Owed to you"
                         : selectedPerson.netBalance < 0
-                        ? 'You owe friend'
-                        : 'Fully Settled'}
+                          ? "You owe friend"
+                          : "Fully Settled"}
                     </span>
                   </div>
                   <p className="text-[11px] text-[#90929d] mt-1">
                     {selectedPerson.netBalance > 0
-                      ? 'Total outstanding receivable across unpaid split purchases'
+                      ? "Total outstanding receivable across unpaid split purchases"
                       : selectedPerson.netBalance < 0
-                      ? 'Payable balance to be reimbursed to friend'
-                      : 'All past split purchases have been cleared'}
+                        ? "Payable balance to be reimbursed to friend"
+                        : "All past split purchases have been cleared"}
                   </p>
                 </div>
 
@@ -330,7 +350,7 @@ export function SplitsView({
                       onSimulateSettlement(
                         selectedPerson.id,
                         selectedPerson.name,
-                        selectedPerson.netBalance
+                        selectedPerson.netBalance,
                       );
                       setSelectedPersonId(null);
                     }}
@@ -347,22 +367,22 @@ export function SplitsView({
                 <div className="flex rounded-xl bg-[#111216] p-1 border border-[#1e2026]">
                   <button
                     type="button"
-                    onClick={() => setViewFilter('pending')}
+                    onClick={() => setViewFilter("pending")}
                     className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                      viewFilter === 'pending'
-                        ? 'bg-[#1a2536] text-[#d3e3fd]'
-                        : 'text-[#90929d] hover:text-[#e2e2e7]'
+                      viewFilter === "pending"
+                        ? "bg-[#1a2536] text-[#d3e3fd]"
+                        : "text-[#90929d] hover:text-[#e2e2e7]"
                     }`}
                   >
                     Pending Due ({pendingItems.length})
                   </button>
                   <button
                     type="button"
-                    onClick={() => setViewFilter('all')}
+                    onClick={() => setViewFilter("all")}
                     className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                      viewFilter === 'all'
-                        ? 'bg-[#1a2536] text-[#d3e3fd]'
-                        : 'text-[#90929d] hover:text-[#e2e2e7]'
+                      viewFilter === "all"
+                        ? "bg-[#1a2536] text-[#d3e3fd]"
+                        : "text-[#90929d] hover:text-[#e2e2e7]"
                     }`}
                   >
                     All History ({personTransactions.length})
@@ -370,14 +390,14 @@ export function SplitsView({
                 </div>
 
                 <span className="text-[11px] text-[#90929d]">
-                  {viewFilter === 'pending'
+                  {viewFilter === "pending"
                     ? `Sum: ${formatINR(pendingSum)}`
                     : `${personTransactions.length} records`}
                 </span>
               </div>
 
               {/* VIEW 1: PENDING DUE ONLY (DEFAULT) */}
-              {viewFilter === 'pending' && (
+              {viewFilter === "pending" && (
                 <div className="space-y-2.5">
                   {pendingItems.length === 0 ? (
                     <div className="p-8 rounded-2xl bg-[#111216] border border-[#23252c] text-center space-y-2">
@@ -388,7 +408,8 @@ export function SplitsView({
                         No Pending Due Transactions
                       </h4>
                       <p className="text-xs text-[#90929d] max-w-sm mx-auto">
-                        All shared bills with {selectedPerson.name} are settled. No outstanding shares remain unpaid.
+                        All shared bills with {selectedPerson.name} are settled.
+                        No outstanding shares remain unpaid.
                       </p>
                     </div>
                   ) : (
@@ -437,7 +458,9 @@ export function SplitsView({
                             <div className="text-xs sm:text-sm font-bold font-mono text-[#ffb787]">
                               +{formatINR(shareAmount)}
                             </div>
-                            <div className="text-[10px] text-[#90929d]">Due Share</div>
+                            <div className="text-[10px] text-[#90929d]">
+                              Due Share
+                            </div>
                           </div>
                         </div>
                       );
@@ -447,7 +470,8 @@ export function SplitsView({
                   {pendingItems.length > 0 && (
                     <div className="p-3.5 rounded-2xl bg-[#1a1c22] border border-[#262830] flex items-center justify-between text-xs">
                       <span className="text-[#c4c6cf] font-medium">
-                        Total Pending Unsettled Dues ({pendingItems.length} items):
+                        Total Pending Unsettled Dues ({pendingItems.length}{" "}
+                        items):
                       </span>
                       <span className="font-mono font-bold text-sm text-[#ffb787]">
                         {formatINR(pendingSum)}
@@ -458,7 +482,7 @@ export function SplitsView({
               )}
 
               {/* VIEW 2: ALL TRANSACTION HISTORY */}
-              {viewFilter === 'all' && (
+              {viewFilter === "all" && (
                 <div className="space-y-2.5">
                   {personTransactions.length === 0 ? (
                     <div className="p-8 rounded-2xl bg-[#111216] border border-[#23252c] text-center text-xs text-[#90929d]">
@@ -467,9 +491,13 @@ export function SplitsView({
                   ) : (
                     personTransactions.map((tx) => {
                       const isSettlement =
-                        tx.type === 'settlement_received' || tx.type === 'settlement_paid';
-                      const isUserPayer = !tx.paidByPersonId || tx.paidByPersonId === 'user';
-                      const split = tx.splits?.find((s) => s.personId === selectedPerson.id);
+                        tx.type === "settlement_received" ||
+                        tx.type === "settlement_paid";
+                      const isUserPayer =
+                        !tx.paidByPersonId || tx.paidByPersonId === "user";
+                      const split = tx.splits?.find(
+                        (s) => s.personId === selectedPerson.id,
+                      );
                       const isSettled = split ? split.isSettled : true;
 
                       return (
@@ -490,11 +518,11 @@ export function SplitsView({
                                 <span
                                   className={`text-[10px] font-medium px-2 py-0.5 rounded-full border ${
                                     isSettled
-                                      ? 'bg-[#15241b] text-[#a8dab5] border-[#22382a]'
-                                      : 'bg-[#2a1f17] text-[#ffb787] border-[#422e1e]'
+                                      ? "bg-[#15241b] text-[#a8dab5] border-[#22382a]"
+                                      : "bg-[#2a1f17] text-[#ffb787] border-[#422e1e]"
                                   }`}
                                 >
-                                  {isSettled ? 'Settled' : 'Pending Due'}
+                                  {isSettled ? "Settled" : "Pending Due"}
                                 </span>
                               )}
                             </div>
@@ -506,7 +534,9 @@ export function SplitsView({
                                 {isSettlement
                                   ? `Settlement: ${formatINR(tx.amount)}`
                                   : `Total Bill: ${formatINR(tx.amount)} (${
-                                      isUserPayer ? 'You paid' : `${selectedPerson.name} paid`
+                                      isUserPayer
+                                        ? "You paid"
+                                        : `${selectedPerson.name} paid`
                                     })`}
                               </span>
                             </div>
@@ -516,16 +546,22 @@ export function SplitsView({
                             <div
                               className={`text-xs sm:text-sm font-bold font-mono ${
                                 isSettlement
-                                  ? 'text-[#a8dab5]'
+                                  ? "text-[#a8dab5]"
                                   : isSettled
-                                  ? 'text-[#90929d]'
-                                  : 'text-[#ffb787]'
+                                    ? "text-[#90929d]"
+                                    : "text-[#ffb787]"
                               }`}
                             >
-                              {split ? formatINR(split.amount) : formatINR(tx.amount)}
+                              {split
+                                ? formatINR(split.amount)
+                                : formatINR(tx.amount)}
                             </div>
                             <div className="text-[10px] text-[#90929d]">
-                              {isSettlement ? 'Settled' : isSettled ? 'Cleared' : 'Unpaid'}
+                              {isSettlement
+                                ? "Settled"
+                                : isSettled
+                                  ? "Cleared"
+                                  : "Unpaid"}
                             </div>
                           </div>
                         </div>

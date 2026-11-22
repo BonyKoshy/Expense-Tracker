@@ -1,4 +1,4 @@
-import Dexie, { type Table } from 'dexie';
+import Dexie, { type Table } from "dexie";
 import type {
   Account,
   Category,
@@ -7,7 +7,7 @@ import type {
   Group,
   Transaction,
   RecurringCommitment,
-} from '../types';
+} from "../types";
 import {
   INITIAL_ACCOUNTS,
   INITIAL_CATEGORIES,
@@ -16,8 +16,8 @@ import {
   INITIAL_GROUPS,
   INITIAL_RECURRING_COMMITMENTS,
   INITIAL_TRANSACTIONS,
-} from './seeds';
-import { deleteTransaction } from '../services/accountingEngine';
+} from "./seeds";
+import { deleteTransaction } from "../services/accountingEngine";
 
 export class FinanceTrackerDatabase extends Dexie {
   accounts!: Table<Account, string>;
@@ -28,24 +28,24 @@ export class FinanceTrackerDatabase extends Dexie {
   transactions!: Table<Transaction, string>;
   recurringCommitments!: Table<RecurringCommitment, string>;
 
-  constructor(databaseName = 'FinanceTrackerDB') {
+  constructor(databaseName = "FinanceTrackerDB") {
     super(databaseName);
 
     this.version(1).stores({
-      accounts: 'id, name, type, isArchived',
-      categories: 'id, name, type',
-      subcategories: 'id, categoryId, name',
-      people: 'id, name, netBalance',
-      groups: 'id, name',
+      accounts: "id, name, type, isArchived",
+      categories: "id, name, type",
+      subcategories: "id, categoryId, name",
+      people: "id, name, netBalance",
+      groups: "id, name",
       transactions:
-        'id, type, date, accountId, categoryId, groupId, isShared, paidByPersonId, [type+date], [accountId+date]',
+        "id, type, date, accountId, categoryId, groupId, isShared, paidByPersonId, [type+date], [accountId+date]",
       recurringCommitments:
-        'id, name, type, accountId, isActive, isReservedCommitment',
+        "id, name, type, accountId, isActive, isReservedCommitment",
     });
 
     this.version(2).stores({
       transactions:
-        'id, type, date, accountId, toAccountId, categoryId, groupId, isShared, paidByPersonId, [type+date], [accountId+date]',
+        "id, type, date, accountId, toAccountId, categoryId, groupId, isShared, paidByPersonId, [type+date], [accountId+date]",
     });
   }
 }
@@ -56,11 +56,13 @@ export const db = new FinanceTrackerDatabase();
  * Ensures the database is initialized with default accounts, categories,
  * people, groups, recurring commitments, and sample transactions on first run.
  */
-export async function ensureSeeded(database: FinanceTrackerDatabase = db): Promise<void> {
+export async function ensureSeeded(
+  database: FinanceTrackerDatabase = db,
+): Promise<void> {
   const accountCount = await database.accounts.count();
   if (accountCount === 0) {
     await database.transaction(
-      'rw',
+      "rw",
       [
         database.accounts,
         database.categories,
@@ -76,9 +78,11 @@ export async function ensureSeeded(database: FinanceTrackerDatabase = db): Promi
         await database.subcategories.bulkAdd(INITIAL_SUBCATEGORIES);
         await database.people.bulkAdd(INITIAL_PEOPLE);
         await database.groups.bulkAdd(INITIAL_GROUPS);
-        await database.recurringCommitments.bulkAdd(INITIAL_RECURRING_COMMITMENTS);
+        await database.recurringCommitments.bulkAdd(
+          INITIAL_RECURRING_COMMITMENTS,
+        );
         await database.transactions.bulkAdd(INITIAL_TRANSACTIONS);
-      }
+      },
     );
   }
 }
@@ -86,9 +90,11 @@ export async function ensureSeeded(database: FinanceTrackerDatabase = db): Promi
 /**
  * Resets the entire IndexedDB back to initial factory seed state.
  */
-export async function resetDatabaseToDefaults(database: FinanceTrackerDatabase = db): Promise<void> {
+export async function resetDatabaseToDefaults(
+  database: FinanceTrackerDatabase = db,
+): Promise<void> {
   await database.transaction(
-    'rw',
+    "rw",
     [
       database.accounts,
       database.categories,
@@ -112,9 +118,11 @@ export async function resetDatabaseToDefaults(database: FinanceTrackerDatabase =
       await database.subcategories.bulkAdd(INITIAL_SUBCATEGORIES);
       await database.people.bulkAdd(INITIAL_PEOPLE);
       await database.groups.bulkAdd(INITIAL_GROUPS);
-      await database.recurringCommitments.bulkAdd(INITIAL_RECURRING_COMMITMENTS);
+      await database.recurringCommitments.bulkAdd(
+        INITIAL_RECURRING_COMMITMENTS,
+      );
       await database.transactions.bulkAdd(INITIAL_TRANSACTIONS);
-    }
+    },
   );
 }
 
@@ -128,12 +136,12 @@ export async function resetDatabaseToDefaults(database: FinanceTrackerDatabase =
 export async function safeDeleteAccount(
   database: FinanceTrackerDatabase,
   accountId: string,
-  mode: 'archive' | 'cascade_revert' = 'archive'
+  mode: "archive" | "cascade_revert" = "archive",
 ): Promise<{ transactionsReverted: number }> {
   const acc = await database.accounts.get(accountId);
-  if (!acc) throw new Error('Account not found');
+  if (!acc) throw new Error("Account not found");
 
-  if (mode === 'archive') {
+  if (mode === "archive") {
     await database.accounts.update(accountId, {
       isArchived: true,
       updatedAt: new Date().toISOString(),
@@ -144,19 +152,31 @@ export async function safeDeleteAccount(
   // Find all transactions where this account was source or destination
   let sourceTxs: Transaction[] = [];
   try {
-    sourceTxs = await database.transactions.where('accountId').equals(accountId).toArray();
+    sourceTxs = await database.transactions
+      .where("accountId")
+      .equals(accountId)
+      .toArray();
   } catch {
-    sourceTxs = await database.transactions.filter((tx) => tx.accountId === accountId).toArray();
+    sourceTxs = await database.transactions
+      .filter((tx) => tx.accountId === accountId)
+      .toArray();
   }
 
   let destTxs: Transaction[] = [];
   try {
-    destTxs = await database.transactions.where('toAccountId').equals(accountId).toArray();
+    destTxs = await database.transactions
+      .where("toAccountId")
+      .equals(accountId)
+      .toArray();
   } catch {
-    destTxs = await database.transactions.filter((tx) => tx.toAccountId === accountId).toArray();
+    destTxs = await database.transactions
+      .filter((tx) => tx.toAccountId === accountId)
+      .toArray();
   }
 
-  const allTxs = Array.from(new Map([...sourceTxs, ...destTxs].map((t) => [t.id, t])).values());
+  const allTxs = Array.from(
+    new Map([...sourceTxs, ...destTxs].map((t) => [t.id, t])).values(),
+  );
 
   // Cleanly revert each transaction
   for (const tx of allTxs) {
@@ -165,7 +185,10 @@ export async function safeDeleteAccount(
 
   // Delete recurring commitments linked to this account
   try {
-    await database.recurringCommitments.where('accountId').equals(accountId).delete();
+    await database.recurringCommitments
+      .where("accountId")
+      .equals(accountId)
+      .delete();
   } catch {
     const commitments = await database.recurringCommitments
       .filter((c) => c.accountId === accountId)
@@ -187,14 +210,14 @@ export async function safeDeleteAccount(
  */
 export async function safeDeletePerson(
   database: FinanceTrackerDatabase,
-  personId: string
+  personId: string,
 ): Promise<void> {
   const person = await database.people.get(personId);
-  if (!person) throw new Error('Friend not found');
+  if (!person) throw new Error("Friend not found");
 
   if (Math.abs(person.netBalance || 0) > 0.001) {
     throw new Error(
-      `Cannot delete ${person.name} because they have an active balance of ₹${person.netBalance.toFixed(2)}. Settle the balance first.`
+      `Cannot delete ${person.name} because they have an active balance of ₹${person.netBalance.toFixed(2)}. Settle the balance first.`,
     );
   }
 

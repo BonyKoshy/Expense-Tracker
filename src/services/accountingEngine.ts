@@ -5,9 +5,9 @@ import type {
   Transaction,
   AvailableToSpendBreakdown,
   AccountType,
-} from '../types';
-import type { FinanceTrackerDatabase } from '../db';
-import { addMoney, subMoney, roundMoney } from '../utils/money';
+} from "../types";
+import type { FinanceTrackerDatabase } from "../db";
+import { addMoney, subMoney, roundMoney } from "../utils/money";
 
 /**
  * Calculates the "Available to Spend" financial intelligence metric:
@@ -23,53 +23,55 @@ export function calculateAvailableToSpend(
   accounts: Account[],
   recurringCommitments: RecurringCommitment[],
   people: Person[],
-  transactions?: Transaction[]
+  transactions?: Transaction[],
 ): AvailableToSpendBreakdown {
   // 1. Identify key individual accounts
   const hdfcAcc = accounts.find(
     (acc) =>
       !acc.isArchived &&
-      acc.type === 'bank' &&
-      acc.name.toLowerCase().includes('hdfc')
+      acc.type === "bank" &&
+      acc.name.toLowerCase().includes("hdfc"),
   );
   const defaultBank = accounts.find(
     (acc) =>
       !acc.isArchived &&
       acc.isDefault &&
-      (acc.type === 'bank' || acc.type === 'wallet')
+      (acc.type === "bank" || acc.type === "wallet"),
   );
   const firstBank = accounts.find(
-    (acc) => !acc.isArchived && acc.type === 'bank'
+    (acc) => !acc.isArchived && acc.type === "bank",
   );
 
   const primaryBankAcc =
     hdfcAcc ||
     defaultBank ||
     firstBank ||
-    accounts.find((a) => !a.isArchived && a.type !== 'credit_card') ||
+    accounts.find((a) => !a.isArchived && a.type !== "credit_card") ||
     accounts[0];
 
-  const primaryBankName = primaryBankAcc ? primaryBankAcc.name : 'Primary Bank';
-  const hdfcBalance = primaryBankAcc ? roundMoney(primaryBankAcc.balance || 0) : 0;
+  const primaryBankName = primaryBankAcc ? primaryBankAcc.name : "Primary Bank";
+  const hdfcBalance = primaryBankAcc
+    ? roundMoney(primaryBankAcc.balance || 0)
+    : 0;
 
   const canaraAcc = accounts.find(
-    (acc) =>
-      !acc.isArchived &&
-      acc.name.toLowerCase().includes('canara')
+    (acc) => !acc.isArchived && acc.name.toLowerCase().includes("canara"),
   );
   const canaraBalance = canaraAcc ? roundMoney(canaraAcc.balance || 0) : 0;
 
   const amazonWallet = accounts.find(
     (acc) =>
       !acc.isArchived &&
-      (acc.type === 'wallet' || acc.name.toLowerCase().includes('amazon'))
+      (acc.type === "wallet" || acc.name.toLowerCase().includes("amazon")),
   );
-  const amazonWalletBalance = amazonWallet ? roundMoney(amazonWallet.balance || 0) : 0;
+  const amazonWalletBalance = amazonWallet
+    ? roundMoney(amazonWallet.balance || 0)
+    : 0;
 
   const cashAcc = accounts.find(
     (acc) =>
       !acc.isArchived &&
-      (acc.type === 'cash' || acc.name.toLowerCase().includes('cash'))
+      (acc.type === "cash" || acc.name.toLowerCase().includes("cash")),
   );
   const cashBalance = cashAcc ? roundMoney(cashAcc.balance || 0) : 0;
 
@@ -83,9 +85,11 @@ export function calculateAvailableToSpend(
           .filter(
             (acc) =>
               !acc.isArchived &&
-              (acc.type === 'bank' || acc.type === 'cash' || acc.type === 'wallet')
+              (acc.type === "bank" ||
+                acc.type === "cash" ||
+                acc.type === "wallet"),
           )
-          .reduce((sum, acc) => addMoney(sum, acc.balance || 0), 0)
+          .reduce((sum, acc) => addMoney(sum, acc.balance || 0), 0),
       );
 
   // 3. Total Liquid Balances: All active bank accounts + Cash + Wallets
@@ -94,16 +98,16 @@ export function calculateAvailableToSpend(
       .filter(
         (acc) =>
           !acc.isArchived &&
-          (acc.type === 'bank' || acc.type === 'cash' || acc.type === 'wallet')
+          (acc.type === "bank" || acc.type === "cash" || acc.type === "wallet"),
       )
-      .reduce((sum, acc) => addMoney(sum, acc.balance || 0), 0)
+      .reduce((sum, acc) => addMoney(sum, acc.balance || 0), 0),
   );
 
   // 4. Active investments (e.g. ICCSL RD, Mutual Funds)
   const totalInvestments = roundMoney(
     accounts
-      .filter((acc) => !acc.isArchived && acc.type === 'investment')
-      .reduce((sum, acc) => addMoney(sum, acc.balance || 0), 0)
+      .filter((acc) => !acc.isArchived && acc.type === "investment")
+      .reduce((sum, acc) => addMoney(sum, acc.balance || 0), 0),
   );
 
   // 5. Total Accumulated Savings: Canara Bank + RD investments
@@ -119,14 +123,21 @@ export function calculateAvailableToSpend(
   const isAlreadyPaidThisMonth = (commId: string) => {
     if (!transactions || transactions.length === 0) return false;
     return transactions.some(
-      (tx) => tx.recurringCommitmentId === commId && tx.date.slice(0, 7) === currentMonthKey
+      (tx) =>
+        tx.recurringCommitmentId === commId &&
+        tx.date.slice(0, 7) === currentMonthKey,
     );
   };
 
   const totalReservedCommitments = roundMoney(
     recurringCommitments
-      .filter((comm) => comm.isActive && comm.isReservedCommitment && !isAlreadyPaidThisMonth(comm.id))
-      .reduce((sum, comm) => addMoney(sum, comm.amount || 0), 0)
+      .filter(
+        (comm) =>
+          comm.isActive &&
+          comm.isReservedCommitment &&
+          !isAlreadyPaidThisMonth(comm.id),
+      )
+      .reduce((sum, comm) => addMoney(sum, comm.amount || 0), 0),
   );
 
   const hdfcReservedCommitments = roundMoney(
@@ -137,17 +148,17 @@ export function calculateAvailableToSpend(
           comm.isReservedCommitment &&
           !isAlreadyPaidThisMonth(comm.id) &&
           (comm.accountId === primaryBankAcc?.id ||
-            (!comm.accountId && !primaryBankAcc?.id?.includes('credit')) ||
-            (hdfcAcc && comm.accountId?.includes('hdfc')))
+            (!comm.accountId && !primaryBankAcc?.id?.includes("credit")) ||
+            (hdfcAcc && comm.accountId?.includes("hdfc"))),
       )
-      .reduce((sum, comm) => addMoney(sum, comm.amount || 0), 0)
+      .reduce((sum, comm) => addMoney(sum, comm.amount || 0), 0),
   );
 
   // 7. Unbilled Credit Card Liability across ALL active credit cards
   const unbilledCCLiability = roundMoney(
     accounts
-      .filter((acc) => !acc.isArchived && acc.type === 'credit_card')
-      .reduce((sum, acc) => addMoney(sum, Math.max(0, acc.balance || 0)), 0)
+      .filter((acc) => !acc.isArchived && acc.type === "credit_card")
+      .reduce((sum, acc) => addMoney(sum, Math.max(0, acc.balance || 0)), 0),
   );
 
   // 8. Shared Group & Friend Balances (Lent vs Borrowed):
@@ -167,17 +178,23 @@ export function calculateAvailableToSpend(
   const lent = roundMoney(totalReceivables);
 
   // Net Money Owed to Others: If payables exceed receivables, reserve the deficit
-  const netMoneyOwedToOthers = Math.max(0, subMoney(totalPayables, totalReceivables));
+  const netMoneyOwedToOthers = Math.max(
+    0,
+    subMoney(totalPayables, totalReceivables),
+  );
 
   // 9. Available to Spend: Primary Bank balance - CC Liability - Reserved commitments
   const availableToSpend = subMoney(
     subMoney(hdfcBalance, unbilledCCLiability),
-    hdfcReservedCommitments
+    hdfcReservedCommitments,
   );
 
   // 10. Total Net Worth:
   // Liquid Balances + Investments + Receivables - (CC Liability + Payables)
-  const totalAssets = addMoney(addMoney(totalLiquidBalances, totalInvestments), totalReceivables);
+  const totalAssets = addMoney(
+    addMoney(totalLiquidBalances, totalInvestments),
+    totalReceivables,
+  );
   const totalLiabilities = addMoney(unbilledCCLiability, totalPayables);
   const totalNetWorth = subMoney(totalAssets, totalLiabilities);
 
@@ -205,7 +222,7 @@ export function calculateAvailableToSpend(
 
 export interface BalanceDeltas {
   accountDeltas: Map<string, number>; // accountId -> cashflow delta (+ means inflow, - means outflow)
-  peopleDeltas: Map<string, number>;  // personId -> netBalance delta (+ means they owe me more, - means they owe me less)
+  peopleDeltas: Map<string, number>; // personId -> netBalance delta (+ means they owe me more, - means they owe me less)
 }
 
 /**
@@ -227,9 +244,9 @@ export interface BalanceDeltas {
 export function applyAccountBalanceDelta(
   currentBalance: number,
   cashflowDelta: number,
-  accountType: AccountType
+  accountType: AccountType,
 ): number {
-  if (accountType === 'credit_card') {
+  if (accountType === "credit_card") {
     return subMoney(currentBalance, cashflowDelta);
   }
   return addMoney(currentBalance, cashflowDelta);
@@ -241,9 +258,9 @@ export function applyAccountBalanceDelta(
 export function revertAccountBalanceDelta(
   currentBalance: number,
   cashflowDelta: number,
-  accountType: AccountType
+  accountType: AccountType,
 ): number {
-  if (accountType === 'credit_card') {
+  if (accountType === "credit_card") {
     return addMoney(currentBalance, cashflowDelta);
   }
   return subMoney(currentBalance, cashflowDelta);
@@ -263,7 +280,7 @@ export function calculateTransactionDeltas(tx: Transaction): BalanceDeltas {
   };
 
   const adjustPerson = (pId: string | undefined, delta: number) => {
-    if (!pId || pId === 'user') return;
+    if (!pId || pId === "user") return;
     const current = peopleDeltas.get(pId) || 0;
     peopleDeltas.set(pId, addMoney(current, delta));
   };
@@ -271,19 +288,19 @@ export function calculateTransactionDeltas(tx: Transaction): BalanceDeltas {
   const amount = roundMoney(tx.amount || 0);
 
   switch (tx.type) {
-    case 'expense': {
+    case "expense": {
       // Outflow from paying account
       adjustAccount(tx.accountId, -amount);
       break;
     }
 
-    case 'income': {
+    case "income": {
       // Inflow to receiving account
       adjustAccount(tx.accountId, amount);
       break;
     }
 
-    case 'transfer': {
+    case "transfer": {
       // Outflow from source, inflow to destination
       adjustAccount(tx.accountId, -amount);
       if (tx.toAccountId) {
@@ -292,7 +309,7 @@ export function calculateTransactionDeltas(tx: Transaction): BalanceDeltas {
       break;
     }
 
-    case 'credit_card_payment': {
+    case "credit_card_payment": {
       // Paid from bank account (outflow: -amount), deposited to CC (inflow: +amount)
       adjustAccount(tx.accountId, -amount);
       if (tx.toAccountId) {
@@ -301,19 +318,19 @@ export function calculateTransactionDeltas(tx: Transaction): BalanceDeltas {
       break;
     }
 
-    case 'settlement_received': {
+    case "settlement_received": {
       // Friend paid user: Liquid balance increases (+amount), friend's receivable decreases (-amount)
       // ZERO PERSONAL INCOME OR EXPENSE RECORDED
       adjustAccount(tx.accountId, amount);
       const payerId =
-        tx.paidByPersonId && tx.paidByPersonId !== 'user'
+        tx.paidByPersonId && tx.paidByPersonId !== "user"
           ? tx.paidByPersonId
           : tx.splits?.[0]?.personId;
       adjustPerson(payerId, -amount);
       break;
     }
 
-    case 'settlement_paid': {
+    case "settlement_paid": {
       // User paid friend: Liquid balance decreases (-amount), user's payable debt decreases (+amount toward 0)
       // ZERO PERSONAL INCOME OR EXPENSE RECORDED
       adjustAccount(tx.accountId, -amount);
@@ -322,8 +339,8 @@ export function calculateTransactionDeltas(tx: Transaction): BalanceDeltas {
       break;
     }
 
-    case 'shared_expense': {
-      if (tx.paidByPersonId === 'user') {
+    case "shared_expense": {
+      if (tx.paidByPersonId === "user") {
         // User paid the entire bill:
         // 1. Account is charged full amount
         adjustAccount(tx.accountId, -amount);
@@ -331,7 +348,7 @@ export function calculateTransactionDeltas(tx: Transaction): BalanceDeltas {
         // 2. Each friend owes their split share (increases receivable: +split.amount)
         if (Array.isArray(tx.splits)) {
           for (const split of tx.splits) {
-            if (split.personId && split.personId !== 'user') {
+            if (split.personId && split.personId !== "user") {
               adjustPerson(split.personId, roundMoney(split.amount || 0));
             }
           }
@@ -355,12 +372,13 @@ export function calculateTransactionDeltas(tx: Transaction): BalanceDeltas {
  */
 export async function recordTransaction(
   database: FinanceTrackerDatabase,
-  transaction: Transaction
+  transaction: Transaction,
 ): Promise<void> {
-  const { accountDeltas, peopleDeltas } = calculateTransactionDeltas(transaction);
+  const { accountDeltas, peopleDeltas } =
+    calculateTransactionDeltas(transaction);
 
   await database.transaction(
-    'rw',
+    "rw",
     [database.transactions, database.accounts, database.people],
     async () => {
       // 1. Insert transaction
@@ -370,7 +388,11 @@ export async function recordTransaction(
       for (const [accountId, delta] of accountDeltas.entries()) {
         const acc = await database.accounts.get(accountId);
         if (acc) {
-          const newBalance = applyAccountBalanceDelta(acc.balance || 0, delta, acc.type);
+          const newBalance = applyAccountBalanceDelta(
+            acc.balance || 0,
+            delta,
+            acc.type,
+          );
           await database.accounts.update(accountId, {
             balance: newBalance,
             updatedAt: new Date().toISOString(),
@@ -389,7 +411,7 @@ export async function recordTransaction(
           });
         }
       }
-    }
+    },
   );
 }
 
@@ -398,15 +420,16 @@ export async function recordTransaction(
  */
 export async function deleteTransaction(
   database: FinanceTrackerDatabase,
-  transactionId: string
+  transactionId: string,
 ): Promise<void> {
   const transaction = await database.transactions.get(transactionId);
   if (!transaction) return;
 
-  const { accountDeltas, peopleDeltas } = calculateTransactionDeltas(transaction);
+  const { accountDeltas, peopleDeltas } =
+    calculateTransactionDeltas(transaction);
 
   await database.transaction(
-    'rw',
+    "rw",
     [database.transactions, database.accounts, database.people],
     async () => {
       // 1. Delete transaction
@@ -416,7 +439,11 @@ export async function deleteTransaction(
       for (const [accountId, delta] of accountDeltas.entries()) {
         const acc = await database.accounts.get(accountId);
         if (acc) {
-          const newBalance = revertAccountBalanceDelta(acc.balance || 0, delta, acc.type);
+          const newBalance = revertAccountBalanceDelta(
+            acc.balance || 0,
+            delta,
+            acc.type,
+          );
           await database.accounts.update(accountId, {
             balance: newBalance,
             updatedAt: new Date().toISOString(),
@@ -435,7 +462,7 @@ export async function deleteTransaction(
           });
         }
       }
-    }
+    },
   );
 }
 
@@ -446,7 +473,7 @@ export async function deleteTransaction(
 export async function updateTransaction(
   database: FinanceTrackerDatabase,
   oldTransaction: Transaction,
-  newTransaction: Transaction
+  newTransaction: Transaction,
 ): Promise<void> {
   const oldDeltas = calculateTransactionDeltas(oldTransaction);
   const newDeltas = calculateTransactionDeltas(newTransaction);
@@ -464,7 +491,7 @@ export async function updateTransaction(
   ]);
 
   await database.transaction(
-    'rw',
+    "rw",
     [database.transactions, database.accounts, database.people],
     async () => {
       // 1. Put updated transaction
@@ -478,7 +505,11 @@ export async function updateTransaction(
           const newDelta = newDeltas.accountDeltas.get(accountId) || 0;
 
           // Revert old, then apply new
-          let bal = revertAccountBalanceDelta(acc.balance || 0, oldDelta, acc.type);
+          let bal = revertAccountBalanceDelta(
+            acc.balance || 0,
+            oldDelta,
+            acc.type,
+          );
           bal = applyAccountBalanceDelta(bal, newDelta, acc.type);
 
           await database.accounts.update(accountId, {
@@ -495,7 +526,10 @@ export async function updateTransaction(
           const oldDelta = oldDeltas.peopleDeltas.get(personId) || 0;
           const newDelta = newDeltas.peopleDeltas.get(personId) || 0;
 
-          const bal = addMoney(subMoney(person.netBalance || 0, oldDelta), newDelta);
+          const bal = addMoney(
+            subMoney(person.netBalance || 0, oldDelta),
+            newDelta,
+          );
 
           await database.people.update(personId, {
             netBalance: bal,
@@ -503,7 +537,7 @@ export async function updateTransaction(
           });
         }
       }
-    }
+    },
   );
 }
 
@@ -513,7 +547,7 @@ export async function updateTransaction(
  * Prevents silent drift caused by crashes, manual edits, or interrupted imports.
  */
 export async function reconcileAllBalances(
-  database: FinanceTrackerDatabase
+  database: FinanceTrackerDatabase,
 ): Promise<{
   accountsReconciled: number;
   peopleReconciled: number;
@@ -522,7 +556,7 @@ export async function reconcileAllBalances(
   const [allAccounts, allPeople, allTransactions] = await Promise.all([
     database.accounts.toArray(),
     database.people.toArray(),
-    database.transactions.orderBy('date').toArray(),
+    database.transactions.orderBy("date").toArray(),
   ]);
 
   // Start with 0 deltas
@@ -532,10 +566,16 @@ export async function reconcileAllBalances(
   for (const tx of allTransactions) {
     const { accountDeltas, peopleDeltas } = calculateTransactionDeltas(tx);
     for (const [accId, delta] of accountDeltas.entries()) {
-      expectedAccountDeltas.set(accId, addMoney(expectedAccountDeltas.get(accId) || 0, delta));
+      expectedAccountDeltas.set(
+        accId,
+        addMoney(expectedAccountDeltas.get(accId) || 0, delta),
+      );
     }
     for (const [pId, delta] of peopleDeltas.entries()) {
-      expectedPeopleDeltas.set(pId, addMoney(expectedPeopleDeltas.get(pId) || 0, delta));
+      expectedPeopleDeltas.set(
+        pId,
+        addMoney(expectedPeopleDeltas.get(pId) || 0, delta),
+      );
     }
   }
 
@@ -544,7 +584,7 @@ export async function reconcileAllBalances(
   let peopleReconciled = 0;
 
   await database.transaction(
-    'rw',
+    "rw",
     [database.accounts, database.people],
     async () => {
       // 1. Reconcile people: base is 0 + sum of all transaction deltas
@@ -572,7 +612,10 @@ export async function reconcileAllBalances(
           const current = roundMoney(acc.balance || 0);
 
           // Only auto-correct if discrepancy is found and transactions are known
-          if (allTransactions.length > 0 && Math.abs(expected - current) > 0.001) {
+          if (
+            allTransactions.length > 0 &&
+            Math.abs(expected - current) > 0.001
+          ) {
             discrepanciesFound++;
             await database.accounts.update(acc.id, {
               balance: expected,
@@ -582,7 +625,7 @@ export async function reconcileAllBalances(
           }
         }
       }
-    }
+    },
   );
 
   return { accountsReconciled, peopleReconciled, discrepanciesFound };

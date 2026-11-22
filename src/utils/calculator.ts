@@ -14,34 +14,35 @@ export function evaluateExpression(rawExpr: string): number {
   if (!rawExpr || !rawExpr.trim()) return 0;
 
   // Normalize operators: replace × with *, ÷ with /
-  let expr = rawExpr.replace(/×/g, '*').replace(/÷/g, '/').trim();
+  let expr = rawExpr.replace(/×/g, "*").replace(/÷/g, "/").trim();
 
   // Strip trailing operators, open parenthesis, or spaces (e.g. "50 + " -> "50")
-  expr = expr.replace(/[+\-*/\s]+$/, '');
+  expr = expr.replace(/[+\-*/\s]+$/, "");
   if (!expr) return 0;
 
   try {
     // Tokenize numbers and operators
     const tokens: string[] = [];
-    let currentNum = '';
+    let currentNum = "";
 
     for (let i = 0; i < expr.length; i++) {
       const char = expr[i];
-      if ((char >= '0' && char <= '9') || char === '.') {
+      if ((char >= "0" && char <= "9") || char === ".") {
         currentNum += char;
-      } else if (char === '+' || char === '-' || char === '*' || char === '/') {
+      } else if (char === "+" || char === "-" || char === "*" || char === "/") {
         // Handle negative numbers: if '-' occurs at start or directly after an operator
         if (
-          char === '-' &&
-          (tokens.length === 0 || ['+', '-', '*', '/'].includes(tokens[tokens.length - 1])) &&
+          char === "-" &&
+          (tokens.length === 0 ||
+            ["+", "-", "*", "/"].includes(tokens[tokens.length - 1])) &&
           !currentNum
         ) {
-          currentNum = '-';
+          currentNum = "-";
           continue;
         }
         if (currentNum) {
           tokens.push(currentNum);
-          currentNum = '';
+          currentNum = "";
         }
         tokens.push(char);
       }
@@ -57,14 +58,14 @@ export function evaluateExpression(rawExpr: string): number {
     let idx = 0;
     while (idx < tokens.length) {
       const token = tokens[idx];
-      if (token === '*' || token === '/') {
+      if (token === "*" || token === "/") {
         const prev = Number(intermediateTokens.pop());
         const next = Number(tokens[idx + 1]);
         if (isNaN(prev) || isNaN(next)) return 0;
-        const res = token === '*' ? prev * next : next === 0 ? 0 : prev / next;
+        const res = token === "*" ? prev * next : next === 0 ? 0 : prev / next;
         intermediateTokens.push(res);
         idx += 2;
-      } else if (token === '+' || token === '-') {
+      } else if (token === "+" || token === "-") {
         intermediateTokens.push(token);
         idx++;
       } else {
@@ -83,9 +84,9 @@ export function evaluateExpression(rawExpr: string): number {
       const op = intermediateTokens[idx];
       const next = Number(intermediateTokens[idx + 1]);
       if (isNaN(next)) break;
-      if (op === '+') {
+      if (op === "+") {
         result += next;
-      } else if (op === '-') {
+      } else if (op === "-") {
         result -= next;
       }
       idx += 2;
@@ -103,56 +104,56 @@ export function evaluateExpression(rawExpr: string): number {
  */
 export function handleKeypadInput(currentExpr: string, key: string): string {
   // Clear
-  if (key === 'C' || key === 'AC') {
-    return '0';
+  if (key === "C" || key === "AC") {
+    return "0";
   }
 
   // Backspace
-  if (key === '⌫' || key === 'Backspace') {
-    if (!currentExpr || currentExpr.length <= 1 || currentExpr === '0') {
-      return '0';
+  if (key === "⌫" || key === "Backspace") {
+    if (!currentExpr || currentExpr.length <= 1 || currentExpr === "0") {
+      return "0";
     }
     const trimmed = currentExpr.trimEnd();
     // If ending with operator like " + ", trim the operator and spaces
     if (
-      trimmed.endsWith('+') ||
-      trimmed.endsWith('-') ||
-      trimmed.endsWith('×') ||
-      trimmed.endsWith('÷') ||
-      trimmed.endsWith('*') ||
-      trimmed.endsWith('/')
+      trimmed.endsWith("+") ||
+      trimmed.endsWith("-") ||
+      trimmed.endsWith("×") ||
+      trimmed.endsWith("÷") ||
+      trimmed.endsWith("*") ||
+      trimmed.endsWith("/")
     ) {
       const withoutOp = trimmed.slice(0, -1).trimEnd();
-      return withoutOp || '0';
+      return withoutOp || "0";
     }
-    return currentExpr.slice(0, -1) || '0';
+    return currentExpr.slice(0, -1) || "0";
   }
 
   // Equals
-  if (key === '=') {
+  if (key === "=") {
     const val = evaluateExpression(currentExpr);
-    return val <= 0 ? '0' : val.toString();
+    return val <= 0 ? "0" : val.toString();
   }
 
   // Decimal
-  if (key === '.') {
+  if (key === ".") {
     const parts = currentExpr.split(/[\s+\-×÷*/]+/);
-    const lastPart = parts[parts.length - 1] || '';
-    if (lastPart.includes('.')) {
+    const lastPart = parts[parts.length - 1] || "";
+    if (lastPart.includes(".")) {
       return currentExpr;
     }
-    if (currentExpr === '0' || !currentExpr) {
-      return '0.';
+    if (currentExpr === "0" || !currentExpr) {
+      return "0.";
     }
     const trimmed = currentExpr.trimEnd();
-    if (['+', '-', '×', '÷', '*', '/'].some((op) => trimmed.endsWith(op))) {
-      return currentExpr + ' 0.';
+    if (["+", "-", "×", "÷", "*", "/"].some((op) => trimmed.endsWith(op))) {
+      return currentExpr + " 0.";
     }
-    return currentExpr + '.';
+    return currentExpr + ".";
   }
 
   // Preset additions (e.g. "+100", "+500")
-  if (key.length > 1 && key.startsWith('+') && !isNaN(Number(key.slice(1)))) {
+  if (key.length > 1 && key.startsWith("+") && !isNaN(Number(key.slice(1)))) {
     const addVal = Number(key.slice(1));
     const currentVal = evaluateExpression(currentExpr);
     const newVal = Math.round((currentVal + addVal) * 100) / 100;
@@ -160,15 +161,15 @@ export function handleKeypadInput(currentExpr: string, key: string): string {
   }
 
   // Operators: +, -, ×, ÷
-  const isOperator = ['+', '-', '×', '÷', '*', '/'].includes(key);
+  const isOperator = ["+", "-", "×", "÷", "*", "/"].includes(key);
   if (isOperator) {
-    const displayOp = key === '*' ? '×' : key === '/' ? '÷' : key;
-    if (!currentExpr || currentExpr === '0') {
-      if (key === '-') return '-';
+    const displayOp = key === "*" ? "×" : key === "/" ? "÷" : key;
+    if (!currentExpr || currentExpr === "0") {
+      if (key === "-") return "-";
       return `0 ${displayOp} `;
     }
     const trimmed = currentExpr.trimEnd();
-    if (['+', '-', '×', '÷', '*', '/'].some((op) => trimmed.endsWith(op))) {
+    if (["+", "-", "×", "÷", "*", "/"].some((op) => trimmed.endsWith(op))) {
       const base = trimmed.slice(0, -1).trimEnd();
       return `${base} ${displayOp} `;
     }
@@ -176,19 +177,19 @@ export function handleKeypadInput(currentExpr: string, key: string): string {
   }
 
   // Double zero
-  if (key === '00') {
-    if (currentExpr === '0' || !currentExpr) return '0';
+  if (key === "00") {
+    if (currentExpr === "0" || !currentExpr) return "0";
     // If ending with operator, don't append 00 directly
     const trimmed = currentExpr.trimEnd();
-    if (['+', '-', '×', '÷', '*', '/'].some((op) => trimmed.endsWith(op))) {
-      return currentExpr + ' 0';
+    if (["+", "-", "×", "÷", "*", "/"].some((op) => trimmed.endsWith(op))) {
+      return currentExpr + " 0";
     }
-    return currentExpr + '00';
+    return currentExpr + "00";
   }
 
   // Digits (single or multi-digit numbers)
   if (/^[0-9]+$/.test(key)) {
-    if (currentExpr === '0') {
+    if (currentExpr === "0") {
       return key;
     }
     return currentExpr + key;

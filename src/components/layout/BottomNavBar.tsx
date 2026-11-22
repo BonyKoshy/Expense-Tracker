@@ -1,5 +1,5 @@
-import { Home, PieChart, Receipt, Users } from 'lucide-react';
-import type { NavigationTab } from './TopAppBar';
+import { Home, PieChart, Receipt, Users } from "lucide-react";
+import type { NavigationTab } from "./TopAppBar";
 
 interface BottomNavBarProps {
   activeTab: NavigationTab;
@@ -7,11 +7,19 @@ interface BottomNavBarProps {
 }
 
 export function BottomNavBar({ activeTab, onNavigate }: BottomNavBarProps) {
-  const destinations: { id: NavigationTab; label: string; icon: React.ReactNode }[] = [
-    { id: 'home', label: 'Home', icon: <Home className="h-5 w-5" /> },
-    { id: 'budget', label: 'Budget', icon: <PieChart className="h-5 w-5" /> },
-    { id: 'transactions', label: 'Transactions', icon: <Receipt className="h-5 w-5" /> },
-    { id: 'splits', label: 'Splits', icon: <Users className="h-5 w-5" /> },
+  const destinations: {
+    id: NavigationTab;
+    label: string;
+    icon: React.ReactNode;
+  }[] = [
+    { id: "home", label: "Home", icon: <Home className="h-5 w-5" /> },
+    { id: "budget", label: "Budget", icon: <PieChart className="h-5 w-5" /> },
+    {
+      id: "transactions",
+      label: "Transactions",
+      icon: <Receipt className="h-5 w-5" />,
+    },
+    { id: "splits", label: "Splits", icon: <Users className="h-5 w-5" /> },
   ];
 
   return (
@@ -28,15 +36,15 @@ export function BottomNavBar({ activeTab, onNavigate }: BottomNavBarProps) {
             <div
               className={`px-5 py-1.5 rounded-full transition-all flex items-center justify-center ${
                 isActive
-                  ? 'bg-[#1a2536] text-[#d3e3fd]'
-                  : 'text-[#c4c6cf] group-hover:text-[#e2e2e7]'
+                  ? "bg-[#1a2536] text-[#d3e3fd]"
+                  : "text-[#c4c6cf] group-hover:text-[#e2e2e7]"
               }`}
             >
               {dest.icon}
             </div>
             <span
               className={`text-xs font-semibold transition-colors ${
-                isActive ? 'text-[#d3e3fd]' : 'text-[#90929d]'
+                isActive ? "text-[#d3e3fd]" : "text-[#90929d]"
               }`}
             >
               {dest.label}

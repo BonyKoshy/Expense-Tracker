@@ -1,29 +1,29 @@
-import { useEffect, useState, useCallback } from 'react';
-import { Plus, CheckCircle2 } from 'lucide-react';
-import { db, ensureSeeded, resetDatabaseToDefaults } from './db';
-import { formatINR } from './utils/formatters';
-import type { RecurringCommitment } from './types';
-import { useFinanceData } from './hooks/useFinanceData';
-import { usePwaInstall } from './hooks/usePwaInstall';
-import { TopAppBar, type NavigationTab } from './components/layout/TopAppBar';
-import { BottomNavBar } from './components/layout/BottomNavBar';
-import { HomeView } from './components/home/HomeView';
-import { SplitsView } from './components/splits/SplitsView';
-import { BudgetView } from './components/budget/BudgetView';
-import { TransactionsView } from './components/transactions/TransactionsView';
-import { SettingsView } from './components/settings/SettingsView';
-import { AddTransactionModal } from './components/modals/AddTransactionModal';
-import { ManageAccountsModal } from './components/modals/ManageAccountsModal';
-import { ManagePeopleGroupsModal } from './components/modals/ManagePeopleGroupsModal';
-import { ManageCategoriesModal } from './components/modals/ManageCategoriesModal';
-import { ManageRecurringModal } from './components/modals/ManageRecurringModal';
-import { BackupRestoreModal } from './components/modals/BackupRestoreModal';
-import { UserNameModal } from './components/modals/UserNameModal';
-import { checkAndTriggerDailyReminder } from './utils/notifications';
+import { useEffect, useState, useCallback } from "react";
+import { Plus, CheckCircle2 } from "lucide-react";
+import { db, ensureSeeded, resetDatabaseToDefaults } from "./db";
+import { formatINR } from "./utils/formatters";
+import type { RecurringCommitment } from "./types";
+import { useFinanceData } from "./hooks/useFinanceData";
+import { usePwaInstall } from "./hooks/usePwaInstall";
+import { TopAppBar, type NavigationTab } from "./components/layout/TopAppBar";
+import { BottomNavBar } from "./components/layout/BottomNavBar";
+import { HomeView } from "./components/home/HomeView";
+import { SplitsView } from "./components/splits/SplitsView";
+import { BudgetView } from "./components/budget/BudgetView";
+import { TransactionsView } from "./components/transactions/TransactionsView";
+import { SettingsView } from "./components/settings/SettingsView";
+import { AddTransactionModal } from "./components/modals/AddTransactionModal";
+import { ManageAccountsModal } from "./components/modals/ManageAccountsModal";
+import { ManagePeopleGroupsModal } from "./components/modals/ManagePeopleGroupsModal";
+import { ManageCategoriesModal } from "./components/modals/ManageCategoriesModal";
+import { ManageRecurringModal } from "./components/modals/ManageRecurringModal";
+import { BackupRestoreModal } from "./components/modals/BackupRestoreModal";
+import { UserNameModal } from "./components/modals/UserNameModal";
+import { checkAndTriggerDailyReminder } from "./utils/notifications";
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<NavigationTab>('home');
-  const [previousTab, setPreviousTab] = useState<NavigationTab>('home');
+  const [activeTab, setActiveTab] = useState<NavigationTab>("home");
+  const [previousTab, setPreviousTab] = useState<NavigationTab>("home");
   const [actionNotice, setActionNotice] = useState<string | null>(null);
 
   const showNotice = useCallback((msg: string, durationMs = 4000) => {
@@ -34,15 +34,15 @@ export default function App() {
   // User Profile Name State
   const [userName, setUserName] = useState<string>(() => {
     try {
-      return localStorage.getItem('fintrack_user_name') || 'Bony';
+      return localStorage.getItem("fintrack_user_name") || "Bony";
     } catch {
-      return 'Bony';
+      return "Bony";
     }
   });
 
   const [isNameModalOpen, setIsNameModalOpen] = useState<boolean>(() => {
     try {
-      return localStorage.getItem('fintrack_user_name') === null;
+      return localStorage.getItem("fintrack_user_name") === null;
     } catch {
       return false;
     }
@@ -50,7 +50,7 @@ export default function App() {
 
   const handleSaveUserName = (newName: string) => {
     try {
-      localStorage.setItem('fintrack_user_name', newName);
+      localStorage.setItem("fintrack_user_name", newName);
     } catch {
       // ignore
     }
@@ -65,44 +65,51 @@ export default function App() {
   const [isCategoriesOpen, setIsCategoriesOpen] = useState(false);
   const [isRecurringOpen, setIsRecurringOpen] = useState(false);
   const [isBackupOpen, setIsBackupOpen] = useState(false);
-  const [backupModalTab, setBackupModalTab] = useState<'backup' | 'restore' | 'cashew'>('backup');
+  const [backupModalTab, setBackupModalTab] = useState<
+    "backup" | "restore" | "cashew"
+  >("backup");
 
   // Overall Monthly Spending Budget Target
-  const [overallMonthlyBudget, setOverallMonthlyBudget] = useState<number>(() => {
-    try {
-      const stored = localStorage.getItem('fintrack_monthly_budget');
-      return stored ? Number(stored) : 25000;
-    } catch {
-      return 25000;
-    }
-  });
+  const [overallMonthlyBudget, setOverallMonthlyBudget] = useState<number>(
+    () => {
+      try {
+        const stored = localStorage.getItem("fintrack_monthly_budget");
+        return stored ? Number(stored) : 25000;
+      } catch {
+        return 25000;
+      }
+    },
+  );
 
   const handleUpdateOverallBudget = (amount: number) => {
     setOverallMonthlyBudget(amount);
     try {
-      localStorage.setItem('fintrack_monthly_budget', String(amount));
+      localStorage.setItem("fintrack_monthly_budget", String(amount));
     } catch {
       // ignore
     }
     showNotice(`Overall monthly budget set to ${formatINR(amount)}.`);
   };
 
-  const handleUpdateCategoryBudget = async (categoryId: string, monthlyBudget: number) => {
+  const handleUpdateCategoryBudget = async (
+    categoryId: string,
+    monthlyBudget: number,
+  ) => {
     try {
       await db.categories.update(categoryId, {
         monthlyBudget,
         updatedAt: new Date().toISOString(),
       });
-      showNotice('Category budget limit saved.');
+      showNotice("Category budget limit saved.");
     } catch (err) {
-      console.error('Failed to update category budget:', err);
+      console.error("Failed to update category budget:", err);
     }
   };
 
   // Cashew Killer Architecture Banner Dismissal State
   const [showArchitectureBanner, setShowArchitectureBanner] = useState(() => {
     try {
-      return localStorage.getItem('fintrack_dismiss_arch_banner') !== 'true';
+      return localStorage.getItem("fintrack_dismiss_arch_banner") !== "true";
     } catch {
       return true;
     }
@@ -111,7 +118,7 @@ export default function App() {
   const handleDismissBanner = () => {
     setShowArchitectureBanner(false);
     try {
-      localStorage.setItem('fintrack_dismiss_arch_banner', 'true');
+      localStorage.setItem("fintrack_dismiss_arch_banner", "true");
     } catch {
       // ignore
     }
@@ -126,40 +133,43 @@ export default function App() {
   // Initialize and seed database if empty
   useEffect(() => {
     ensureSeeded().catch((err) =>
-      console.error('Failed to seed IndexedDB:', err)
+      console.error("Failed to seed IndexedDB:", err),
     );
   }, []);
 
   // Daily Push Notification Scheduler
   useEffect(() => {
     checkAndTriggerDailyReminder().catch((err) =>
-      console.warn('FinTrack: Daily reminder startup check failed:', err)
+      console.warn("FinTrack: Daily reminder startup check failed:", err),
     );
 
     const interval = setInterval(() => {
       checkAndTriggerDailyReminder().catch((err) =>
-        console.warn('FinTrack: Daily reminder interval check failed:', err)
+        console.warn("FinTrack: Daily reminder interval check failed:", err),
       );
     }, 30000);
 
     const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
+      if (document.visibilityState === "visible") {
         checkAndTriggerDailyReminder().catch((err) =>
-          console.warn('FinTrack: Daily reminder visibility check failed:', err)
+          console.warn(
+            "FinTrack: Daily reminder visibility check failed:",
+            err,
+          ),
         );
       }
     };
 
-    document.addEventListener('visibilitychange', handleVisibilityChange);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
       clearInterval(interval);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, []);
 
   const handleNavigate = (tab: NavigationTab) => {
-    if (tab === 'settings') {
+    if (tab === "settings") {
       setPreviousTab(activeTab);
     }
     setActiveTab(tab);
@@ -168,17 +178,24 @@ export default function App() {
   const handleConfirmRecurring = async (comm: RecurringCommitment) => {
     try {
       await finance.confirmRecurringCommitment(comm);
-      showNotice(`Confirmed & recorded payment of ${formatINR(comm.amount)} for ${comm.name}!`, 5000);
+      showNotice(
+        `Confirmed & recorded payment of ${formatINR(comm.amount)} for ${comm.name}!`,
+        5000,
+      );
     } catch (err) {
       console.error(err);
     }
   };
 
   const handleDeleteTx = async (txId: string) => {
-    if (confirm('Delete this transaction and revert all account and friend balances?')) {
+    if (
+      confirm(
+        "Delete this transaction and revert all account and friend balances?",
+      )
+    ) {
       try {
         await finance.deleteTransactionWithRevert(txId);
-        showNotice('Transaction deleted and balances reverted.');
+        showNotice("Transaction deleted and balances reverted.");
       } catch (err) {
         console.error(err);
       }
@@ -188,13 +205,13 @@ export default function App() {
   const handleSimulateSettlement = async (
     personId: string,
     personName: string,
-    amount: number
+    amount: number,
   ) => {
     try {
       await finance.simulateFriendSettlement(personId, personName, amount);
       showNotice(
         `Recorded ₹${amount.toFixed(2)} settlement from ${personName}. Liquid balance increased; friend debt cleared; ₹0 counted as income!`,
-        5000
+        5000,
       );
     } catch (err) {
       console.error(err);
@@ -204,14 +221,14 @@ export default function App() {
   const handleResetData = async () => {
     if (
       confirm(
-        'Reset App & Clear All Data?\n\nThis will wipe all transactions, friends, groups, commitments, and reset account balances to 0.00.\n\nAre you sure you want to proceed?'
+        "Reset App & Clear All Data?\n\nThis will wipe all transactions, friends, groups, commitments, and reset account balances to 0.00.\n\nAre you sure you want to proceed?",
       )
     ) {
       try {
         await resetDatabaseToDefaults();
-        localStorage.removeItem('fintrack_monthly_budget');
+        localStorage.removeItem("fintrack_monthly_budget");
         setOverallMonthlyBudget(25000);
-        showNotice('App reset successfully to clean factory state.');
+        showNotice("App reset successfully to clean factory state.");
       } catch (err) {
         console.error(err);
       }
@@ -242,7 +259,7 @@ export default function App() {
 
       {/* Main Content Area */}
       <main className="flex-1 px-4 sm:px-6 py-4 pb-24">
-        {activeTab === 'home' && (
+        {activeTab === "home" && (
           <HomeView
             breakdown={finance.breakdown}
             accounts={finance.accounts}
@@ -254,11 +271,11 @@ export default function App() {
             onDismissBanner={handleDismissBanner}
             onConfirmRecurring={handleConfirmRecurring}
             onOpenAddTx={() => setIsAddTxOpen(true)}
-            onNavigateToTransactions={() => setActiveTab('transactions')}
+            onNavigateToTransactions={() => setActiveTab("transactions")}
           />
         )}
 
-        {activeTab === 'budget' && (
+        {activeTab === "budget" && (
           <BudgetView
             accounts={finance.accounts}
             recurringCommitments={finance.recurringCommitments}
@@ -268,11 +285,11 @@ export default function App() {
             overallMonthlyBudget={overallMonthlyBudget}
             onOpenAccounts={() => setIsAccountsOpen(true)}
             onOpenRecurring={() => setIsRecurringOpen(true)}
-            onOpenSettings={() => handleNavigate('settings')}
+            onOpenSettings={() => handleNavigate("settings")}
           />
         )}
 
-        {activeTab === 'transactions' && (
+        {activeTab === "transactions" && (
           <TransactionsView
             transactions={finance.transactions}
             accounts={finance.accounts}
@@ -285,7 +302,7 @@ export default function App() {
           />
         )}
 
-        {activeTab === 'splits' && (
+        {activeTab === "splits" && (
           <SplitsView
             groups={finance.groups}
             people={finance.people}
@@ -296,7 +313,7 @@ export default function App() {
           />
         )}
 
-        {activeTab === 'settings' && (
+        {activeTab === "settings" && (
           <SettingsView
             userName={userName}
             onEditName={() => setIsNameModalOpen(true)}
@@ -317,11 +334,11 @@ export default function App() {
             onOpenCategories={() => setIsCategoriesOpen(true)}
             onOpenRecurring={() => setIsRecurringOpen(true)}
             onOpenBackup={() => {
-              setBackupModalTab('backup');
+              setBackupModalTab("backup");
               setIsBackupOpen(true);
             }}
             onOpenCashewImport={() => {
-              setBackupModalTab('cashew');
+              setBackupModalTab("cashew");
               setIsBackupOpen(true);
             }}
             onResetData={handleResetData}

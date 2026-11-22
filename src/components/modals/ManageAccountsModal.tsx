@@ -1,8 +1,18 @@
-import { useState } from 'react';
-import { X, Plus, CreditCard, Landmark, Wallet, Banknote, Edit2, Archive, Trash2 } from 'lucide-react';
-import type { Account, AccountType } from '@/types';
-import { db, safeDeleteAccount } from '@/db';
-import { formatINR } from '@/utils/formatters';
+import { useState } from "react";
+import {
+  X,
+  Plus,
+  CreditCard,
+  Landmark,
+  Wallet,
+  Banknote,
+  Edit2,
+  Archive,
+  Trash2,
+} from "lucide-react";
+import type { Account, AccountType } from "@/types";
+import { db, safeDeleteAccount } from "@/db";
+import { formatINR } from "@/utils/formatters";
 
 interface ManageAccountsModalProps {
   isOpen: boolean;
@@ -18,15 +28,15 @@ export function ManageAccountsModal({
   onSuccess,
 }: ManageAccountsModalProps) {
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [name, setName] = useState('');
-  const [type, setType] = useState<AccountType>('bank');
-  const [balanceStr, setBalanceStr] = useState('');
-  const [creditLimitStr, setCreditLimitStr] = useState('');
-  const [billingCycleDay, setBillingCycleDay] = useState('15');
-  const [paymentDueDay, setPaymentDueDay] = useState('5');
-  const [institution, setInstitution] = useState('');
-  const [accountNumber, setAccountNumber] = useState('');
-  const [color, setColor] = useState('#1a2536');
+  const [name, setName] = useState("");
+  const [type, setType] = useState<AccountType>("bank");
+  const [balanceStr, setBalanceStr] = useState("");
+  const [creditLimitStr, setCreditLimitStr] = useState("");
+  const [billingCycleDay, setBillingCycleDay] = useState("15");
+  const [paymentDueDay, setPaymentDueDay] = useState("5");
+  const [institution, setInstitution] = useState("");
+  const [accountNumber, setAccountNumber] = useState("");
+  const [color, setColor] = useState("#1a2536");
   const [isArchived, setIsArchived] = useState(false);
   const [isDefault, setIsDefault] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -38,27 +48,29 @@ export function ManageAccountsModal({
     setName(acc.name);
     setType(acc.type);
     setBalanceStr(acc.balance.toString());
-    setCreditLimitStr(acc.creditLimit ? acc.creditLimit.toString() : '');
-    setBillingCycleDay(acc.billingCycleDay ? acc.billingCycleDay.toString() : '15');
-    setPaymentDueDay(acc.paymentDueDay ? acc.paymentDueDay.toString() : '5');
-    setInstitution(acc.institution || '');
-    setAccountNumber(acc.accountNumber || '');
-    setColor(acc.color || '#1a2536');
+    setCreditLimitStr(acc.creditLimit ? acc.creditLimit.toString() : "");
+    setBillingCycleDay(
+      acc.billingCycleDay ? acc.billingCycleDay.toString() : "15",
+    );
+    setPaymentDueDay(acc.paymentDueDay ? acc.paymentDueDay.toString() : "5");
+    setInstitution(acc.institution || "");
+    setAccountNumber(acc.accountNumber || "");
+    setColor(acc.color || "#1a2536");
     setIsArchived(acc.isArchived || false);
     setIsDefault(acc.isDefault || false);
   };
 
   const resetForm = () => {
     setEditingId(null);
-    setName('');
-    setType('bank');
-    setBalanceStr('');
-    setCreditLimitStr('');
-    setBillingCycleDay('15');
-    setPaymentDueDay('5');
-    setInstitution('');
-    setAccountNumber('');
-    setColor('#1a2536');
+    setName("");
+    setType("bank");
+    setBalanceStr("");
+    setCreditLimitStr("");
+    setBillingCycleDay("15");
+    setPaymentDueDay("5");
+    setInstitution("");
+    setAccountNumber("");
+    setColor("#1a2536");
     setIsArchived(false);
     setIsDefault(false);
     setError(null);
@@ -68,16 +80,26 @@ export function ManageAccountsModal({
     try {
       let sourceCount = 0;
       try {
-        sourceCount = await db.transactions.where('accountId').equals(acc.id).count();
+        sourceCount = await db.transactions
+          .where("accountId")
+          .equals(acc.id)
+          .count();
       } catch {
-        sourceCount = await db.transactions.filter((tx) => tx.accountId === acc.id).count();
+        sourceCount = await db.transactions
+          .filter((tx) => tx.accountId === acc.id)
+          .count();
       }
 
       let destCount = 0;
       try {
-        destCount = await db.transactions.where('toAccountId').equals(acc.id).count();
+        destCount = await db.transactions
+          .where("toAccountId")
+          .equals(acc.id)
+          .count();
       } catch {
-        destCount = await db.transactions.filter((tx) => tx.toAccountId === acc.id).count();
+        destCount = await db.transactions
+          .filter((tx) => tx.toAccountId === acc.id)
+          .count();
       }
 
       const txCount = sourceCount + destCount;
@@ -85,39 +107,47 @@ export function ManageAccountsModal({
       if (txCount > 0) {
         const archiveChoice = window.confirm(
           `Account "${acc.name}" has ${txCount} transaction(s) associated with it.\n\n` +
-          `Would you like to ARCHIVE this account instead?\n\n` +
-          `• Click OK to Archive (recommended: keeps transaction history and splits intact)\n` +
-          `• Click Cancel to choose permanent deletion with transaction reversal`
+            `Would you like to ARCHIVE this account instead?\n\n` +
+            `• Click OK to Archive (recommended: keeps transaction history and splits intact)\n` +
+            `• Click Cancel to choose permanent deletion with transaction reversal`,
         );
 
         if (archiveChoice) {
-          await safeDeleteAccount(db, acc.id, 'archive');
+          await safeDeleteAccount(db, acc.id, "archive");
           if (editingId === acc.id) resetForm();
-          if (onSuccess) onSuccess(`Account "${acc.name}" archived successfully.`);
+          if (onSuccess)
+            onSuccess(`Account "${acc.name}" archived successfully.`);
           return;
         }
 
         const forceChoice = window.confirm(
           `PERMANENT DELETION WARNING:\n\n` +
-          `Permanently deleting "${acc.name}" will REVERT all ${txCount} transaction(s), reversing any shared split debts with friends and linked account transfers.\n\n` +
-          `Are you sure you want to proceed with permanent deletion and reversal?`
+            `Permanently deleting "${acc.name}" will REVERT all ${txCount} transaction(s), reversing any shared split debts with friends and linked account transfers.\n\n` +
+            `Are you sure you want to proceed with permanent deletion and reversal?`,
         );
 
         if (forceChoice) {
-          const res = await safeDeleteAccount(db, acc.id, 'cascade_revert');
+          const res = await safeDeleteAccount(db, acc.id, "cascade_revert");
           if (editingId === acc.id) resetForm();
-          if (onSuccess) onSuccess(`Account "${acc.name}" deleted and ${res.transactionsReverted} transaction(s) reverted.`);
+          if (onSuccess)
+            onSuccess(
+              `Account "${acc.name}" deleted and ${res.transactionsReverted} transaction(s) reverted.`,
+            );
         }
       } else {
-        if (window.confirm(`Are you sure you want to delete account "${acc.name}"?`)) {
-          await safeDeleteAccount(db, acc.id, 'cascade_revert');
+        if (
+          window.confirm(
+            `Are you sure you want to delete account "${acc.name}"?`,
+          )
+        ) {
+          await safeDeleteAccount(db, acc.id, "cascade_revert");
           if (editingId === acc.id) resetForm();
           if (onSuccess) onSuccess(`Account "${acc.name}" deleted.`);
         }
       }
     } catch (err: unknown) {
       console.error(err);
-      setError(err instanceof Error ? err.message : 'Failed to delete account');
+      setError(err instanceof Error ? err.message : "Failed to delete account");
     }
   };
 
@@ -126,7 +156,7 @@ export function ManageAccountsModal({
     setError(null);
 
     if (!name.trim()) {
-      setError('Please enter an account name.');
+      setError("Please enter an account name.");
       return;
     }
 
@@ -159,16 +189,16 @@ export function ManageAccountsModal({
           creditLimit,
           billingCycleDay: parseInt(billingCycleDay) || undefined,
           paymentDueDay: parseInt(paymentDueDay) || undefined,
-          currency: 'INR',
+          currency: "INR",
           color,
           icon:
-            type === 'credit_card'
-              ? 'CreditCard'
-              : type === 'cash'
-              ? 'Banknote'
-              : type === 'wallet'
-              ? 'Wallet'
-              : 'Landmark',
+            type === "credit_card"
+              ? "CreditCard"
+              : type === "cash"
+                ? "Banknote"
+                : type === "wallet"
+                  ? "Wallet"
+                  : "Landmark",
           isArchived: false,
           isDefault,
           institution: institution.trim() || undefined,
@@ -182,7 +212,7 @@ export function ManageAccountsModal({
       resetForm();
     } catch (err: unknown) {
       console.error(err);
-      setError(err instanceof Error ? err.message : 'Failed to save account');
+      setError(err instanceof Error ? err.message : "Failed to save account");
     }
   };
 
@@ -222,7 +252,7 @@ export function ManageAccountsModal({
           >
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold text-[#a8c7fa]">
-                {editingId ? 'Edit Account' : 'Add New Account'}
+                {editingId ? "Edit Account" : "Add New Account"}
               </span>
               {editingId && (
                 <div className="flex items-center gap-3">
@@ -288,7 +318,9 @@ export function ManageAccountsModal({
 
               <div>
                 <label className="text-xs sm:text-sm font-medium text-[#c4c6cf] block mb-1.5">
-                  {type === 'credit_card' ? 'Current Liability (₹)' : 'Balance (₹)'}
+                  {type === "credit_card"
+                    ? "Current Liability (₹)"
+                    : "Balance (₹)"}
                 </label>
                 <input
                   type="number"
@@ -300,7 +332,7 @@ export function ManageAccountsModal({
                 />
               </div>
 
-              {type === 'credit_card' && (
+              {type === "credit_card" && (
                 <div>
                   <label className="text-xs sm:text-sm font-medium text-[#c4c6cf] block mb-1.5">
                     Credit Limit (₹)
@@ -316,7 +348,7 @@ export function ManageAccountsModal({
                 </div>
               )}
 
-              {type === 'credit_card' && (
+              {type === "credit_card" && (
                 <>
                   <div>
                     <label className="text-xs sm:text-sm font-medium text-[#c4c6cf] block mb-1.5">
@@ -390,7 +422,7 @@ export function ManageAccountsModal({
                 className="px-5 py-2 rounded-full bg-[#a8c7fa] hover:bg-[#b8d4ff] text-[#003062] text-xs font-semibold flex items-center gap-1.5 transition-colors"
               >
                 <Plus className="h-4 w-4" />
-                <span>{editingId ? 'Update' : 'Save'}</span>
+                <span>{editingId ? "Update" : "Save"}</span>
               </button>
             </div>
           </form>
@@ -407,11 +439,11 @@ export function ManageAccountsModal({
               >
                 <div className="flex items-center gap-3">
                   <div className="p-2 rounded-xl bg-[#1a1c22] text-[#a8c7fa]">
-                    {acc.type === 'credit_card' ? (
+                    {acc.type === "credit_card" ? (
                       <CreditCard className="h-4 w-4" />
-                    ) : acc.type === 'cash' ? (
+                    ) : acc.type === "cash" ? (
                       <Banknote className="h-4 w-4" />
-                    ) : acc.type === 'wallet' ? (
+                    ) : acc.type === "wallet" ? (
                       <Wallet className="h-4 w-4" />
                     ) : (
                       <Landmark className="h-4 w-4" />
@@ -434,7 +466,8 @@ export function ManageAccountsModal({
                       )}
                     </div>
                     <div className="text-[11px] text-[#90929d]">
-                      {acc.institution || acc.type} • Balance: {formatINR(acc.balance)}
+                      {acc.institution || acc.type} • Balance:{" "}
+                      {formatINR(acc.balance)}
                     </div>
                   </div>
                 </div>
@@ -456,7 +489,7 @@ export function ManageAccountsModal({
                       });
                     }}
                     className="p-1.5 text-[#90929d] hover:text-[#e2e2e7] rounded-full hover:bg-[#1a1c22] transition-colors"
-                    title={acc.isArchived ? 'Unarchive' : 'Archive'}
+                    title={acc.isArchived ? "Unarchive" : "Archive"}
                   >
                     <Archive className="h-4 w-4" />
                   </button>

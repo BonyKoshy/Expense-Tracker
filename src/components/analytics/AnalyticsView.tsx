@@ -1,13 +1,7 @@
-import { useMemo } from 'react';
-import {
-  PieChart,
-  Pie,
-  Cell,
-  ResponsiveContainer,
-  Tooltip,
-} from 'recharts';
-import type { Transaction, Category } from '@/types';
-import { formatINR } from '@/utils/formatters';
+import { useMemo } from "react";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
+import type { Transaction, Category } from "@/types";
+import { formatINR } from "@/utils/formatters";
 
 interface AnalyticsViewProps {
   transactions: Transaction[];
@@ -16,16 +10,16 @@ interface AnalyticsViewProps {
 
 // Android 17 / Material You Minimalist Pastel Palette (Tone 80 / Low Glare)
 const ANDROID_17_PASTEL_PALETTE = [
-  '#f3b791', // Soft Pastel Peach (Food)
-  '#a8dab5', // Soft Pastel Sage (Groceries)
-  '#d0bcff', // Soft Pastel Lavender (Housing/Rent)
-  '#9fd3e6', // Soft Pastel Ice Cyan (Transport)
-  '#eedc96', // Soft Pastel Buttercup (Shopping)
-  '#e2b6e8', // Soft Pastel Orchid (Entertainment)
-  '#f2b8b5', // Soft Pastel Coral (Debt/EMIs)
-  '#a8c7fa', // Soft Pastel Sky (Financial Services)
-  '#a1e5c0', // Soft Pastel Mint (Investments)
-  '#bec6dc', // Soft Pastel Slate (General)
+  "#f3b791", // Soft Pastel Peach (Food)
+  "#a8dab5", // Soft Pastel Sage (Groceries)
+  "#d0bcff", // Soft Pastel Lavender (Housing/Rent)
+  "#9fd3e6", // Soft Pastel Ice Cyan (Transport)
+  "#eedc96", // Soft Pastel Buttercup (Shopping)
+  "#e2b6e8", // Soft Pastel Orchid (Entertainment)
+  "#f2b8b5", // Soft Pastel Coral (Debt/EMIs)
+  "#a8c7fa", // Soft Pastel Sky (Financial Services)
+  "#a1e5c0", // Soft Pastel Mint (Investments)
+  "#bec6dc", // Soft Pastel Slate (General)
 ];
 
 export function AnalyticsView({
@@ -38,13 +32,13 @@ export function AnalyticsView({
 
     for (const tx of transactions) {
       if (
-        (tx.type === 'expense' || tx.type === 'shared_expense') &&
+        (tx.type === "expense" || tx.type === "shared_expense") &&
         tx.categoryId &&
         tx.personalExpenseAmount > 0
       ) {
         map.set(
           tx.categoryId,
-          (map.get(tx.categoryId) || 0) + tx.personalExpenseAmount
+          (map.get(tx.categoryId) || 0) + tx.personalExpenseAmount,
         );
       }
     }
@@ -53,9 +47,11 @@ export function AnalyticsView({
       .map(([catId, amount], index) => {
         const cat = categories.find((c) => c.id === catId);
         return {
-          name: cat?.name || 'Other',
+          name: cat?.name || "Other",
           amount: Math.round(amount * 100) / 100,
-          color: cat?.color || ANDROID_17_PASTEL_PALETTE[index % ANDROID_17_PASTEL_PALETTE.length],
+          color:
+            cat?.color ||
+            ANDROID_17_PASTEL_PALETTE[index % ANDROID_17_PASTEL_PALETTE.length],
         };
       })
       .sort((a, b) => b.amount - a.amount);
@@ -106,7 +102,7 @@ export function AnalyticsView({
                         <div className="bg-[#111216] border border-[#23252c] rounded-2xl p-2.5 text-xs shadow-xl">
                           <span className="font-medium text-[#e2e2e7]">
                             {item.name}:
-                          </span>{' '}
+                          </span>{" "}
                           <span className="font-mono text-[#a8c7fa] font-semibold">
                             {formatINR(item.amount)}
                           </span>
@@ -132,9 +128,7 @@ export function AnalyticsView({
                     className="h-2 w-2 rounded-full shrink-0"
                     style={{ backgroundColor: entry.color }}
                   />
-                  <span className="text-[#90929d] truncate">
-                    {entry.name}
-                  </span>
+                  <span className="text-[#90929d] truncate">{entry.name}</span>
                 </div>
                 <span className="font-mono text-[#e2e2e7] font-medium">
                   {formatINR(entry.amount)}

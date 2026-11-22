@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo } from "react";
 import {
   CreditCard,
   Building2,
@@ -12,15 +12,15 @@ import {
   AlertTriangle,
   Coffee,
   Sparkles,
-} from 'lucide-react';
+} from "lucide-react";
 import type {
   Account,
   RecurringCommitment,
   Category,
   Subcategory,
   Transaction,
-} from '@/types';
-import { formatINR } from '@/utils/formatters';
+} from "@/types";
+import { formatINR } from "@/utils/formatters";
 
 interface BudgetViewProps {
   accounts: Account[];
@@ -48,14 +48,14 @@ export function BudgetView({
   // Discover registered Tea subcategory
   const teaSubcategory = useMemo(() => {
     return subcategories.find(
-      (s) => s.id === 'sub_tea' || s.name.toLowerCase().includes('tea')
+      (s) => s.id === "sub_tea" || s.name.toLowerCase().includes("tea"),
     );
   }, [subcategories]);
 
   // Current month personal spending by category & subcategory
   const currentMonthSpending = useMemo(() => {
     const now = new Date();
-    const currentMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    const currentMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
     const map = new Map<string, number>();
     const subMap = new Map<string, number>();
 
@@ -65,38 +65,38 @@ export function BudgetView({
 
     for (const tx of transactions) {
       if (
-        (tx.type === 'expense' || tx.type === 'shared_expense') &&
+        (tx.type === "expense" || tx.type === "shared_expense") &&
         tx.personalExpenseAmount > 0
       ) {
         const txDate = new Date(tx.date);
-        const txKey = `${txDate.getFullYear()}-${String(txDate.getMonth() + 1).padStart(2, '0')}`;
+        const txKey = `${txDate.getFullYear()}-${String(txDate.getMonth() + 1).padStart(2, "0")}`;
 
         // Include current month or latest month from transactions
-        if (txKey === currentMonthKey || txKey === '2026-11') {
+        if (txKey === currentMonthKey || txKey === "2026-11") {
           totalMonthSpend += tx.personalExpenseAmount;
           if (tx.categoryId) {
             map.set(
               tx.categoryId,
-              (map.get(tx.categoryId) || 0) + tx.personalExpenseAmount
+              (map.get(tx.categoryId) || 0) + tx.personalExpenseAmount,
             );
           }
           if (tx.subcategoryId) {
             subMap.set(
               tx.subcategoryId,
-              (subMap.get(tx.subcategoryId) || 0) + tx.personalExpenseAmount
+              (subMap.get(tx.subcategoryId) || 0) + tx.personalExpenseAmount,
             );
           }
 
           // Check for Tea subcategory (sub_tea, title/notes/tags containing tea or chai)
           const titleLower = tx.title.toLowerCase();
-          const notesLower = (tx.notes || '').toLowerCase();
+          const notesLower = (tx.notes || "").toLowerCase();
           const isTea =
             (teaSubcategory && tx.subcategoryId === teaSubcategory.id) ||
-            tx.subcategoryId === 'sub_tea' ||
-            titleLower.includes('tea') ||
-            titleLower.includes('chai') ||
-            notesLower.includes('tea') ||
-            notesLower.includes('chai');
+            tx.subcategoryId === "sub_tea" ||
+            titleLower.includes("tea") ||
+            titleLower.includes("chai") ||
+            notesLower.includes("tea") ||
+            notesLower.includes("chai");
 
           if (isTea) {
             teaSpend += tx.personalExpenseAmount;
@@ -114,7 +114,7 @@ export function BudgetView({
     const now = new Date();
     const year = now.getFullYear();
     const month = now.getMonth();
-    const monthName = now.toLocaleDateString('en-US', { month: 'long' });
+    const monthName = now.toLocaleDateString("en-US", { month: "long" });
     const totalDays = new Date(year, month + 1, 0).getDate();
     const currentDay = now.getDate();
     // Days remaining in the month including today:
@@ -140,35 +140,46 @@ export function BudgetView({
 
   // Account grouping
   const liquidAccounts = accounts.filter(
-    (a) => !a.isArchived && (a.type === 'bank' || a.type === 'cash' || a.type === 'wallet')
+    (a) =>
+      !a.isArchived &&
+      (a.type === "bank" || a.type === "cash" || a.type === "wallet"),
   );
   const creditAccounts = accounts.filter(
-    (a) => !a.isArchived && a.type === 'credit_card'
+    (a) => !a.isArchived && a.type === "credit_card",
   );
   const investmentAccounts = accounts.filter(
-    (a) => !a.isArchived && a.type === 'investment'
+    (a) => !a.isArchived && a.type === "investment",
   );
 
-  const totalLiquid = liquidAccounts.reduce((sum, a) => sum + (a.balance || 0), 0);
-  const totalCCDebt = creditAccounts.reduce((sum, a) => sum + (a.balance || 0), 0);
-  const totalInvestments = investmentAccounts.reduce((sum, a) => sum + (a.balance || 0), 0);
+  const totalLiquid = liquidAccounts.reduce(
+    (sum, a) => sum + (a.balance || 0),
+    0,
+  );
+  const totalCCDebt = creditAccounts.reduce(
+    (sum, a) => sum + (a.balance || 0),
+    0,
+  );
+  const totalInvestments = investmentAccounts.reduce(
+    (sum, a) => sum + (a.balance || 0),
+    0,
+  );
   const totalRecurring = recurringCommitments
     .filter((c) => c.isActive && c.isReservedCommitment)
     .reduce((sum, c) => sum + c.amount, 0);
 
   const getAccountIcon = (iconName: string) => {
     switch (iconName) {
-      case 'Building2':
+      case "Building2":
         return <Building2 className="h-5 w-5" />;
-      case 'Landmark':
+      case "Landmark":
         return <Landmark className="h-5 w-5" />;
-      case 'CreditCard':
+      case "CreditCard":
         return <CreditCard className="h-5 w-5" />;
-      case 'Wallet':
+      case "Wallet":
         return <Wallet className="h-5 w-5" />;
-      case 'Banknote':
+      case "Banknote":
         return <Banknote className="h-5 w-5" />;
-      case 'PiggyBank':
+      case "PiggyBank":
         return <PiggyBank className="h-5 w-5" />;
       default:
         return <Wallet className="h-5 w-5" />;
@@ -229,12 +240,14 @@ export function BudgetView({
             <div className="text-[10px] text-[#90929d] mt-1 truncate">
               {monthPace.remaining > 0
                 ? `${formatINR(monthPace.remaining)} for ${monthPace.daysLeft} days`
-                : 'Budget ceiling reached'}
+                : "Budget ceiling reached"}
             </div>
           </div>
 
           <div className="bg-[#111216] border border-[#1e2026] rounded-2xl p-3.5">
-            <div className="text-[11px] text-[#90929d]">Personal Spend This Month</div>
+            <div className="text-[11px] text-[#90929d]">
+              Personal Spend This Month
+            </div>
             <div className="text-lg font-semibold text-[#e2e2e7] font-mono mt-0.5">
               {formatINR(currentMonthSpending.totalMonthSpend)}
             </div>
@@ -244,7 +257,9 @@ export function BudgetView({
           </div>
 
           <div className="bg-[#111216] border border-[#1e2026] rounded-2xl p-3.5">
-            <div className="text-[11px] text-[#90929d]">Reserved Commitments</div>
+            <div className="text-[11px] text-[#90929d]">
+              Reserved Commitments
+            </div>
             <div className="text-lg font-semibold text-[#f2b8b5] font-mono mt-0.5">
               {formatINR(totalRecurring)}
             </div>
@@ -277,19 +292,30 @@ export function BudgetView({
         {/* Overall Monthly Spend Budget Meter */}
         <div className="bg-[#111216] border border-[#1e2026] rounded-2xl p-4 space-y-2.5">
           <div className="flex items-center justify-between text-xs">
-            <span className="font-semibold text-[#e2e2e7]">Overall Monthly Budget</span>
+            <span className="font-semibold text-[#e2e2e7]">
+              Overall Monthly Budget
+            </span>
             <div className="flex items-center gap-2">
               <span className="font-mono font-semibold text-[#e2e2e7]">
-                {formatINR(currentMonthSpending.totalMonthSpend)} / {formatINR(overallMonthlyBudget)}
+                {formatINR(currentMonthSpending.totalMonthSpend)} /{" "}
+                {formatINR(overallMonthlyBudget)}
               </span>
               <span
                 className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
                   currentMonthSpending.totalMonthSpend > overallMonthlyBudget
-                    ? 'bg-[#2b1b1d] text-[#f2b8b5]'
-                    : 'bg-[#15241b] text-[#a8dab5]'
+                    ? "bg-[#2b1b1d] text-[#f2b8b5]"
+                    : "bg-[#15241b] text-[#a8dab5]"
                 }`}
               >
-                {Math.min(100, Math.round((currentMonthSpending.totalMonthSpend / (overallMonthlyBudget || 1)) * 100))}%
+                {Math.min(
+                  100,
+                  Math.round(
+                    (currentMonthSpending.totalMonthSpend /
+                      (overallMonthlyBudget || 1)) *
+                      100,
+                  ),
+                )}
+                %
               </span>
             </div>
           </div>
@@ -297,7 +323,9 @@ export function BudgetView({
           <div className="w-full bg-[#16171c] h-2.5 rounded-full overflow-hidden border border-[#23252c]">
             <div
               className={`h-full rounded-full transition-all duration-300 ${
-                currentMonthSpending.totalMonthSpend > overallMonthlyBudget ? 'bg-[#f2b8b5]' : 'bg-[#a8dab5]'
+                currentMonthSpending.totalMonthSpend > overallMonthlyBudget
+                  ? "bg-[#f2b8b5]"
+                  : "bg-[#a8dab5]"
               }`}
               style={{
                 width: `${Math.min(100, (currentMonthSpending.totalMonthSpend / (overallMonthlyBudget || 1)) * 100)}%`,
@@ -312,7 +340,10 @@ export function BudgetView({
                 {formatINR(monthPace.dailyAllowance)} / day
               </span>
               <span className="text-[#90929d]">
-                possible to spend across remaining <strong className="text-[#e2e2e7]">{monthPace.daysLeft} days</strong>
+                possible to spend across remaining{" "}
+                <strong className="text-[#e2e2e7]">
+                  {monthPace.daysLeft} days
+                </strong>
               </span>
             </div>
 
@@ -348,7 +379,8 @@ export function BudgetView({
             </div>
             <div>
               <h3 className="text-sm font-semibold text-[#e2e2e7] m-0">
-                Duration-Aware Recurring Commitments ({recurringCommitments.length})
+                Duration-Aware Recurring Commitments (
+                {recurringCommitments.length})
               </h3>
               <p className="text-xs text-[#90929d] mt-0.5">
                 Automatically tracks remaining installments and expiration dates
@@ -371,7 +403,9 @@ export function BudgetView({
               comm.totalInstallments && comm.totalInstallments > 0;
             const paid = comm.paidInstallments || 0;
             const total = comm.totalInstallments || 1;
-            const progressPct = hasInstallments ? Math.min(100, (paid / total) * 100) : 100;
+            const progressPct = hasInstallments
+              ? Math.min(100, (paid / total) * 100)
+              : 100;
             const account = accounts.find((a) => a.id === comm.accountId);
 
             return (
@@ -388,12 +422,12 @@ export function BudgetView({
                       Day {comm.dayOfMonth}
                     </span>
                     <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded-full bg-[#1a1c22] text-[#90929d] border border-[#262830]">
-                      {comm.type.replace('_', ' ')}
+                      {comm.type.replace("_", " ")}
                     </span>
                   </div>
 
                   <div className="flex items-center gap-2 text-xs text-[#90929d]">
-                    <span>Account: {account?.name || 'Account'}</span>
+                    <span>Account: {account?.name || "Account"}</span>
                     {comm.notes && (
                       <>
                         <span>•</span>
@@ -426,7 +460,10 @@ export function BudgetView({
                 <div className="sm:text-right shrink-0">
                   <div className="font-mono text-base font-semibold text-[#e2e2e7]">
                     {formatINR(comm.amount)}
-                    <span className="text-xs text-[#90929d] font-normal"> /mo</span>
+                    <span className="text-xs text-[#90929d] font-normal">
+                      {" "}
+                      /mo
+                    </span>
                   </div>
                   <div className="text-[11px] text-[#a8dab5] mt-0.5 flex items-center sm:justify-end gap-1">
                     <Calendar className="h-3 w-3" />
@@ -476,28 +513,39 @@ export function BudgetView({
                 <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#111216] text-[#ffb787] border border-[#3d2c20]">
                   Subcategory
                 </span>
-                <span className="text-[10px] text-[#90929d]">under Food &amp; Dining</span>
+                <span className="text-[10px] text-[#90929d]">
+                  under Food &amp; Dining
+                </span>
               </div>
               <p className="text-xs text-[#90929d] mt-0.5">
                 {currentMonthSpending.teaCount > 0
                   ? `${currentMonthSpending.teaCount} tea breaks recorded this month • ~${formatINR(currentMonthSpending.teaSpend / monthPace.daysPassed)}/day avg pace`
-                  : 'Track your daily tea, chai, and coffee micro-expenses'}
+                  : "Track your daily tea, chai, and coffee micro-expenses"}
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-4 sm:text-right self-start sm:self-center">
             <div>
-              <div className="text-[10px] text-[#90929d]">Monthly Tea Spend</div>
+              <div className="text-[10px] text-[#90929d]">
+                Monthly Tea Spend
+              </div>
               <div className="text-lg sm:text-xl font-bold font-mono text-[#ffb787]">
                 {formatINR(currentMonthSpending.teaSpend)}
               </div>
             </div>
             <div className="border-l border-[#262830] pl-4">
-              <div className="text-[10px] text-[#90929d]">Estimated Daily Pace</div>
+              <div className="text-[10px] text-[#90929d]">
+                Estimated Daily Pace
+              </div>
               <div className="text-xs sm:text-sm font-semibold font-mono text-[#e2e2e7]">
-                {formatINR(currentMonthSpending.teaSpend / monthPace.daysPassed)}
-                <span className="text-[10px] font-normal text-[#90929d]"> /day</span>
+                {formatINR(
+                  currentMonthSpending.teaSpend / monthPace.daysPassed,
+                )}
+                <span className="text-[10px] font-normal text-[#90929d]">
+                  {" "}
+                  /day
+                </span>
               </div>
             </div>
           </div>
@@ -505,15 +553,20 @@ export function BudgetView({
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
           {categories
-            .filter((c) => c.type === 'expense')
+            .filter((c) => c.type === "expense")
             .map((cat) => {
               const spent = currentMonthSpending.map.get(cat.id) || 0;
               const limit = cat.monthlyBudget || 0;
               const hasLimit = limit > 0;
-              const pct = hasLimit ? Math.min(100, Math.round((spent / limit) * 100)) : 0;
+              const pct = hasLimit
+                ? Math.min(100, Math.round((spent / limit) * 100))
+                : 0;
               const isOver = hasLimit && spent > limit;
               const remainingCat = Math.max(0, limit - spent);
-              const catDailyAllowance = hasLimit && remainingCat > 0 ? remainingCat / monthPace.daysLeft : 0;
+              const catDailyAllowance =
+                hasLimit && remainingCat > 0
+                  ? remainingCat / monthPace.daysLeft
+                  : 0;
 
               return (
                 <div
@@ -531,7 +584,8 @@ export function BudgetView({
                       </span>
                     </div>
                     <span className="font-mono text-xs text-[#90929d]">
-                      {formatINR(spent)} / {hasLimit ? formatINR(limit) : 'No limit'}
+                      {formatINR(spent)} /{" "}
+                      {hasLimit ? formatINR(limit) : "No limit"}
                     </span>
                   </div>
 
@@ -541,17 +595,21 @@ export function BudgetView({
                         <div
                           className={`h-full rounded-full transition-all ${
                             isOver
-                              ? 'bg-[#f2b8b5]'
+                              ? "bg-[#f2b8b5]"
                               : pct > 80
-                              ? 'bg-[#ffb787]'
-                              : 'bg-[#a8dab5]'
+                                ? "bg-[#ffb787]"
+                                : "bg-[#a8dab5]"
                           }`}
                           style={{ width: `${pct}%` }}
                         />
                       </div>
 
                       <div className="flex items-center justify-between text-[11px]">
-                        <span className={isOver ? 'text-[#f2b8b5]' : 'text-[#90929d]'}>
+                        <span
+                          className={
+                            isOver ? "text-[#f2b8b5]" : "text-[#90929d]"
+                          }
+                        >
                           {pct}% used
                         </span>
                         {isOver ? (
@@ -585,17 +643,19 @@ export function BudgetView({
                   )}
 
                   {/* If Food & Dining, show Tea subcategory breakdown inside */}
-                  {(cat.id === 'cat_food' || cat.name.toLowerCase().includes('food')) && currentMonthSpending.teaSpend > 0 && (
-                    <div className="pt-2 border-t border-[#1e2026] flex items-center justify-between text-xs">
-                      <span className="text-[#90929d] flex items-center gap-1.5">
-                        <Coffee className="h-3.5 w-3.5 text-[#ffb787]" />
-                        <span>Tea subcategory:</span>
-                      </span>
-                      <span className="font-mono font-semibold text-[#ffb787]">
-                        {formatINR(currentMonthSpending.teaSpend)}
-                      </span>
-                    </div>
-                  )}
+                  {(cat.id === "cat_food" ||
+                    cat.name.toLowerCase().includes("food")) &&
+                    currentMonthSpending.teaSpend > 0 && (
+                      <div className="pt-2 border-t border-[#1e2026] flex items-center justify-between text-xs">
+                        <span className="text-[#90929d] flex items-center gap-1.5">
+                          <Coffee className="h-3.5 w-3.5 text-[#ffb787]" />
+                          <span>Tea subcategory:</span>
+                        </span>
+                        <span className="font-mono font-semibold text-[#ffb787]">
+                          {formatINR(currentMonthSpending.teaSpend)}
+                        </span>
+                      </div>
+                    )}
                 </div>
               );
             })}
@@ -610,7 +670,8 @@ export function BudgetView({
               Accounts &amp; Credit Cards
             </h3>
             <p className="text-xs text-[#90929d] mt-0.5">
-              Liquid balances ({formatINR(totalLiquid)}) • Credit liability ({formatINR(totalCCDebt)})
+              Liquid balances ({formatINR(totalLiquid)}) • Credit liability (
+              {formatINR(totalCCDebt)})
             </p>
           </div>
 
@@ -625,9 +686,11 @@ export function BudgetView({
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
           {accounts.map((acc) => {
-            const isCC = acc.type === 'credit_card';
+            const isCC = acc.type === "credit_card";
             const limit = acc.creditLimit || 100000;
-            const utilPct = isCC ? Math.min(100, Math.round(((acc.balance || 0) / limit) * 100)) : 0;
+            const utilPct = isCC
+              ? Math.min(100, Math.round(((acc.balance || 0) / limit) * 100))
+              : 0;
 
             return (
               <div
@@ -638,7 +701,10 @@ export function BudgetView({
                   <div className="flex items-center gap-2.5">
                     <div
                       className="h-9 w-9 rounded-xl flex items-center justify-center shrink-0 border border-[#23252c]"
-                      style={{ backgroundColor: `${acc.color}15`, color: acc.color }}
+                      style={{
+                        backgroundColor: `${acc.color}15`,
+                        color: acc.color,
+                      }}
                     >
                       {getAccountIcon(acc.icon)}
                     </div>
@@ -647,23 +713,23 @@ export function BudgetView({
                         {acc.name}
                       </div>
                       <div className="text-[10px] text-[#90929d] capitalize">
-                        {acc.type.replace('_', ' ')}
+                        {acc.type.replace("_", " ")}
                       </div>
                     </div>
                   </div>
 
                   <span className="text-[10px] font-mono text-[#6c6e79]">
-                    {acc.accountNumber || ''}
+                    {acc.accountNumber || ""}
                   </span>
                 </div>
 
                 <div>
                   <div className="text-[10px] text-[#90929d]">
-                    {isCC ? 'Outstanding Liability' : 'Available Balance'}
+                    {isCC ? "Outstanding Liability" : "Available Balance"}
                   </div>
                   <div
                     className={`font-mono text-sm font-semibold mt-0.5 ${
-                      isCC ? 'text-[#f2b8b5]' : 'text-[#e2e2e7]'
+                      isCC ? "text-[#f2b8b5]" : "text-[#e2e2e7]"
                     }`}
                   >
                     {formatINR(acc.balance || 0)}

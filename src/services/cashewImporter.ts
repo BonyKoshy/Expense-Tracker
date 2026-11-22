@@ -1,9 +1,9 @@
-import { db, type FinanceTrackerDatabase } from '../db';
+import { db, type FinanceTrackerDatabase } from "../db";
 import {
   reconcileAllBalances,
   calculateTransactionDeltas,
   applyAccountBalanceDelta,
-} from './accountingEngine';
+} from "./accountingEngine";
 import type {
   Account,
   Category,
@@ -12,8 +12,8 @@ import type {
   Transaction,
   TransactionSplit,
   AccountType,
-} from '../types';
-import { roundMoney, addMoney } from '../utils/money';
+} from "../types";
+import { roundMoney, addMoney } from "../utils/money";
 
 export interface CashewPreviewSummary {
   totalRows: number;
@@ -42,7 +42,7 @@ export interface CashewImportResult {
 export function parseCSV(text: string): string[][] {
   const rows: string[][] = [];
   let currentRow: string[] = [];
-  let currentField = '';
+  let currentField = "";
   let insideQuotes = false;
 
   for (let i = 0; i < text.length; i++) {
@@ -56,14 +56,14 @@ export function parseCSV(text: string): string[][] {
       } else {
         insideQuotes = !insideQuotes;
       }
-    } else if (char === ',' && !insideQuotes) {
+    } else if (char === "," && !insideQuotes) {
       currentRow.push(currentField);
-      currentField = '';
-    } else if ((char === '\r' || char === '\n') && !insideQuotes) {
-      if (char === '\r' && nextChar === '\n') i++;
+      currentField = "";
+    } else if ((char === "\r" || char === "\n") && !insideQuotes) {
+      if (char === "\r" && nextChar === "\n") i++;
       currentRow.push(currentField);
-      currentField = '';
-      if (currentRow.length > 1 || currentRow[0] !== '') {
+      currentField = "";
+      if (currentRow.length > 1 || currentRow[0] !== "") {
         rows.push(currentRow);
       }
       currentRow = [];
@@ -82,16 +82,19 @@ export function parseCSV(text: string): string[][] {
  * Known default profile metadata for roommates/friends (for enhanced avatar/group defaults).
  * Any person not in this list will be created dynamically with generic avatars.
  */
-const DEFAULT_PERSON_METADATA: Record<string, { avatar: string; defaultGroup: string }> = {
-  rijosh: { avatar: '👨‍💻', defaultGroup: '514' },
-  jithu: { avatar: '👨‍🎓', defaultGroup: '514' },
-  sreerag: { avatar: '👨‍💼', defaultGroup: '514' },
-  alan: { avatar: '👨‍🔬', defaultGroup: '514' },
-  rohan: { avatar: '👨‍🎨', defaultGroup: '514' },
-  akhil: { avatar: '👨‍🔧', defaultGroup: 'PG' },
-  arunima: { avatar: '👩‍💼', defaultGroup: 'PG' },
-  amal: { avatar: '👨‍🚀', defaultGroup: 'PG' },
-  aishwarya: { avatar: '👩‍💻', defaultGroup: 'PG' },
+const DEFAULT_PERSON_METADATA: Record<
+  string,
+  { avatar: string; defaultGroup: string }
+> = {
+  rijosh: { avatar: "👨‍💻", defaultGroup: "514" },
+  jithu: { avatar: "👨‍🎓", defaultGroup: "514" },
+  sreerag: { avatar: "👨‍💼", defaultGroup: "514" },
+  alan: { avatar: "👨‍🔬", defaultGroup: "514" },
+  rohan: { avatar: "👨‍🎨", defaultGroup: "514" },
+  akhil: { avatar: "👨‍🔧", defaultGroup: "PG" },
+  arunima: { avatar: "👩‍💼", defaultGroup: "PG" },
+  amal: { avatar: "👨‍🚀", defaultGroup: "PG" },
+  aishwarya: { avatar: "👩‍💻", defaultGroup: "PG" },
 };
 
 /**
@@ -100,24 +103,31 @@ const DEFAULT_PERSON_METADATA: Record<string, { avatar: string; defaultGroup: st
  */
 export async function previewCashewCSV(
   csvText: string,
-  database: FinanceTrackerDatabase = db
+  database: FinanceTrackerDatabase = db,
 ): Promise<CashewPreviewSummary> {
   const allRows = parseCSV(csvText);
   if (allRows.length <= 1) {
-    throw new Error('CSV is empty or does not contain data rows.');
+    throw new Error("CSV is empty or does not contain data rows.");
   }
 
   const dataRows = allRows.slice(1);
-  const [existingAccounts, existingCategories, existingPeople, existingTxs] = await Promise.all([
-    database.accounts.toArray(),
-    database.categories.toArray(),
-    database.people.toArray(),
-    database.transactions.toArray(),
-  ]);
+  const [existingAccounts, existingCategories, existingPeople, existingTxs] =
+    await Promise.all([
+      database.accounts.toArray(),
+      database.categories.toArray(),
+      database.people.toArray(),
+      database.transactions.toArray(),
+    ]);
 
-  const existingAccountNames = new Set(existingAccounts.map((a) => a.name.toLowerCase()));
-  const existingCategoryNames = new Set(existingCategories.map((c) => c.name.toLowerCase()));
-  const existingPeopleNames = new Set(existingPeople.map((p) => p.name.toLowerCase()));
+  const existingAccountNames = new Set(
+    existingAccounts.map((a) => a.name.toLowerCase()),
+  );
+  const existingCategoryNames = new Set(
+    existingCategories.map((c) => c.name.toLowerCase()),
+  );
+  const existingPeopleNames = new Set(
+    existingPeople.map((p) => p.name.toLowerCase()),
+  );
 
   const newAccounts = new Set<string>();
   const newCategories = new Set<string>();
@@ -134,12 +144,14 @@ export async function previewCashewCSV(
     const amountStr = row[1]?.trim();
     const amountUnpaidStr = row[2]?.trim();
     const rawTitle = row[4]?.trim();
-    const rawNote = row[5]?.trim() || '';
+    const rawNote = row[5]?.trim() || "";
     const rawDate = row[6]?.trim();
     const catName = row[9]?.trim();
     const subcatName = row[10]?.trim();
 
-    const amount = roundMoney(Math.abs(parseFloat(amountStr) || parseFloat(amountUnpaidStr) || 0));
+    const amount = roundMoney(
+      Math.abs(parseFloat(amountStr) || parseFloat(amountUnpaidStr) || 0),
+    );
     if (amount === 0) continue;
 
     validRows++;
@@ -153,11 +165,14 @@ export async function previewCashewCSV(
     }
 
     // Dynamic person discovery from title, note, or repayment subcategory
-    const titleLower = (rawTitle || '').toLowerCase();
-    const subcatLower = (subcatName || '').toLowerCase();
-    if (subcatLower === 'repayment' || subcatLower === 'lent') {
-      const candidateName = rawTitle ? rawTitle.split(' ')[0].trim() : '';
-      if (candidateName && !existingPeopleNames.has(candidateName.toLowerCase())) {
+    const titleLower = (rawTitle || "").toLowerCase();
+    const subcatLower = (subcatName || "").toLowerCase();
+    if (subcatLower === "repayment" || subcatLower === "lent") {
+      const candidateName = rawTitle ? rawTitle.split(" ")[0].trim() : "";
+      if (
+        candidateName &&
+        !existingPeopleNames.has(candidateName.toLowerCase())
+      ) {
         newPeople.add(candidateName);
       }
     }
@@ -167,7 +182,12 @@ export async function previewCashewCSV(
       for (const m of itemized) {
         const name = m[1].trim();
         const lower = name.toLowerCase();
-        if (lower !== 'bony' && lower !== 'me' && lower !== 'user' && !existingPeopleNames.has(lower)) {
+        if (
+          lower !== "bony" &&
+          lower !== "me" &&
+          lower !== "user" &&
+          !existingPeopleNames.has(lower)
+        ) {
           newPeople.add(name);
         }
       }
@@ -175,7 +195,9 @@ export async function previewCashewCSV(
 
     // Check for duplicate transaction in database
     if (rawDate) {
-      const parsed = new Date(rawDate.replace(' ', 'T') + (rawDate.includes('Z') ? '' : 'Z'));
+      const parsed = new Date(
+        rawDate.replace(" ", "T") + (rawDate.includes("Z") ? "" : "Z"),
+      );
       if (!isNaN(parsed.getTime())) {
         const iso = parsed.toISOString();
         if (!earliestDate || iso < earliestDate) earliestDate = iso;
@@ -185,7 +207,8 @@ export async function previewCashewCSV(
           (tx) =>
             Math.abs(tx.amount - amount) < 0.01 &&
             (tx.date === iso || tx.date.slice(0, 10) === iso.slice(0, 10)) &&
-            (tx.title.toLowerCase() === titleLower || (rawTitle && tx.title.includes(rawTitle)))
+            (tx.title.toLowerCase() === titleLower ||
+              (rawTitle && tx.title.includes(rawTitle))),
         );
         if (isDup) duplicateRows++;
       }
@@ -199,7 +222,10 @@ export async function previewCashewCSV(
     newAccounts: Array.from(newAccounts),
     newCategories: Array.from(newCategories),
     newPeople: Array.from(newPeople),
-    dateRange: earliestDate && latestDate ? { start: earliestDate, end: latestDate } : null,
+    dateRange:
+      earliestDate && latestDate
+        ? { start: earliestDate, end: latestDate }
+        : null,
     totalVolume,
   };
 }
@@ -214,7 +240,7 @@ export async function previewCashewCSV(
 export function parseDynamicSplits(
   note: string,
   totalAmount: number,
-  personMap: Map<string, Person>
+  personMap: Map<string, Person>,
 ): { splits: TransactionSplit[]; userPersonalShare: number } {
   const splits: TransactionSplit[] = [];
   let userPersonalShare = totalAmount;
@@ -225,13 +251,17 @@ export function parseDynamicSplits(
     const eachAmount = parseFloat(eachMatch[1]);
     if (!isNaN(eachAmount) && eachAmount > 0) {
       userPersonalShare = eachAmount;
-      splits.push({ personId: 'user', amount: eachAmount, isSettled: true });
+      splits.push({ personId: "user", amount: eachAmount, isSettled: true });
 
       // Find all friend names mentioned in the note
       for (const [pName, person] of personMap.entries()) {
-        const regex = new RegExp(`\\b${pName}\\b`, 'i');
+        const regex = new RegExp(`\\b${pName}\\b`, "i");
         if (regex.test(note)) {
-          splits.push({ personId: person.id, amount: eachAmount, isSettled: true });
+          splits.push({
+            personId: person.id,
+            amount: eachAmount,
+            isSettled: true,
+          });
         }
       }
 
@@ -240,11 +270,19 @@ export function parseDynamicSplits(
       }
 
       // If no friend names matched, check for "for N people" or calculate count from total
-      const peopleMatch = note.match(/([0-9]+)\s*(?:people|friends|persons|roommates|flatmates)/i);
-      const totalCount = peopleMatch ? parseInt(peopleMatch[1], 10) : Math.round(totalAmount / eachAmount);
+      const peopleMatch = note.match(
+        /([0-9]+)\s*(?:people|friends|persons|roommates|flatmates)/i,
+      );
+      const totalCount = peopleMatch
+        ? parseInt(peopleMatch[1], 10)
+        : Math.round(totalAmount / eachAmount);
       if (totalCount > 1) {
         for (let i = 1; i < totalCount; i++) {
-          splits.push({ personId: `friend_${i}`, amount: eachAmount, isSettled: true });
+          splits.push({
+            personId: `friend_${i}`,
+            amount: eachAmount,
+            isSettled: true,
+          });
         }
         return { splits, userPersonalShare };
       }
@@ -253,7 +291,9 @@ export function parseDynamicSplits(
 
   // Pattern 2: Itemized split amounts: Name ₹Amount
   // Matches "Bony ₹282.25", "Jithu ₹381.25", etc.
-  const itemizedMatches = Array.from(note.matchAll(/([A-Za-z0-9_-]+)\s*₹\s*([0-9.]+)/g));
+  const itemizedMatches = Array.from(
+    note.matchAll(/([A-Za-z0-9_-]+)\s*₹\s*([0-9.]+)/g),
+  );
   if (itemizedMatches.length >= 1) {
     let matchedUser = false;
     for (const match of itemizedMatches) {
@@ -261,24 +301,42 @@ export function parseDynamicSplits(
       const share = parseFloat(match[2]);
       if (isNaN(share)) continue;
 
-      if (name === 'bony' || name === 'me' || name === 'user' || name === 'self') {
+      if (
+        name === "bony" ||
+        name === "me" ||
+        name === "user" ||
+        name === "self"
+      ) {
         userPersonalShare = share;
-        splits.push({ personId: 'user', amount: share, isSettled: true });
+        splits.push({ personId: "user", amount: share, isSettled: true });
         matchedUser = true;
       } else {
         const friend = personMap.get(name);
         if (friend) {
-          const isUnpaid = note.toLowerCase().includes(`${name} unpaid`) || note.toLowerCase().includes(`${name} due`);
-          splits.push({ personId: friend.id, amount: share, isSettled: !isUnpaid });
+          const isUnpaid =
+            note.toLowerCase().includes(`${name} unpaid`) ||
+            note.toLowerCase().includes(`${name} due`);
+          splits.push({
+            personId: friend.id,
+            amount: share,
+            isSettled: !isUnpaid,
+          });
         }
       }
     }
 
     if (splits.length > 0) {
       if (!matchedUser) {
-        const friendTotal = splits.reduce((sum, s) => roundMoney(sum + s.amount), 0);
+        const friendTotal = splits.reduce(
+          (sum, s) => roundMoney(sum + s.amount),
+          0,
+        );
         userPersonalShare = Math.max(0, roundMoney(totalAmount - friendTotal));
-        splits.unshift({ personId: 'user', amount: userPersonalShare, isSettled: true });
+        splits.unshift({
+          personId: "user",
+          amount: userPersonalShare,
+          isSettled: true,
+        });
       }
       if (splits.length > 1) {
         return { splits, userPersonalShare };
@@ -287,7 +345,7 @@ export function parseDynamicSplits(
   }
 
   return {
-    splits: [{ personId: 'user', amount: totalAmount, isSettled: true }],
+    splits: [{ personId: "user", amount: totalAmount, isSettled: true }],
     userPersonalShare: totalAmount,
   };
 }
@@ -299,11 +357,11 @@ export function parseDynamicSplits(
  */
 export async function importCashewCSV(
   csvText: string,
-  database: FinanceTrackerDatabase = db
+  database: FinanceTrackerDatabase = db,
 ): Promise<CashewImportResult> {
   const allRows = parseCSV(csvText);
   if (allRows.length <= 1) {
-    throw new Error('CSV is empty or does not contain data rows.');
+    throw new Error("CSV is empty or does not contain data rows.");
   }
 
   // Process rows chronologically (older rows first)
@@ -317,7 +375,7 @@ export async function importCashewCSV(
   let duplicatesSkipped = 0;
 
   await database.transaction(
-    'rw',
+    "rw",
     [
       database.accounts,
       database.categories,
@@ -328,30 +386,34 @@ export async function importCashewCSV(
     ],
     async () => {
       // 1. Ensure Groups Exist
-      let group514 = await database.groups.filter((g) => g.name === '514').first();
+      let group514 = await database.groups
+        .filter((g) => g.name === "514")
+        .first();
       if (!group514) {
         group514 = {
-          id: 'group_514',
-          name: '514',
-          description: 'Room 514 Flatmates',
+          id: "group_514",
+          name: "514",
+          description: "Room 514 Flatmates",
           memberIds: [],
-          defaultSplitType: 'equal',
-          icon: 'Home',
+          defaultSplitType: "equal",
+          icon: "Home",
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         };
         await database.groups.add(group514);
       }
 
-      let groupPG = await database.groups.filter((g) => g.name === 'PG').first();
+      let groupPG = await database.groups
+        .filter((g) => g.name === "PG")
+        .first();
       if (!groupPG) {
         groupPG = {
-          id: 'group_pg',
-          name: 'PG',
-          description: 'General PG Community',
+          id: "group_pg",
+          name: "PG",
+          description: "General PG Community",
           memberIds: [],
-          defaultSplitType: 'equal',
-          icon: 'Building',
+          defaultSplitType: "equal",
+          icon: "Building",
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         };
@@ -392,40 +454,46 @@ export async function importCashewCSV(
         const lowerName = rawAccountName.toLowerCase();
 
         if (!accountMap.has(lowerName)) {
-          let type: AccountType = 'bank';
-          let color = '#0284c7';
-          let icon = 'Building2';
+          let type: AccountType = "bank";
+          let color = "#0284c7";
+          let icon = "Building2";
 
-          if (lowerName.includes('moneyback') || lowerName.includes('credit')) {
-            type = 'credit_card';
-            color = '#f2b8b5';
-            icon = 'CreditCard';
-          } else if (lowerName.includes('wallet') || lowerName.includes('amazon')) {
-            type = 'wallet';
-            color = '#f3b791';
-            icon = 'Wallet';
-          } else if (lowerName.includes('cash')) {
-            type = 'cash';
-            color = '#a8dab5';
-            icon = 'Banknote';
-          } else if (lowerName.includes('rd') || lowerName.includes('savings')) {
-            if (lowerName.includes('rd')) {
-              type = 'investment';
-              color = '#d0bcff';
-              icon = 'PiggyBank';
+          if (lowerName.includes("moneyback") || lowerName.includes("credit")) {
+            type = "credit_card";
+            color = "#f2b8b5";
+            icon = "CreditCard";
+          } else if (
+            lowerName.includes("wallet") ||
+            lowerName.includes("amazon")
+          ) {
+            type = "wallet";
+            color = "#f3b791";
+            icon = "Wallet";
+          } else if (lowerName.includes("cash")) {
+            type = "cash";
+            color = "#a8dab5";
+            icon = "Banknote";
+          } else if (
+            lowerName.includes("rd") ||
+            lowerName.includes("savings")
+          ) {
+            if (lowerName.includes("rd")) {
+              type = "investment";
+              color = "#d0bcff";
+              icon = "PiggyBank";
             } else {
-              type = 'bank';
-              color = '#9fd5cb';
-              icon = 'Landmark';
+              type = "bank";
+              color = "#9fd5cb";
+              icon = "Landmark";
             }
           }
 
           const newAccount: Account = {
-            id: `acc_${rawAccountName.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase()}`,
+            id: `acc_${rawAccountName.replace(/[^a-zA-Z0-9]/g, "_").toLowerCase()}`,
             name: rawAccountName,
             type,
             balance: 0,
-            currency: 'INR',
+            currency: "INR",
             color,
             icon,
             isArchived: false,
@@ -442,18 +510,18 @@ export async function importCashewCSV(
 
       // 4. Ensure Categories & Subcategories Exist
       for (const row of dataRows) {
-        const catName = row[9]?.trim() || 'General';
+        const catName = row[9]?.trim() || "General";
         const subcatName = row[10]?.trim();
         const lowerCat = catName.toLowerCase();
 
         let cat = categoryMap.get(lowerCat);
         if (!cat) {
           cat = {
-            id: `cat_${catName.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase()}`,
+            id: `cat_${catName.replace(/[^a-zA-Z0-9]/g, "_").toLowerCase()}`,
             name: catName,
-            type: catName.toLowerCase() === 'income' ? 'income' : 'expense',
-            icon: 'Folder',
-            color: '#a8c7fa',
+            type: catName.toLowerCase() === "income" ? "income" : "expense",
+            icon: "Folder",
+            color: "#a8c7fa",
             isDefault: false,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
@@ -467,10 +535,10 @@ export async function importCashewCSV(
           const subKey = `${cat.id}::${subcatName.toLowerCase()}`;
           if (!subcatMap.has(subKey)) {
             const sub: Subcategory = {
-              id: `sub_${subcatName.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase()}`,
+              id: `sub_${subcatName.replace(/[^a-zA-Z0-9]/g, "_").toLowerCase()}`,
               categoryId: cat.id,
               name: subcatName,
-              icon: 'Tag',
+              icon: "Tag",
               createdAt: new Date().toISOString(),
               updatedAt: new Date().toISOString(),
             };
@@ -487,11 +555,14 @@ export async function importCashewCSV(
         const lower = cleanName.toLowerCase();
         let person = personMap.get(lower);
         if (!person) {
-          const meta = DEFAULT_PERSON_METADATA[lower] || { avatar: '👤', defaultGroup: 'PG' };
-          const targetGroup = meta.defaultGroup === '514' ? group514 : groupPG;
+          const meta = DEFAULT_PERSON_METADATA[lower] || {
+            avatar: "👤",
+            defaultGroup: "PG",
+          };
+          const targetGroup = meta.defaultGroup === "514" ? group514 : groupPG;
 
           person = {
-            id: `person_${lower.replace(/[^a-zA-Z0-9]/g, '_')}`,
+            id: `person_${lower.replace(/[^a-zA-Z0-9]/g, "_")}`,
             name: cleanName,
             avatar: meta.avatar,
             netBalance: 0,
@@ -523,9 +594,14 @@ export async function importCashewCSV(
 
         const { accountDeltas, peopleDeltas } = calculateTransactionDeltas(tx);
         for (const [accId, delta] of accountDeltas.entries()) {
-          const acc = accountMap.get(accId) || (await database.accounts.get(accId));
+          const acc =
+            accountMap.get(accId) || (await database.accounts.get(accId));
           if (acc) {
-            const newBal = applyAccountBalanceDelta(acc.balance || 0, delta, acc.type);
+            const newBal = applyAccountBalanceDelta(
+              acc.balance || 0,
+              delta,
+              acc.type,
+            );
             acc.balance = newBal;
             await database.accounts.update(acc.id, {
               balance: newBal,
@@ -563,20 +639,28 @@ export async function importCashewCSV(
           subcatName,
         ] = r;
 
-        const note = rawNote || '';
-        const title = rawTitle || note.split('\n')[0] || 'Transaction';
-        const isIncome = isIncomeStr?.toLowerCase() === 'true';
-        const amount = roundMoney(Math.abs(parseFloat(amountStr) || parseFloat(amountUnpaidStr) || 0));
-        const account = accountMap.get(accountName?.toLowerCase() || '') || existingAccounts[0];
-        const cat = categoryMap.get(catName?.toLowerCase() || '');
-        const subcat = subcatName ? subcatMap.get(`${cat?.id}::${subcatName.toLowerCase()}`) : undefined;
+        const note = rawNote || "";
+        const title = rawTitle || note.split("\n")[0] || "Transaction";
+        const isIncome = isIncomeStr?.toLowerCase() === "true";
+        const amount = roundMoney(
+          Math.abs(parseFloat(amountStr) || parseFloat(amountUnpaidStr) || 0),
+        );
+        const account =
+          accountMap.get(accountName?.toLowerCase() || "") ||
+          existingAccounts[0];
+        const cat = categoryMap.get(catName?.toLowerCase() || "");
+        const subcat = subcatName
+          ? subcatMap.get(`${cat?.id}::${subcatName.toLowerCase()}`)
+          : undefined;
 
         if (amount === 0) continue;
 
         // Format Date to ISO
         let isoDate = new Date().toISOString();
         if (rawDate) {
-          const parsed = new Date(rawDate.replace(' ', 'T') + (rawDate.includes('Z') ? '' : 'Z'));
+          const parsed = new Date(
+            rawDate.replace(" ", "T") + (rawDate.includes("Z") ? "" : "Z"),
+          );
           if (!isNaN(parsed.getTime())) {
             isoDate = parsed.toISOString();
           }
@@ -587,7 +671,7 @@ export async function importCashewCSV(
           (tx) =>
             Math.abs(tx.amount - amount) < 0.01 &&
             tx.date === isoDate &&
-            tx.title.toLowerCase() === title.trim().toLowerCase()
+            tx.title.toLowerCase() === title.trim().toLowerCase(),
         );
         if (isDuplicate) {
           duplicatesSkipped++;
@@ -596,39 +680,40 @@ export async function importCashewCSV(
 
         // Detect Internal Transfer
         const isTransfer =
-          note.includes('Transferred Balance') ||
-          (catName === 'Balance Correction' && note.includes('→'));
+          note.includes("Transferred Balance") ||
+          (catName === "Balance Correction" && note.includes("→"));
 
         if (isTransfer) {
-          const isOutflow = parseFloat(amountStr) < 0 || note.includes('Transfer Out');
+          const isOutflow =
+            parseFloat(amountStr) < 0 || note.includes("Transfer Out");
           if (isOutflow) {
             let toAccId: string | undefined = undefined;
-            if (note.includes('→')) {
-              const destName = note.split('→')[1]?.trim().toLowerCase();
+            if (note.includes("→")) {
+              const destName = note.split("→")[1]?.trim().toLowerCase();
               if (destName) {
                 const destAcc = Array.from(accountMap.values()).find((a) =>
-                  destName.includes(a.name.toLowerCase())
+                  destName.includes(a.name.toLowerCase()),
                 );
                 if (destAcc) toAccId = destAcc.id;
               }
             }
 
             const txType =
-              account.type === 'bank' && toAccId?.includes('credit')
-                ? 'credit_card_payment'
-                : 'transfer';
+              account.type === "bank" && toAccId?.includes("credit")
+                ? "credit_card_payment"
+                : "transfer";
 
             const tx: Transaction = {
               id: `tx_cashew_${Date.now()}_${i}`,
               type: txType,
-              title: title.trim() || 'Internal Account Transfer',
+              title: title.trim() || "Internal Account Transfer",
               date: isoDate,
               amount,
               accountId: account.id,
               toAccountId: toAccId,
               personalExpenseAmount: 0,
               isShared: false,
-              paidByPersonId: 'user',
+              paidByPersonId: "user",
               splits: [],
               notes: note,
               createdAt: isoDate,
@@ -641,7 +726,7 @@ export async function importCashewCSV(
 
         // Detect Friend Settlement / Repayment
         const lowerTitle = title.toLowerCase();
-        const lowerSubcat = (subcatName || '').toLowerCase();
+        const lowerSubcat = (subcatName || "").toLowerCase();
         let matchedFriend: Person | undefined = undefined;
 
         for (const [pName, p] of personMap.entries()) {
@@ -652,18 +737,21 @@ export async function importCashewCSV(
         }
 
         // If subcategory is repayment or lent, and no matched friend yet, discover from title
-        if (!matchedFriend && (lowerSubcat === 'repayment' || lowerSubcat === 'lent')) {
-          const candidateName = title.split(' ')[0].trim();
+        if (
+          !matchedFriend &&
+          (lowerSubcat === "repayment" || lowerSubcat === "lent")
+        ) {
+          const candidateName = title.split(" ")[0].trim();
           if (candidateName && candidateName.length > 1) {
             matchedFriend = await ensurePerson(candidateName);
           }
         }
 
-        if (matchedFriend && (isIncome || lowerSubcat === 'repayment')) {
+        if (matchedFriend && (isIncome || lowerSubcat === "repayment")) {
           // FRIEND SETTLEMENT: Zero personal income, zero personal expense
           const tx: Transaction = {
             id: `tx_cashew_${Date.now()}_${i}`,
-            type: 'settlement_received',
+            type: "settlement_received",
             title: `${matchedFriend.name} Settlement`,
             date: isoDate,
             amount,
@@ -682,17 +770,20 @@ export async function importCashewCSV(
         }
 
         // Detect Loan / Lent to friend
-        if (matchedFriend && (lowerSubcat === 'lent' || !!parseFloat(amountUnpaidStr))) {
+        if (
+          matchedFriend &&
+          (lowerSubcat === "lent" || !!parseFloat(amountUnpaidStr))
+        ) {
           const tx: Transaction = {
             id: `tx_cashew_${Date.now()}_${i}`,
-            type: 'expense',
+            type: "expense",
             title: `${matchedFriend.name} (Lent)`,
             date: isoDate,
             amount,
             accountId: account.id,
             personalExpenseAmount: 0,
             isShared: false,
-            paidByPersonId: 'user',
+            paidByPersonId: "user",
             splits: [
               {
                 personId: matchedFriend.id,
@@ -711,23 +802,31 @@ export async function importCashewCSV(
 
         // Detect Shared Split Expense dynamically
         const isSharedSplit =
-          note.toLowerCase().includes('split') ||
-          note.toLowerCase().includes('shared purchase');
+          note.toLowerCase().includes("split") ||
+          note.toLowerCase().includes("shared purchase");
 
         if (isSharedSplit) {
           // Ensure any friends mentioned in the note exist
           for (const word of note.split(/[\s,–:;]+/)) {
             const cleanWord = word.trim().toLowerCase();
-            if (cleanWord.length > 2 && DEFAULT_PERSON_METADATA[cleanWord] && !personMap.has(cleanWord)) {
+            if (
+              cleanWord.length > 2 &&
+              DEFAULT_PERSON_METADATA[cleanWord] &&
+              !personMap.has(cleanWord)
+            ) {
               await ensurePerson(word.trim());
             }
           }
 
-          const { splits, userPersonalShare } = parseDynamicSplits(note, amount, personMap);
+          const { splits, userPersonalShare } = parseDynamicSplits(
+            note,
+            amount,
+            personMap,
+          );
 
           const tx: Transaction = {
             id: `tx_cashew_${Date.now()}_${i}`,
-            type: 'shared_expense',
+            type: "shared_expense",
             title,
             date: isoDate,
             amount,
@@ -737,8 +836,11 @@ export async function importCashewCSV(
             personalExpenseAmount: userPersonalShare,
             isShared: true,
             groupId: group514.id,
-            paidByPersonId: 'user',
-            splits: splits.length > 0 ? splits : [{ personId: 'user', amount, isSettled: true }],
+            paidByPersonId: "user",
+            splits:
+              splits.length > 0
+                ? splits
+                : [{ personId: "user", amount, isSettled: true }],
             notes: note,
             createdAt: isoDate,
             updatedAt: isoDate,
@@ -750,7 +852,7 @@ export async function importCashewCSV(
         // Standard Expense or Income
         const tx: Transaction = {
           id: `tx_cashew_${Date.now()}_${i}`,
-          type: isIncome ? 'income' : 'expense',
+          type: isIncome ? "income" : "expense",
           title,
           date: isoDate,
           amount,
@@ -759,15 +861,15 @@ export async function importCashewCSV(
           subcategoryId: subcat?.id,
           personalExpenseAmount: isIncome ? 0 : amount,
           isShared: false,
-          paidByPersonId: 'user',
-          splits: [{ personId: 'user', amount, isSettled: true }],
+          paidByPersonId: "user",
+          splits: [{ personId: "user", amount, isSettled: true }],
           notes: note,
           createdAt: isoDate,
           updatedAt: isoDate,
         };
         await recordCashewTx(tx);
       }
-    }
+    },
   );
 
   // Automatically recalculate and sync account balances and friend net balances from newly imported transactions
