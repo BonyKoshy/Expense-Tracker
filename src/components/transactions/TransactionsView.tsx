@@ -433,6 +433,7 @@ export function TransactionsView({
                     const isSettlement = tx.type === "settlement_received";
                     const isIncome = tx.type === "income";
                     const isCCPay = tx.type === "credit_card_payment";
+                    const isTransfer = tx.type === "transfer";
 
                     // Find friend who settled if settlement
                     const friend = people.find(
@@ -589,33 +590,37 @@ export function TransactionsView({
 
                         {/* Amount & Actions */}
                         <div className="text-right shrink-0">
-                          <div
-                            className={`font-mono text-xs sm:text-sm font-semibold ${
-                              isIncome || isSettlement
-                                ? "text-[#a8dab5]"
-                                : isShared
-                                  ? "text-[#ffb787]"
-                                  : "text-[#e2e2e7]"
-                            }`}
-                          >
-                            {isIncome || isSettlement ? "+" : "-"}
-                            {formatINR(tx.amount)}
-                          </div>
-
-                          {isShared &&
-                            tx.personalExpenseAmount !== tx.amount && (
-                              <div className="text-[10px] text-[#90929d] font-mono mt-0.5">
-                                My Share: {formatINR(tx.personalExpenseAmount)}
+                          {isShared ? (
+                            <>
+                              <div className="font-mono text-sm sm:text-base font-bold text-[#ffb787]">
+                                -{formatINR(tx.personalExpenseAmount)}
                               </div>
-                            )}
+                              <div className="text-[10px] text-[#90929d] font-mono mt-0.5">
+                                My Share • Bill: {formatINR(tx.amount)}
+                              </div>
+                            </>
+                          ) : (
+                            <div
+                              className={`font-mono text-sm sm:text-base font-bold ${
+                                isIncome || isSettlement
+                                  ? "text-[#a8dab5]"
+                                  : isTransfer
+                                    ? "text-[#a8c7fa]"
+                                    : "text-[#e2e2e7]"
+                              }`}
+                            >
+                              {isIncome || isSettlement ? "+" : "-"}
+                              {formatINR(tx.amount)}
+                            </div>
+                          )}
 
                           <button
                             type="button"
                             onClick={() => onDeleteTx(tx.id)}
-                            className="mt-1 text-[#90929d] hover:text-[#f2b8b5] transition-colors p-1 opacity-60 group-hover:opacity-100"
+                            className="mt-1.5 text-[#90929d] hover:text-[#f2b8b5] transition-colors p-1 opacity-60 group-hover:opacity-100"
                             title="Delete transaction and revert balances"
                           >
-                            <Trash2 className="h-3.5 w-3.5 ml-auto" />
+                            <Trash2 className="h-4 w-4 ml-auto" />
                           </button>
                         </div>
                       </div>

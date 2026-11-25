@@ -30,6 +30,7 @@ export function ManageRecurringModal({
   const [type, setType] = useState<RecurringCommitmentType>("emi");
   const [amountStr, setAmountStr] = useState("");
   const [accountId, setAccountId] = useState(accounts[0]?.id || "");
+  const [toAccountId, setToAccountId] = useState("");
   const [categoryId, setCategoryId] = useState(categories[0]?.id || "");
   const [dayOfMonth, setDayOfMonth] = useState("5");
   const [startDate, setStartDate] = useState(() =>
@@ -88,6 +89,7 @@ export function ManageRecurringModal({
         type,
         amount,
         accountId,
+        toAccountId: type === "recurring_investment" && toAccountId ? toAccountId : undefined,
         categoryId,
         frequency: "monthly",
         dayOfMonth: parseInt(dayOfMonth) || 1,
@@ -107,6 +109,7 @@ export function ManageRecurringModal({
         onSuccess(`Recurring commitment "${newCommitment.name}" added.`);
       setName("");
       setAmountStr("");
+      setToAccountId("");
       setTotalInstallmentsStr("");
       setPaidInstallmentsStr("0");
       setNotes("");
@@ -247,6 +250,31 @@ export function ManageRecurringModal({
                 </select>
               </div>
 
+              {type === "recurring_investment" && (
+                <div>
+                  <label className="text-xs sm:text-sm font-medium text-[#c4c6cf] block mb-1.5">
+                    Transfer to Account (Optional)
+                  </label>
+                  <select
+                    value={toAccountId}
+                    onChange={(e) => setToAccountId(e.target.value)}
+                    className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-4 py-3 text-sm text-[#e2e2e7] focus:outline-none min-h-[46px]"
+                  >
+                    <option value="">-- None (Record as standard expense) --</option>
+                    {accounts
+                      .filter((a) => a.id !== accountId)
+                      .map((a) => (
+                        <option key={a.id} value={a.id}>
+                          {a.name} ({a.type === "investment" ? "RD / Investment" : a.type})
+                        </option>
+                      ))}
+                  </select>
+                  <p className="text-[11px] text-[#90929d] mt-1">
+                    Select an RD account (e.g. ICCSL RD) to automatically record monthly payments as asset transfers rather than expenses.
+                  </p>
+                </div>
+              )}
+
               <div>
                 <label className="text-xs sm:text-sm font-medium text-[#c4c6cf] block mb-1.5">
                   Due Day of Month (1-31)
@@ -356,6 +384,11 @@ export function ManageRecurringModal({
                   </div>
                   <div className="text-xs text-[#90929d] mt-0.5">
                     {formatINR(comm.amount)}/mo on day {comm.dayOfMonth}
+                    {comm.toAccountId && (
+                      <span className="text-[#a8c7fa]">
+                        {" "}• Transfers to {accounts.find((a) => a.id === comm.toAccountId)?.name || "RD"}
+                      </span>
+                    )}
                     {comm.totalInstallments &&
                       ` • ${comm.paidInstallments}/${comm.totalInstallments} paid`}
                   </div>

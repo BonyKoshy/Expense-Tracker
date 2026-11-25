@@ -137,6 +137,7 @@ export interface RecurringCommitment {
   type: RecurringCommitmentType;
   amount: number;
   accountId: string;
+  toAccountId?: string; // Optional transfer destination account for recurring investments (RDs)
   categoryId: string;
   subcategoryId?: string;
   frequency: "monthly" | "weekly" | "yearly";

@@ -88,6 +88,15 @@ export function HomeView({
               <span className="font-mono text-[#f2b8b5]">
                 -{formatINR(breakdown.hdfcReservedCommitments)}
               </span>
+              {breakdown.totalPayables > 0 && (
+                <>
+                  {" "}
+                  • Owed to Others:{" "}
+                  <span className="font-mono text-[#f2b8b5]">
+                    -{formatINR(breakdown.totalPayables)}
+                  </span>
+                </>
+              )}
             </p>
           </div>
 
@@ -226,6 +235,7 @@ export function HomeView({
                   <div className="text-[10px] text-[#90929d] mt-0.5">
                     {comm.paidInstallments} of {comm.totalInstallments || "∞"}{" "}
                     paid
+                    {comm.toAccountId ? " • RD Transfer" : ""}
                     {comm.dayOfMonth ? ` • Due on day ${comm.dayOfMonth}` : ""}
                   </div>
                 </div>

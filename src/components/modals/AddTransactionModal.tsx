@@ -79,8 +79,11 @@ export function AddTransactionModal({
     people[0]?.id || "",
   );
 
+  const [splitInlineError, setSplitInlineError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const payerPerson = people.find((p) => p.id === paidByPersonId);
 
   // Evaluate calculation in real-time
   const evaluatedAmount = evaluateExpression(calcExpr);
@@ -103,11 +106,13 @@ export function AddTransactionModal({
     setNotes("");
     setTagsStr("");
     setError(null);
+    setSplitInlineError(null);
     onClose();
   }, [onClose]);
 
   const handleKeypad = useCallback((key: string) => {
     setError(null);
+    setSplitInlineError(null);
     setCalcExpr((prev) => handleKeypadInput(prev, key));
   }, []);
 
@@ -120,7 +125,26 @@ export function AddTransactionModal({
     setAmountStr(finalVal.toString());
     setStep("details");
     setError(null);
-  }, [calcExpr]);
+    setSplitInlineError(null);
+
+    if (type === "shared_expense" && splitMode === "exact") {
+      const count = selectedParticipants.length;
+      if (count > 0) {
+        const baseShare = Math.floor((finalVal / count) * 100) / 100;
+        let remainder = Math.round((finalVal - baseShare * count) * 100) / 100;
+        const initial: Record<string, string> = {};
+        for (const id of selectedParticipants) {
+          let share = baseShare;
+          if (remainder > 0.001) {
+            share = Math.round((share + 0.01) * 100) / 100;
+            remainder = Math.round((remainder - 0.01) * 100) / 100;
+          }
+          initial[id] = share.toString();
+        }
+        setCustomSplits(initial);
+      }
+    }
+  }, [calcExpr, type, splitMode, selectedParticipants]);
 
   // Keyboard support for desktop / hardware typing when in calculator mode
   useEffect(() => {
@@ -199,22 +223,109 @@ export function AddTransactionModal({
   };
 
   const toggleParticipant = (id: string) => {
+    let next: string[];
     if (selectedParticipants.includes(id)) {
       if (selectedParticipants.length <= 1) {
-        setError("At least one participant must be selected.");
+        setSplitInlineError("At least one participant must be selected.");
         return;
       }
-      setSelectedParticipants(selectedParticipants.filter((p) => p !== id));
+      next = selectedParticipants.filter((p) => p !== id);
     } else {
-      setSelectedParticipants([...selectedParticipants, id]);
+      next = [...selectedParticipants, id];
     }
+    setSelectedParticipants(next);
     setError(null);
+    setSplitInlineError(null);
+
+    if (splitMode === "exact") {
+      const count = next.length;
+      if (count > 0 && totalAmount > 0) {
+        const baseShare = Math.floor((totalAmount / count) * 100) / 100;
+        let remainder = Math.round((totalAmount - baseShare * count) * 100) / 100;
+        const initial: Record<string, string> = {};
+        for (const pid of next) {
+          let share = baseShare;
+          if (remainder > 0.001) {
+            share = Math.round((share + 0.01) * 100) / 100;
+            remainder = Math.round((remainder - 0.01) * 100) / 100;
+          }
+          initial[pid] = share.toString();
+        }
+        setCustomSplits(initial);
+      }
+    }
+  };
+
+  const handleSplitModeChange = (mode: SplitMode) => {
+    setSplitMode(mode);
+    setSplitInlineError(null);
+    if (mode === "exact") {
+      const count = selectedParticipants.length;
+      if (count > 0 && totalAmount > 0) {
+        const baseShare = Math.floor((totalAmount / count) * 100) / 100;
+        let remainder = Math.round((totalAmount - baseShare * count) * 100) / 100;
+        const initial: Record<string, string> = {};
+        for (const id of selectedParticipants) {
+          let share = baseShare;
+          if (remainder > 0.001) {
+            share = Math.round((share + 0.01) * 100) / 100;
+            remainder = Math.round((remainder - 0.01) * 100) / 100;
+          }
+          initial[id] = share.toString();
+        }
+        setCustomSplits(initial);
+      }
+    }
+  };
+
+  const handleCustomAmountChange = (targetId: string, val: string) => {
+    const numVal = parseFloat(val) || 0;
+    const newSplits = { ...customSplits, [targetId]: val };
+
+    const otherParticipants = selectedParticipants.filter((id) => id !== targetId);
+
+    if (otherParticipants.length === 1) {
+      // 2-person split: other person automatically gets remainder
+      const otherId = otherParticipants[0];
+      const remaining = Math.max(0, Math.round((totalAmount - numVal) * 100) / 100);
+      newSplits[otherId] = remaining > 0 ? remaining.toString() : "0";
+    } else if (otherParticipants.length > 1) {
+      // 3+ participants: auto-balance to "user" or the last participant
+      const autoTargetId =
+        targetId === "user"
+          ? otherParticipants[otherParticipants.length - 1]
+          : "user";
+
+      const staticSum = otherParticipants
+        .filter((id) => id !== autoTargetId)
+        .reduce((sum, id) => sum + (parseFloat(newSplits[id] || "0") || 0), 0);
+
+      const remaining = Math.max(
+        0,
+        Math.round((totalAmount - numVal - staticSum) * 100) / 100,
+      );
+      newSplits[autoTargetId] = remaining > 0 ? remaining.toString() : "0";
+    }
+
+    setCustomSplits(newSplits);
+    setSplitInlineError(null);
   };
 
   const computeSplits = (): {
     splits: TransactionSplit[];
     userShare: number;
   } => {
+    if (paidByPersonId !== "user") {
+      // Friend paid for the user: user only enters their personal share
+      return {
+        splits: [
+          { personId: "user", amount: totalAmount, isSettled: false },
+          { personId: paidByPersonId, amount: totalAmount, isSettled: true },
+        ],
+        userShare: totalAmount,
+      };
+    }
+
     const splits: TransactionSplit[] = [];
 
     if (splitMode === "equal") {
@@ -260,6 +371,7 @@ export function AddTransactionModal({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setSplitInlineError(null);
 
     if (totalAmount <= 0) {
       setError("Please enter a valid amount greater than 0.");
@@ -270,9 +382,9 @@ export function AddTransactionModal({
       return;
     }
 
-    if (type === "shared_expense") {
+    if (type === "shared_expense" && paidByPersonId === "user") {
       if (splitMode !== "equal" && Math.abs(splitDifference) > 0.01) {
-        setError(
+        setSplitInlineError(
           `The sum of split amounts (${formatINR(splitsSum)}) must equal the total bill (${formatINR(totalAmount)}). Difference: ${formatINR(splitDifference)}`,
         );
         return;
@@ -298,8 +410,16 @@ export function AddTransactionModal({
       let finalSplits: TransactionSplit[] = [];
 
       if (type === "shared_expense") {
-        finalPersonalExpense = calculatedUserShare;
-        finalSplits = calculatedSplits;
+        if (paidByPersonId !== "user") {
+          finalPersonalExpense = totalAmount;
+          finalSplits = [
+            { personId: "user", amount: totalAmount, isSettled: false },
+            { personId: paidByPersonId, amount: totalAmount, isSettled: true },
+          ];
+        } else {
+          finalPersonalExpense = calculatedUserShare;
+          finalSplits = calculatedSplits;
+        }
       } else if (type === "expense") {
         finalPersonalExpense = totalAmount;
         finalSplits = [
@@ -357,11 +477,14 @@ export function AddTransactionModal({
       await recordTransaction(db, tx);
 
       if (onSuccess) {
+        const payerName = payerPerson?.name || "Friend";
         onSuccess(
           type === "shared_expense"
-            ? `Shared expense logged: ₹${totalAmount.toFixed(2)} total, personal share ₹${finalPersonalExpense.toFixed(2)}.`
+            ? paidByPersonId !== "user"
+              ? `Shared expense logged: ${formatINR(totalAmount)} owed to ${payerName}.`
+              : `Shared expense logged: ${formatINR(totalAmount)} total, personal share ${formatINR(finalPersonalExpense)}.`
             : type === "settlement_received"
-              ? `Settlement recorded: ₹${totalAmount.toFixed(2)} received without impacting income.`
+              ? `Settlement recorded: ${formatINR(totalAmount)} received without impacting income.`
               : `Transaction "${tx.title}" recorded successfully.`,
         );
       }
@@ -756,7 +879,9 @@ export function AddTransactionModal({
                 </div>
                 <div>
                   <div className="text-[11px] font-semibold uppercase tracking-wider text-[#90929d]">
-                    Calculated Amount
+                    {type === "shared_expense" && paidByPersonId !== "user"
+                      ? "Your Share (Amount You Owe)"
+                      : "Calculated Amount"}
                   </div>
                   <div className="text-xl sm:text-2xl font-bold font-mono text-[#a8c7fa]">
                     {formatINR(totalAmount)}
@@ -905,7 +1030,9 @@ export function AddTransactionModal({
               <div>
                 <div className="flex items-center justify-between mb-1.5">
                   <label className="text-xs sm:text-sm font-medium text-[#c4c6cf]">
-                    Amount (₹)
+                    {type === "shared_expense" && paidByPersonId !== "user"
+                      ? `Your Share (${payerPerson?.name ? `Owed to ${payerPerson.name}` : "Owed"}) (₹)`
+                      : "Amount (₹)"}
                   </label>
                   <button
                     type="button"
@@ -929,6 +1056,7 @@ export function AddTransactionModal({
                   onChange={(e) => {
                     setAmountStr(e.target.value);
                     setCalcExpr(e.target.value);
+                    setSplitInlineError(null);
                   }}
                   className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-4 py-3 text-sm sm:text-base text-[#e2e2e7] font-mono placeholder-[#90929d] focus:outline-none min-h-[48px]"
                 />
@@ -937,26 +1065,42 @@ export function AddTransactionModal({
 
             {/* Accounts & Category */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label className="text-xs sm:text-sm font-medium text-[#c4c6cf] block mb-1.5">
-                  {type === "settlement_received"
-                    ? "Deposit into"
-                    : type === "transfer" || type === "credit_card_payment"
-                      ? "From Account"
-                      : "Paid from"}
-                </label>
-                <select
-                  value={accountId}
-                  onChange={(e) => setAccountId(e.target.value)}
-                  className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-4 py-3 text-sm text-[#e2e2e7] focus:outline-none min-h-[48px]"
-                >
-                  {accounts.map((acc) => (
-                    <option key={acc.id} value={acc.id}>
-                      {acc.name} ({formatINR(acc.balance)})
-                    </option>
-                  ))}
-                </select>
-              </div>
+              {type === "shared_expense" && paidByPersonId !== "user" ? (
+                <div>
+                  <label className="text-xs sm:text-sm font-medium text-[#c4c6cf] block mb-1.5">
+                    Payment Covered By
+                  </label>
+                  <div className="w-full bg-[#111216] border border-[#23252c] rounded-2xl px-4 py-3 text-sm text-[#e2e2e7] flex items-center justify-between min-h-[48px]">
+                    <span className="font-medium text-[#a8c7fa]">
+                      {payerPerson?.name || "Friend"} paid
+                    </span>
+                    <span className="text-xs text-[#90929d]">
+                      (No bank deduction)
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <label className="text-xs sm:text-sm font-medium text-[#c4c6cf] block mb-1.5">
+                    {type === "settlement_received"
+                      ? "Deposit into"
+                      : type === "transfer" || type === "credit_card_payment"
+                        ? "From Account"
+                        : "Paid from"}
+                  </label>
+                  <select
+                    value={accountId}
+                    onChange={(e) => setAccountId(e.target.value)}
+                    className="w-full bg-[#111216] border border-[#23252c] focus:border-[#a8c7fa] rounded-2xl px-4 py-3 text-sm text-[#e2e2e7] focus:outline-none min-h-[48px]"
+                  >
+                    {accounts.map((acc) => (
+                      <option key={acc.id} value={acc.id}>
+                        {acc.name} ({formatINR(acc.balance)})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
 
               {(type === "transfer" || type === "credit_card_payment") && (
                 <div>
@@ -1073,32 +1217,39 @@ export function AddTransactionModal({
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-[#90929d]">Group:</span>
-                    <select
-                      value={selectedGroupId}
-                      onChange={(e) => handleGroupChange(e.target.value)}
-                      className="bg-[#111216] border border-[#23252c] rounded-xl px-2.5 py-1 text-xs text-[#e2e2e7] focus:outline-none"
-                    >
-                      <option value="">No Group (Ad-hoc)</option>
-                      {groups.map((g) => (
-                        <option key={g.id} value={g.id}>
-                          {g.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                  {paidByPersonId === "user" && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-[#90929d]">Group:</span>
+                      <select
+                        value={selectedGroupId}
+                        onChange={(e) => handleGroupChange(e.target.value)}
+                        className="bg-[#111216] border border-[#23252c] rounded-xl px-2.5 py-1 text-xs text-[#e2e2e7] focus:outline-none"
+                      >
+                        <option value="">No Group (Ad-hoc)</option>
+                        {groups.map((g) => (
+                          <option key={g.id} value={g.id}>
+                            {g.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
                 </div>
 
                 {/* Payer and Split Mode */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div
+                  className={`grid grid-cols-1 ${paidByPersonId === "user" ? "sm:grid-cols-2" : ""} gap-3`}
+                >
                   <div>
                     <label className="text-xs font-medium text-[#c4c6cf] block mb-1">
                       Who Paid?
                     </label>
                     <select
                       value={paidByPersonId}
-                      onChange={(e) => setPaidByPersonId(e.target.value)}
+                      onChange={(e) => {
+                        setPaidByPersonId(e.target.value);
+                        setSplitInlineError(null);
+                      }}
                       className="w-full bg-[#111216] border border-[#23252c] rounded-xl px-3 py-2 text-xs text-[#e2e2e7] focus:outline-none"
                     >
                       <option value="user">Me (I swiped the bill)</option>
@@ -1110,107 +1261,175 @@ export function AddTransactionModal({
                     </select>
                   </div>
 
-                  <div>
-                    <label className="text-xs font-medium text-[#c4c6cf] block mb-1">
-                      Split Type
-                    </label>
-                    <div className="flex rounded-xl bg-[#111216] p-1 border border-[#1a1c22]">
-                      <button
-                        type="button"
-                        onClick={() => setSplitMode("equal")}
-                        className={`flex-1 py-1 text-xs font-medium rounded-lg transition-colors ${
-                          splitMode === "equal"
-                            ? "bg-[#1a2536] text-[#d3e3fd]"
-                            : "text-[#90929d] hover:text-[#e2e2e7]"
-                        }`}
-                      >
-                        Equal
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setSplitMode("exact")}
-                        className={`flex-1 py-1 text-xs font-medium rounded-lg transition-colors ${
-                          splitMode === "exact"
-                            ? "bg-[#1a2536] text-[#d3e3fd]"
-                            : "text-[#90929d] hover:text-[#e2e2e7]"
-                        }`}
-                      >
-                        Exact (₹)
-                      </button>
+                  {paidByPersonId === "user" && (
+                    <div>
+                      <label className="text-xs font-medium text-[#c4c6cf] block mb-1">
+                        Split Type
+                      </label>
+                      <div className="flex rounded-xl bg-[#111216] p-1 border border-[#1a1c22]">
+                        <button
+                          type="button"
+                          onClick={() => handleSplitModeChange("equal")}
+                          className={`flex-1 py-1 text-xs font-medium rounded-lg transition-colors ${
+                            splitMode === "equal"
+                              ? "bg-[#1a2536] text-[#d3e3fd]"
+                              : "text-[#90929d] hover:text-[#e2e2e7]"
+                          }`}
+                        >
+                          Equal
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleSplitModeChange("exact")}
+                          className={`flex-1 py-1 text-xs font-medium rounded-lg transition-colors ${
+                            splitMode === "exact"
+                              ? "bg-[#1a2536] text-[#d3e3fd]"
+                              : "text-[#90929d] hover:text-[#e2e2e7]"
+                          }`}
+                        >
+                          Exact (₹)
+                        </button>
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
 
-                {/* Participants */}
-                <div className="space-y-2">
-                  <ParticipantRow
-                    id="user"
-                    name="My Personal Share"
-                    avatar="👤"
-                    isSelected={selectedParticipants.includes("user")}
-                    onToggle={() => toggleParticipant("user")}
-                    isSplitModeExact={splitMode === "exact"}
-                    shareAmount={
-                      splitMode === "equal"
-                        ? calculatedUserShare
-                        : parseFloat(customSplits["user"] || "0")
-                    }
-                    onCustomAmountChange={(val) =>
-                      setCustomSplits({ ...customSplits, user: val })
-                    }
-                  />
-
-                  {people.map((p) => {
-                    const isSelected = selectedParticipants.includes(p.id);
-                    const friendShare =
-                      splitMode === "equal"
-                        ? calculatedSplits.find((s) => s.personId === p.id)
-                            ?.amount || 0
-                        : parseFloat(customSplits[p.id] || "0");
-
-                    return (
+                {/* Friend Paid Info Card: No need to enter total bill or split with others! */}
+                {paidByPersonId !== "user" ? (
+                  <div className="bg-[#1a2536]/40 border border-[#263750] rounded-2xl p-4 space-y-2.5">
+                    <div className="flex items-center gap-2 text-xs font-semibold text-[#a8c7fa]">
+                      <CheckCircle className="h-4 w-4 text-[#a8c7fa]" />
+                      <span>Simplified: Entering Your Share Only</span>
+                    </div>
+                    <p className="text-xs text-[#c4c6cf] leading-relaxed">
+                      Since{" "}
+                      <strong className="text-[#e2e2e7]">
+                        {payerPerson?.name || "Friend"}
+                      </strong>{" "}
+                      paid this bill, you only need to enter your personal share.
+                      There is no need to enter or divide the full bill among
+                      everyone else.
+                    </p>
+                    <div className="bg-[#111216] border border-[#23252c] rounded-xl p-3 flex items-center justify-between">
+                      <div>
+                        <div className="text-[11px] text-[#90929d]">
+                          Amount You Owe {payerPerson?.name || "Friend"}:
+                        </div>
+                        <div className="text-base font-bold text-[#ffb77c] font-mono">
+                          {formatINR(totalAmount)}
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-[11px] text-[#90929d]">
+                          Bank Account:
+                        </div>
+                        <div className="text-xs font-medium text-[#a8c7fa]">
+                          Untouched (₹0 debited)
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    {/* Participants */}
+                    <div className="space-y-2">
                       <ParticipantRow
-                        key={p.id}
-                        id={p.id}
-                        name={p.name}
-                        avatar={p.avatar || "👤"}
-                        isSelected={isSelected}
-                        onToggle={() => toggleParticipant(p.id)}
+                        id="user"
+                        name="My Personal Share"
+                        avatar="👤"
+                        isSelected={selectedParticipants.includes("user")}
+                        onToggle={() => toggleParticipant("user")}
                         isSplitModeExact={splitMode === "exact"}
-                        shareAmount={friendShare}
+                        shareAmount={
+                          splitMode === "equal"
+                            ? calculatedUserShare
+                            : parseFloat(customSplits["user"] || "0")
+                        }
+                        customValue={customSplits["user"]}
                         onCustomAmountChange={(val) =>
-                          setCustomSplits({ ...customSplits, [p.id]: val })
+                          handleCustomAmountChange("user", val)
                         }
                       />
-                    );
-                  })}
-                </div>
 
-                {/* Summary */}
-                <div className="bg-[#111216] border border-[#1a1c22] rounded-2xl p-3 flex items-center justify-between text-xs">
-                  <div>
-                    <div className="text-[#90929d]">Personal Share:</div>
-                    <div className="text-sm font-semibold text-[#a8dab5] font-mono">
-                      {formatINR(calculatedUserShare)}
-                    </div>
-                  </div>
+                      {people.map((p) => {
+                        const isSelected = selectedParticipants.includes(p.id);
+                        const friendShare =
+                          splitMode === "equal"
+                            ? calculatedSplits.find((s) => s.personId === p.id)
+                                ?.amount || 0
+                            : parseFloat(customSplits[p.id] || "0");
 
-                  <div className="text-right">
-                    <div className="text-[#90929d]">
-                      {paidByPersonId === "user"
-                        ? "Friend Receivables:"
-                        : "Payable to Friend:"}
+                        return (
+                          <ParticipantRow
+                            key={p.id}
+                            id={p.id}
+                            name={p.name}
+                            avatar={p.avatar || "👤"}
+                            isSelected={isSelected}
+                            onToggle={() => toggleParticipant(p.id)}
+                            isSplitModeExact={splitMode === "exact"}
+                            shareAmount={friendShare}
+                            customValue={customSplits[p.id]}
+                            onCustomAmountChange={(val) =>
+                              handleCustomAmountChange(p.id, val)
+                            }
+                          />
+                        );
+                      })}
                     </div>
-                    <div className="text-sm font-semibold text-[#ffb77c] font-mono">
-                      {formatINR(totalAmount - calculatedUserShare)}
-                    </div>
-                  </div>
-                </div>
 
-                {splitMode === "exact" && Math.abs(splitDifference) > 0.01 && (
-                  <div className="text-xs text-[#f2b8b5] font-mono">
-                    Unallocated difference: {formatINR(splitDifference)}
-                  </div>
+                    {/* Summary */}
+                    <div className="bg-[#111216] border border-[#1a1c22] rounded-2xl p-3 flex items-center justify-between text-xs">
+                      <div>
+                        <div className="text-[#90929d]">Personal Share:</div>
+                        <div className="text-sm font-semibold text-[#a8dab5] font-mono">
+                          {formatINR(calculatedUserShare)}
+                        </div>
+                      </div>
+
+                      <div className="text-right">
+                        <div className="text-[#90929d]">Friend Receivables:</div>
+                        <div className="text-sm font-semibold text-[#ffb77c] font-mono">
+                          {formatINR(totalAmount - calculatedUserShare)}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Inline Warning & Auto-balance Button */}
+                    {splitMode === "exact" &&
+                      (Math.abs(splitDifference) > 0.01 ||
+                        splitInlineError) && (
+                        <div className="p-3 rounded-2xl bg-[#2b1b1d] border border-[#48282b] text-[#f2b8b5] text-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 animate-in fade-in duration-200">
+                          <div className="flex items-center gap-2">
+                            <AlertCircle className="h-4 w-4 shrink-0 text-[#f2b8b5]" />
+                            <span>
+                              {splitInlineError ||
+                                `Split difference: ${formatINR(splitDifference)} (Bill: ${formatINR(totalAmount)})`}
+                            </span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const currentVal =
+                                parseFloat(customSplits["user"] || "0") || 0;
+                              const adjusted = Math.max(
+                                0,
+                                Math.round((currentVal + splitDifference) * 100) /
+                                  100,
+                              );
+                              setCustomSplits({
+                                ...customSplits,
+                                user: adjusted.toString(),
+                              });
+                              setSplitInlineError(null);
+                            }}
+                            className="px-2.5 py-1 rounded-lg bg-[#3d2427] hover:bg-[#4d2d31] text-[#f2b8b5] font-medium text-[11px] transition-colors self-end sm:self-auto shrink-0"
+                          >
+                            Auto-balance to My Share
+                          </button>
+                        </div>
+                      )}
+                  </>
                 )}
               </div>
             )}
@@ -1321,6 +1540,7 @@ interface ParticipantRowProps {
   onToggle: () => void;
   isSplitModeExact: boolean;
   shareAmount: number;
+  customValue?: string;
   onCustomAmountChange: (val: string) => void;
 }
 
@@ -1331,6 +1551,7 @@ function ParticipantRow({
   onToggle,
   isSplitModeExact,
   shareAmount,
+  customValue,
   onCustomAmountChange,
 }: ParticipantRowProps) {
   const inputId = useId();
@@ -1370,7 +1591,7 @@ function ParticipantRow({
               type="number"
               step="0.01"
               placeholder="0.00"
-              value={shareAmount || ""}
+              value={customValue !== undefined ? customValue : (shareAmount || "")}
               onChange={(e) => onCustomAmountChange(e.target.value)}
               className="w-28 bg-[#111216] border border-[#23252c] rounded-xl px-3 py-1.5 text-sm text-right text-[#e2e2e7] font-mono focus:outline-none focus:border-[#a8c7fa]"
             />

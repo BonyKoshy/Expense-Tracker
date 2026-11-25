@@ -63,6 +63,20 @@ export function useFinanceData() {
 
     return recurringCommitments.filter((comm) => {
       if (!comm.isActive) return false;
+      // Future commitments starting in next month must not be marked due for current month
+      if (comm.startDate && comm.startDate.slice(0, 7) > currentMonthKey) {
+        return false;
+      }
+      if (comm.endDate && comm.endDate.slice(0, 7) < currentMonthKey) {
+        return false;
+      }
+      if (
+        comm.totalInstallments &&
+        comm.totalInstallments > 0 &&
+        comm.paidInstallments >= comm.totalInstallments
+      ) {
+        return false;
+      }
       const alreadyPaid = transactions.some(
         (tx) =>
           tx.recurringCommitmentId === comm.id &&
@@ -74,21 +88,26 @@ export function useFinanceData() {
 
   const confirmRecurringCommitment = async (comm: RecurringCommitment) => {
     const isRD = comm.type === "recurring_investment";
+    const destAccount = comm.toAccountId || (isRD ? "acc_iccsl_rd" : undefined);
+    const isTransfer = isRD && Boolean(destAccount);
+
     const tx: Transaction = {
       id: `tx_rec_${Date.now()}`,
-      type: isRD ? "transfer" : "expense",
+      type: isTransfer ? "transfer" : "expense",
       title: comm.name,
       date: new Date().toISOString(),
       amount: comm.amount,
       accountId: comm.accountId,
-      toAccountId: isRD ? "acc_iccsl_rd" : undefined,
+      toAccountId: isTransfer ? destAccount : undefined,
       categoryId: comm.categoryId,
       subcategoryId: comm.subcategoryId,
-      personalExpenseAmount: isRD ? 0 : comm.amount,
+      personalExpenseAmount: isTransfer ? 0 : comm.amount,
       isShared: false,
       paidByPersonId: "user",
       splits: [{ personId: "user", amount: comm.amount, isSettled: true }],
-      notes: `Confirmed monthly commitment: ${comm.name}`,
+      notes: isTransfer
+        ? `Confirmed monthly investment transfer: ${comm.name}`
+        : `Confirmed monthly commitment: ${comm.name}`,
       recurringCommitmentId: comm.id,
       isRecurring: true,
       createdAt: new Date().toISOString(),

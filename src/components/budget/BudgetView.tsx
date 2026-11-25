@@ -12,6 +12,7 @@ import {
   AlertTriangle,
   Coffee,
   Sparkles,
+  Users,
 } from "lucide-react";
 import type {
   Account,
@@ -19,6 +20,8 @@ import type {
   Category,
   Subcategory,
   Transaction,
+  Person,
+  AvailableToSpendBreakdown,
 } from "@/types";
 import { formatINR } from "@/utils/formatters";
 
@@ -28,6 +31,8 @@ interface BudgetViewProps {
   categories: Category[];
   subcategories?: Subcategory[];
   transactions: Transaction[];
+  people?: Person[];
+  breakdown?: AvailableToSpendBreakdown;
   overallMonthlyBudget?: number;
   onOpenAccounts: () => void;
   onOpenRecurring: () => void;
@@ -40,6 +45,8 @@ export function BudgetView({
   categories,
   subcategories = [],
   transactions,
+  people = [],
+  breakdown,
   overallMonthlyBudget = 25000,
   onOpenAccounts,
   onOpenRecurring,
@@ -52,10 +59,12 @@ export function BudgetView({
     );
   }, [subcategories]);
 
+  // Current month key for cycle calculations
+  const now = new Date();
+  const currentMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+
   // Current month personal spending by category & subcategory
   const currentMonthSpending = useMemo(() => {
-    const now = new Date();
-    const currentMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
     const map = new Map<string, number>();
     const subMap = new Map<string, number>();
 
@@ -107,11 +116,10 @@ export function BudgetView({
     }
 
     return { map, subMap, totalMonthSpend, teaSpend, teaCount };
-  }, [transactions, teaSubcategory]);
+  }, [transactions, teaSubcategory, currentMonthKey]);
 
   // Days left in month & Daily possible spend allowance
   const monthPace = useMemo(() => {
-    const now = new Date();
     const year = now.getFullYear();
     const month = now.getMonth();
     const monthName = now.toLocaleDateString("en-US", { month: "long" });
@@ -136,7 +144,7 @@ export function BudgetView({
       dailyAllowance,
       burnRate,
     };
-  }, [currentMonthSpending.totalMonthSpend, overallMonthlyBudget]);
+  }, [currentMonthSpending.totalMonthSpend, overallMonthlyBudget, now]);
 
   // Account grouping
   const liquidAccounts = accounts.filter(
@@ -163,9 +171,38 @@ export function BudgetView({
     (sum, a) => sum + (a.balance || 0),
     0,
   );
+
+  // Filter commitments active for current month only (excludes future months)
   const totalRecurring = recurringCommitments
-    .filter((c) => c.isActive && c.isReservedCommitment)
+    .filter(
+      (c) =>
+        c.isActive &&
+        c.isReservedCommitment &&
+        (!c.startDate || c.startDate.slice(0, 7) <= currentMonthKey) &&
+        (!c.endDate || c.endDate.slice(0, 7) >= currentMonthKey) &&
+        (!c.totalInstallments || c.paidInstallments < c.totalInstallments),
+    )
     .reduce((sum, c) => sum + c.amount, 0);
+
+  // Split balances (Receivables vs Owed)
+  const { totalReceivables, totalPayables } = useMemo(() => {
+    if (breakdown) {
+      return {
+        totalReceivables: breakdown.totalReceivables,
+        totalPayables: breakdown.totalPayables,
+      };
+    }
+    let rec = 0;
+    let pay = 0;
+    for (const p of people) {
+      const net = p.netBalance || 0;
+      if (net > 0) rec += net;
+      else if (net < 0) pay += Math.abs(net);
+    }
+    return { totalReceivables: rec, totalPayables: pay };
+  }, [breakdown, people]);
+
+  const netSplitBalance = totalReceivables - totalPayables;
 
   const getAccountIcon = (iconName: string) => {
     switch (iconName) {
@@ -189,7 +226,7 @@ export function BudgetView({
   return (
     <div className="space-y-5 max-w-5xl mx-auto pb-6">
       {/* 1. Monthly Budget & Spending Health Overview */}
-      <div className="bg-[#16171c] border border-[#23252c] rounded-[28px] p-5 space-y-4">
+      <div className="bg-[#16171c] border border-[#23252c] rounded-[28px] p-5 space-y-4 shadow-sm">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <h2 className="text-base font-semibold text-[#e2e2e7] m-0">
@@ -220,47 +257,49 @@ export function BudgetView({
           </div>
         </div>
 
-        {/* 5 Metric Summary Cards Featuring Daily Possible Spend */}
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
-          {/* Daily Spend Allowance (Rest of budget split by days remaining) */}
-          <div className="bg-[#1a2536] border border-[#2e405b] rounded-2xl p-3.5 flex flex-col justify-between col-span-2 sm:col-span-1 shadow-sm">
+        {/* 6 Balanced Metric Summary Cards (2x3 on mobile, 3x2 on tablet, 6x1 on desktop) */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
+          {/* 1. Daily Spend Allowance */}
+          <div className="bg-[#1a2536] border border-[#2e405b] rounded-2xl p-3.5 flex flex-col justify-between shadow-sm">
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-semibold text-[#a8c7fa] flex items-center gap-1">
                 <Sparkles className="h-3 w-3 text-[#a8c7fa]" />
                 Daily Allowance
               </span>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#111216] text-[#d3e3fd] font-mono border border-[#283a54]">
+              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[#111216] text-[#d3e3fd] font-mono border border-[#283a54]">
                 {monthPace.daysLeft}d left
               </span>
             </div>
-            <div className="text-xl sm:text-2xl font-bold font-mono text-[#d3e3fd] mt-1">
+            <div className="text-lg sm:text-xl font-bold font-mono text-[#d3e3fd] mt-1">
               {formatINR(monthPace.dailyAllowance)}
-              <span className="text-xs font-normal text-[#90929d]"> /day</span>
+              <span className="text-xs font-normal text-[#90929d]"> /d</span>
             </div>
             <div className="text-[10px] text-[#90929d] mt-1 truncate">
               {monthPace.remaining > 0
-                ? `${formatINR(monthPace.remaining)} for ${monthPace.daysLeft} days`
-                : "Budget ceiling reached"}
+                ? `${formatINR(monthPace.remaining)} left`
+                : "Budget limit reached"}
             </div>
           </div>
 
-          <div className="bg-[#111216] border border-[#1e2026] rounded-2xl p-3.5">
+          {/* 2. Personal Spend */}
+          <div className="bg-[#111216] border border-[#1e2026] rounded-2xl p-3.5 flex flex-col justify-between">
             <div className="text-[11px] text-[#90929d]">
-              Personal Spend This Month
+              Personal Spend
             </div>
-            <div className="text-lg font-semibold text-[#e2e2e7] font-mono mt-0.5">
+            <div className="text-lg sm:text-xl font-semibold text-[#e2e2e7] font-mono mt-1">
               {formatINR(currentMonthSpending.totalMonthSpend)}
             </div>
             <div className="text-[10px] text-[#a8dab5] mt-1">
-              Personal consumption
+              Consumption this month
             </div>
           </div>
 
-          <div className="bg-[#111216] border border-[#1e2026] rounded-2xl p-3.5">
+          {/* 3. Reserved Commitments */}
+          <div className="bg-[#111216] border border-[#1e2026] rounded-2xl p-3.5 flex flex-col justify-between">
             <div className="text-[11px] text-[#90929d]">
-              Reserved Commitments
+              Commitments
             </div>
-            <div className="text-lg font-semibold text-[#f2b8b5] font-mono mt-0.5">
+            <div className="text-lg sm:text-xl font-semibold text-[#f2b8b5] font-mono mt-1">
               {formatINR(totalRecurring)}
             </div>
             <div className="text-[10px] text-[#90929d] mt-1">
@@ -268,9 +307,10 @@ export function BudgetView({
             </div>
           </div>
 
-          <div className="bg-[#111216] border border-[#1e2026] rounded-2xl p-3.5">
+          {/* 4. CC Liability */}
+          <div className="bg-[#111216] border border-[#1e2026] rounded-2xl p-3.5 flex flex-col justify-between">
             <div className="text-[11px] text-[#90929d]">CC Liability</div>
-            <div className="text-lg font-semibold text-[#ffb787] font-mono mt-0.5">
+            <div className="text-lg sm:text-xl font-semibold text-[#ffb787] font-mono mt-1">
               {formatINR(totalCCDebt)}
             </div>
             <div className="text-[10px] text-[#90929d] mt-1">
@@ -278,13 +318,40 @@ export function BudgetView({
             </div>
           </div>
 
-          <div className="bg-[#111216] border border-[#1e2026] rounded-2xl p-3.5 col-span-2 sm:col-span-1">
-            <div className="text-[11px] text-[#90929d]">Active Investments</div>
-            <div className="text-lg font-semibold text-[#d0bcff] font-mono mt-0.5">
+          {/* 5. Net Splits (Receivables - Owed) */}
+          <div className="bg-[#111216] border border-[#1e2026] rounded-2xl p-3.5 flex flex-col justify-between">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] text-[#90929d] flex items-center gap-1">
+                <Users className="h-3 w-3 text-[#ffb787]" />
+                Net Splits
+              </span>
+              <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono border ${
+                netSplitBalance >= 0
+                  ? "bg-[#15241b] text-[#a8dab5] border-[#223a2b]"
+                  : "bg-[#2b1b1d] text-[#f2b8b5] border-[#5c2429]"
+              }`}>
+                {netSplitBalance >= 0 ? "Surplus" : "Debt"}
+              </span>
+            </div>
+            <div className={`text-lg sm:text-xl font-bold font-mono mt-1 ${
+              netSplitBalance >= 0 ? "text-[#a8dab5]" : "text-[#f2b8b5]"
+            }`}>
+              {netSplitBalance >= 0 ? "+" : ""}
+              {formatINR(netSplitBalance)}
+            </div>
+            <div className="text-[10px] text-[#90929d] mt-1 truncate">
+              +{formatINR(totalReceivables)} | -{formatINR(totalPayables)}
+            </div>
+          </div>
+
+          {/* 6. Active Investments */}
+          <div className="bg-[#111216] border border-[#1e2026] rounded-2xl p-3.5 flex flex-col justify-between">
+            <div className="text-[11px] text-[#90929d]">Investments</div>
+            <div className="text-lg sm:text-xl font-semibold text-[#d0bcff] font-mono mt-1">
               {formatINR(totalInvestments)}
             </div>
             <div className="text-[10px] text-[#90929d] mt-1">
-              ICCSL Recurring Deposit
+              Recurring Deposits
             </div>
           </div>
         </div>
@@ -371,7 +438,7 @@ export function BudgetView({
       </div>
 
       {/* 2. Duration-Aware Recurring Commitments Engine */}
-      <div className="bg-[#16171c] border border-[#23252c] rounded-[28px] overflow-hidden">
+      <div className="bg-[#16171c] border border-[#23252c] rounded-[28px] overflow-hidden shadow-sm">
         <div className="px-5 py-4 border-b border-[#23252c] flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <div className="h-8 w-8 rounded-xl bg-[#1a2536] text-[#a8c7fa] flex items-center justify-center border border-[#283a54]">
@@ -383,7 +450,7 @@ export function BudgetView({
                 {recurringCommitments.length})
               </h3>
               <p className="text-xs text-[#90929d] mt-0.5">
-                Automatically tracks remaining installments and expiration dates
+                Automatically tracks remaining installments and start/expiration dates
               </p>
             </div>
           </div>
@@ -407,6 +474,7 @@ export function BudgetView({
               ? Math.min(100, (paid / total) * 100)
               : 100;
             const account = accounts.find((a) => a.id === comm.accountId);
+            const isFuture = comm.startDate && comm.startDate.slice(0, 7) > currentMonthKey;
 
             return (
               <div
@@ -424,10 +492,23 @@ export function BudgetView({
                     <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded-full bg-[#1a1c22] text-[#90929d] border border-[#262830]">
                       {comm.type.replace("_", " ")}
                     </span>
+                    {isFuture && (
+                      <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-[#2a1f17] text-[#ffb787] border border-[#422e1e]">
+                        Starts {comm.startDate}
+                      </span>
+                    )}
                   </div>
 
-                  <div className="flex items-center gap-2 text-xs text-[#90929d]">
+                  <div className="flex flex-wrap items-center gap-2 text-xs text-[#90929d]">
                     <span>Account: {account?.name || "Account"}</span>
+                    {comm.toAccountId && (
+                      <>
+                        <span>→</span>
+                        <span className="text-[#a8c7fa] font-medium">
+                          Transfers to {accounts.find((a) => a.id === comm.toAccountId)?.name || "RD"}
+                        </span>
+                      </>
+                    )}
                     {comm.notes && (
                       <>
                         <span>•</span>
@@ -465,9 +546,15 @@ export function BudgetView({
                       /mo
                     </span>
                   </div>
-                  <div className="text-[11px] text-[#a8dab5] mt-0.5 flex items-center sm:justify-end gap-1">
-                    <Calendar className="h-3 w-3" />
-                    <span>Active Commitment</span>
+                  <div className="text-[11px] mt-0.5 flex items-center sm:justify-end gap-1">
+                    {isFuture ? (
+                      <span className="text-[#ffb787]">Upcoming Next Month</span>
+                    ) : (
+                      <span className="text-[#a8dab5] flex items-center gap-1">
+                        <Calendar className="h-3 w-3" />
+                        Active Commitment
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
@@ -476,15 +563,15 @@ export function BudgetView({
         </div>
       </div>
 
-      {/* 3. Category Budgets & Spending Limits */}
-      <div className="bg-[#16171c] border border-[#23252c] rounded-[28px] p-5 space-y-4">
+      {/* 3. Category Budgets & Spending Limits (Redesigned Visual Hierarchy) */}
+      <div className="bg-[#16171c] border border-[#23252c] rounded-[28px] p-5 space-y-4 shadow-sm">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>
-            <h3 className="text-sm font-semibold text-[#e2e2e7] m-0">
+            <h3 className="text-base font-bold text-[#e2e2e7] m-0">
               Category Spending Limits &amp; Targets
             </h3>
             <p className="text-xs text-[#90929d] mt-0.5">
-              Configured from Settings • Tracks monthly consumption per category
+              Category limits defined in Settings • Immediate consumption status
             </p>
           </div>
 
@@ -507,7 +594,7 @@ export function BudgetView({
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-sm font-semibold text-[#e2e2e7]">
+                <span className="text-base font-bold text-[#e2e2e7]">
                   Tea &amp; Chai
                 </span>
                 <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#111216] text-[#ffb787] border border-[#3d2c20]">
@@ -527,24 +614,24 @@ export function BudgetView({
 
           <div className="flex items-center gap-4 sm:text-right self-start sm:self-center">
             <div>
-              <div className="text-[10px] text-[#90929d]">
+              <div className="text-[10px] uppercase tracking-wider font-semibold text-[#90929d]">
                 Monthly Tea Spend
               </div>
-              <div className="text-lg sm:text-xl font-bold font-mono text-[#ffb787]">
+              <div className="text-xl sm:text-2xl font-extrabold font-mono text-[#ffb787]">
                 {formatINR(currentMonthSpending.teaSpend)}
               </div>
             </div>
             <div className="border-l border-[#262830] pl-4">
-              <div className="text-[10px] text-[#90929d]">
+              <div className="text-[10px] uppercase tracking-wider font-semibold text-[#90929d]">
                 Estimated Daily Pace
               </div>
-              <div className="text-xs sm:text-sm font-semibold font-mono text-[#e2e2e7]">
+              <div className="text-sm sm:text-base font-bold font-mono text-[#e2e2e7]">
                 {formatINR(
                   currentMonthSpending.teaSpend / monthPace.daysPassed,
                 )}
-                <span className="text-[10px] font-normal text-[#90929d]">
+                <span className="text-xs font-normal text-[#90929d]">
                   {" "}
-                  /day
+                  /d
                 </span>
               </div>
             </div>
@@ -571,29 +658,57 @@ export function BudgetView({
               return (
                 <div
                   key={cat.id}
-                  className="bg-[#111216] border border-[#1e2026] rounded-2xl p-3.5 space-y-2"
+                  className="bg-[#111216] border border-[#1e2026] hover:border-[#262830] transition-colors rounded-2xl p-4 space-y-3 shadow-sm"
                 >
+                  {/* Category Title - Big & Bold Header */}
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2.5">
                       <span
-                        className="w-2 h-2 rounded-full shrink-0"
+                        className="w-3 h-3 rounded-full shrink-0 shadow-sm"
                         style={{ backgroundColor: cat.color }}
                       />
-                      <span className="font-medium text-xs text-[#e2e2e7]">
+                      <h4 className="text-base sm:text-lg font-bold text-[#e2e2e7] tracking-tight m-0">
                         {cat.name}
-                      </span>
+                      </h4>
                     </div>
-                    <span className="font-mono text-xs text-[#90929d]">
-                      {formatINR(spent)} /{" "}
-                      {hasLimit ? formatINR(limit) : "No limit"}
-                    </span>
+
+                    {hasLimit && (
+                      <span
+                        className={`text-xs font-semibold font-mono px-2.5 py-0.5 rounded-full ${
+                          isOver
+                            ? "bg-[#2b1b1d] text-[#f2b8b5] border border-[#5c2429]"
+                            : pct > 80
+                              ? "bg-[#2a1f17] text-[#ffb787] border border-[#422e1e]"
+                              : "bg-[#15241b] text-[#a8dab5] border border-[#223a2b]"
+                        }`}
+                      >
+                        {pct}%
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Amounts - Big, immediate readable figures */}
+                  <div>
+                    <div className="text-[10px] uppercase tracking-wider font-semibold text-[#90929d]">
+                      Monthly Spent / Target Limit
+                    </div>
+                    <div className="mt-1 flex items-baseline gap-1.5 flex-wrap">
+                      <span className="font-mono text-xl sm:text-2xl font-extrabold text-[#e2e2e7]">
+                        {formatINR(spent)}
+                      </span>
+                      {hasLimit && (
+                        <span className="font-mono text-sm text-[#90929d]">
+                          / {formatINR(limit)}
+                        </span>
+                      )}
+                    </div>
                   </div>
 
                   {hasLimit ? (
-                    <>
-                      <div className="w-full bg-[#1a1c22] h-2 rounded-full overflow-hidden border border-[#262830]">
+                    <div className="space-y-1.5">
+                      <div className="w-full bg-[#16171c] h-2.5 rounded-full overflow-hidden border border-[#23252c]">
                         <div
-                          className={`h-full rounded-full transition-all ${
+                          className={`h-full rounded-full transition-all duration-300 ${
                             isOver
                               ? "bg-[#f2b8b5]"
                               : pct > 80
@@ -604,37 +719,33 @@ export function BudgetView({
                         />
                       </div>
 
-                      <div className="flex items-center justify-between text-[11px]">
-                        <span
-                          className={
-                            isOver ? "text-[#f2b8b5]" : "text-[#90929d]"
-                          }
-                        >
-                          {pct}% used
-                        </span>
+                      <div className="flex items-center justify-between text-xs pt-0.5">
                         {isOver ? (
-                          <span className="text-[#f2b8b5] flex items-center gap-1 font-medium">
-                            <AlertTriangle className="h-3 w-3" />
+                          <span className="text-[#f2b8b5] flex items-center gap-1 font-semibold">
+                            <AlertTriangle className="h-3.5 w-3.5" />
                             Over by {formatINR(spent - limit)}
                           </span>
                         ) : (
-                          <span className="text-[#a8dab5] flex items-center gap-1">
+                          <span className="text-[#a8dab5] font-medium flex items-center gap-1.5">
                             <span>{formatINR(remainingCat)} left</span>
-                            <span className="text-[#90929d] font-mono">
-                              (~{formatINR(catDailyAllowance)}/d)
+                            <span className="text-[#90929d] font-mono text-[11px]">
+                              (~{formatINR(catDailyAllowance)}/day allowance)
                             </span>
                           </span>
                         )}
+                        <span className="text-[11px] text-[#90929d]">
+                          {monthPace.daysLeft}d remaining
+                        </span>
                       </div>
-                    </>
+                    </div>
                   ) : (
-                    <div className="text-[10px] text-[#90929d] flex items-center justify-between pt-1">
+                    <div className="text-xs text-[#90929d] flex items-center justify-between pt-1 border-t border-[#1a1c22]">
                       <span>No monthly ceiling configured</span>
                       {onOpenSettings && (
                         <button
                           type="button"
                           onClick={onOpenSettings}
-                          className="text-[#a8c7fa] hover:underline"
+                          className="text-[#a8c7fa] hover:underline font-medium"
                         >
                           Set limit
                         </button>
@@ -651,7 +762,7 @@ export function BudgetView({
                           <Coffee className="h-3.5 w-3.5 text-[#ffb787]" />
                           <span>Tea subcategory:</span>
                         </span>
-                        <span className="font-mono font-semibold text-[#ffb787]">
+                        <span className="font-mono font-bold text-[#ffb787] text-sm">
                           {formatINR(currentMonthSpending.teaSpend)}
                         </span>
                       </div>
@@ -662,11 +773,11 @@ export function BudgetView({
         </div>
       </div>
 
-      {/* 4. Accounts & Credit Card Gauges */}
-      <div className="bg-[#16171c] border border-[#23252c] rounded-[28px] p-5 space-y-4">
+      {/* 4. Accounts & Credit Card Gauges (Redesigned Visual Hierarchy) */}
+      <div className="bg-[#16171c] border border-[#23252c] rounded-[28px] p-5 space-y-4 shadow-sm">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-sm font-semibold text-[#e2e2e7] m-0">
+            <h3 className="text-base font-bold text-[#e2e2e7] m-0">
               Accounts &amp; Credit Cards
             </h3>
             <p className="text-xs text-[#90929d] mt-0.5">
@@ -684,7 +795,7 @@ export function BudgetView({
           </button>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
           {accounts.map((acc) => {
             const isCC = acc.type === "credit_card";
             const limit = acc.creditLimit || 100000;
@@ -695,56 +806,69 @@ export function BudgetView({
             return (
               <div
                 key={acc.id}
-                className="bg-[#111216] border border-[#1e2026] rounded-2xl p-3.5 space-y-2 flex flex-col justify-between"
+                className="bg-[#111216] border border-[#1e2026] hover:border-[#262830] transition-colors rounded-2xl p-4 flex flex-col justify-between gap-3 shadow-sm"
               >
+                {/* 1. Account Title & Icon (Prominent Header) */}
                 <div className="flex items-start justify-between gap-2">
-                  <div className="flex items-center gap-2.5">
+                  <div className="flex items-center gap-3">
                     <div
-                      className="h-9 w-9 rounded-xl flex items-center justify-center shrink-0 border border-[#23252c]"
+                      className="h-10 w-10 rounded-xl flex items-center justify-center shrink-0 border border-[#23252c]"
                       style={{
-                        backgroundColor: `${acc.color}15`,
+                        backgroundColor: `${acc.color}18`,
                         color: acc.color,
                       }}
                     >
                       {getAccountIcon(acc.icon)}
                     </div>
                     <div>
-                      <div className="text-xs font-semibold text-[#e2e2e7] truncate max-w-[130px]">
+                      <h4 className="text-base sm:text-lg font-bold text-[#e2e2e7] tracking-tight m-0">
                         {acc.name}
-                      </div>
-                      <div className="text-[10px] text-[#90929d] capitalize">
+                      </h4>
+                      <div className="text-[11px] text-[#90929d] capitalize mt-0.5">
                         {acc.type.replace("_", " ")}
+                        {acc.accountNumber && (
+                          <span className="font-mono text-[#6c6e79] ml-1.5">
+                            {acc.accountNumber}
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>
-
-                  <span className="text-[10px] font-mono text-[#6c6e79]">
-                    {acc.accountNumber || ""}
-                  </span>
                 </div>
 
-                <div>
-                  <div className="text-[10px] text-[#90929d]">
-                    {isCC ? "Outstanding Liability" : "Available Balance"}
+                {/* 2. Amount - The BIGGEST immediate data to be understood */}
+                <div className="pt-1">
+                  <div className="text-[10px] uppercase tracking-wider font-semibold text-[#90929d]">
+                    {isCC ? "Outstanding CC Debt" : "Available Balance"}
                   </div>
                   <div
-                    className={`font-mono text-sm font-semibold mt-0.5 ${
-                      isCC ? "text-[#f2b8b5]" : "text-[#e2e2e7]"
+                    className={`font-mono text-2xl sm:text-3xl font-extrabold mt-1 tracking-tight ${
+                      isCC
+                        ? "text-[#f2b8b5]"
+                        : (acc.balance || 0) > 0
+                          ? "text-[#a8dab5]"
+                          : "text-[#e2e2e7]"
                     }`}
                   >
+                    {isCC ? "-" : ""}
                     {formatINR(acc.balance || 0)}
                   </div>
                 </div>
 
+                {/* 3. CC Limit Meter */}
                 {isCC && (
-                  <div className="space-y-1 pt-1 border-t border-[#1c1d22]">
-                    <div className="flex items-center justify-between text-[10px] text-[#90929d]">
-                      <span>Limit: {formatINR(limit)}</span>
-                      <span>{utilPct}% used</span>
+                  <div className="space-y-1.5 pt-2 border-t border-[#1c1d22]">
+                    <div className="flex items-center justify-between text-xs font-mono">
+                      <span className="text-[#c4c6cf]">Limit: {formatINR(limit)}</span>
+                      <span className={utilPct > 70 ? "text-[#f2b8b5] font-semibold" : "text-[#90929d]"}>
+                        {utilPct}% used
+                      </span>
                     </div>
-                    <div className="w-full bg-[#1a1c22] h-1.5 rounded-full overflow-hidden border border-[#262830]">
+                    <div className="w-full bg-[#16171c] h-2 rounded-full overflow-hidden border border-[#23252c]">
                       <div
-                        className="bg-[#f2b8b5] h-full rounded-full transition-all"
+                        className={`h-full rounded-full transition-all duration-300 ${
+                          utilPct > 70 ? "bg-[#f2b8b5]" : "bg-[#ffb787]"
+                        }`}
                         style={{ width: `${utilPct}%` }}
                       />
                     </div>

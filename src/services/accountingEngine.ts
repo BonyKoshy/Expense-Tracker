@@ -129,14 +129,30 @@ export function calculateAvailableToSpend(
     );
   };
 
+  const isDueInCurrentMonth = (comm: RecurringCommitment) => {
+    if (!comm.isActive || !comm.isReservedCommitment) return false;
+    // If start date is in a future month, do not reserve for current month
+    if (comm.startDate && comm.startDate.slice(0, 7) > currentMonthKey) {
+      return false;
+    }
+    // If end date has already passed before current month, do not reserve
+    if (comm.endDate && comm.endDate.slice(0, 7) < currentMonthKey) {
+      return false;
+    }
+    // If installments are exhausted
+    if (
+      comm.totalInstallments &&
+      comm.totalInstallments > 0 &&
+      comm.paidInstallments >= comm.totalInstallments
+    ) {
+      return false;
+    }
+    return !isAlreadyPaidThisMonth(comm.id);
+  };
+
   const totalReservedCommitments = roundMoney(
     recurringCommitments
-      .filter(
-        (comm) =>
-          comm.isActive &&
-          comm.isReservedCommitment &&
-          !isAlreadyPaidThisMonth(comm.id),
-      )
+      .filter(isDueInCurrentMonth)
       .reduce((sum, comm) => addMoney(sum, comm.amount || 0), 0),
   );
 
@@ -144,9 +160,7 @@ export function calculateAvailableToSpend(
     recurringCommitments
       .filter(
         (comm) =>
-          comm.isActive &&
-          comm.isReservedCommitment &&
-          !isAlreadyPaidThisMonth(comm.id) &&
+          isDueInCurrentMonth(comm) &&
           (comm.accountId === primaryBankAcc?.id ||
             (!comm.accountId && !primaryBankAcc?.id?.includes("credit")) ||
             (hdfcAcc && comm.accountId?.includes("hdfc"))),
@@ -183,10 +197,13 @@ export function calculateAvailableToSpend(
     subMoney(totalPayables, totalReceivables),
   );
 
-  // 9. Available to Spend: Primary Bank balance - CC Liability - Reserved commitments
+  // 9. Available to Spend: Primary Bank balance - CC Liability - Reserved commitments - Money owed to friends (Payables)
   const availableToSpend = subMoney(
-    subMoney(hdfcBalance, unbilledCCLiability),
-    hdfcReservedCommitments,
+    subMoney(
+      subMoney(hdfcBalance, unbilledCCLiability),
+      hdfcReservedCommitments,
+    ),
+    totalPayables,
   );
 
   // 10. Total Net Worth:
